@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Tycoon - Pixel Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 4px solid #0f3460;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            color: white;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat-group {
+            display: flex;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #0a66c2;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .player-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #0a66c2;
+        }
+
+        .player-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00d9ff;
+        }
+
+        .player-level {
+            font-size: 10px;
+            color: #ffd700;
+        }
+
+        #interaction-prompt {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #00ff88;
+            font-size: 14px;
+            display: none;
+            z-index: 1001;
+            animation: bounce 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        #notification {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 102, 194, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 1002;
+            animation: slideDown 0.3s ease-out;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff88;
+            font-size: 24px;
+            text-align: center;
+            z-index: 2000;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-overlay">
+            <div class="player-info">
+                <div class="player-name" id="player-name">Alex Developer</div>
+                <div class="player-level" id="player-title">Junior Software Engineer</div>
+            </div>
+            <div class="stat-group">
+                <div class="stat">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="level-display">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">⚡ Energy</span>
+                    <span class="stat-value" id="energy-display">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">💰 Coins</span>
+                    <span class="stat-value" id="coins-display">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">🤝 Network</span>
+                    <span class="stat-value" id="network-display">5</span>
+                </div>
+            </div>
+        </div>
+        <div id="interaction-prompt">Press E to interact</div>
+        <div id="notification"></div>
+        <div id="loading">
+            <div class="spinner"></div>
+            <div>Loading LinkedIn Tycoon...</div>
+        </div>
+    </div>
+
+    <!-- Phaser 3 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="pixel-game.js"></script>
+</body>
+</html>
+

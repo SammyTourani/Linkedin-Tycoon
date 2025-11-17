@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Tycoon - Build Your Professional Empire</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="logo">
+                <h1>🔷 LinkedIn Tycoon</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Level:</span>
+                    <span id="player-level">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⚡ Energy:</span>
+                    <span id="player-energy">100/100</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">💰 Coins:</span>
+                    <span id="player-coins">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="game-main">
+            <!-- Left Sidebar - Profile -->
+            <aside class="sidebar-left">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-picture" id="profile-picture">👤</div>
+                        <div class="profile-info">
+                            <h2 id="player-name">Alex Developer</h2>
+                            <p id="player-headline">Junior Software Engineer</p>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat-bar">
+                            <label>🤝 Networking</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="networking-bar" style="width: 20%"></div>
+                            </div>
+                            <span id="networking-value">20/100</span>
+                        </div>
+                        
+                        <div class="stat-bar">
+                            <label>💡 Skills</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="skills-bar" style="width: 15%"></div>
+                            </div>
+                            <span id="skills-value">15/100</span>
+                        </div>
+                        
+                        <div class="stat-bar">
+                            <label>⭐ Reputation</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="reputation-bar" style="width: 10%"></div>
+                            </div>
+                            <span id="reputation-value">10/100</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-metrics">
+                        <div class="metric">
+                            <span class="metric-value" id="connections-count">5</span>
+                            <span class="metric-label">Connections</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" id="followers-count">12</span>
+                            <span class="metric-label">Followers</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" id="posts-count">0</span>
+                            <span class="metric-label">Posts</span>
+                        </div>
+                    </div>
+
+                    <div class="badges" id="badges-container">
+                        <h3>Badges</h3>
+                        <div class="badge-list" id="badge-list">
+                            <span class="badge">🎓 Student</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="achievements-card">
+                    <h3>Recent Achievements</h3>
+                    <div id="recent-achievements"></div>
+                </div>
+            </aside>
+
+            <!-- Center Content -->
+            <main class="main-content">
+                <!-- Navigation Tabs -->
+                <nav class="content-tabs">
+                    <button class="tab-btn active" data-tab="feed">📰 Feed</button>
+                    <button class="tab-btn" data-tab="network">🤝 Network</button>
+                    <button class="tab-btn" data-tab="create">✍️ Create Post</button>
+                    <button class="tab-btn" data-tab="events">🎯 Events</button>
+                    <button class="tab-btn" data-tab="skills">📚 Skills</button>
+                </nav>
+
+                <!-- Tab Content -->
+                <div class="tab-content active" id="feed-tab">
+                    <div class="create-post-prompt">
+                        <button class="btn btn-primary" onclick="game.switchTab('create')">
+                            Start a post
+                        </button>
+                    </div>
+                    <div id="feed-posts"></div>
+                </div>
+
+                <div class="tab-content" id="network-tab">
+                    <div class="network-actions">
+                        <button class="btn btn-primary" onclick="game.findNewConnections()">
+                            🔍 Find New Connections (10 ⚡)
+                        </button>
+                        <button class="btn btn-secondary" onclick="game.autoConnect()">
+                            🤖 Auto-Connect (50 💰)
+                        </button>
+                    </div>
+
+                    <div class="pending-requests" id="pending-requests">
+                        <h3>Pending Connection Requests</h3>
+                        <div id="requests-list"></div>
+                    </div>
+
+                    <div class="connection-suggestions" id="connection-suggestions">
+                        <h3>People You May Know</h3>
+                        <div id="suggestions-list"></div>
+                    </div>
+
+                    <div class="my-connections">
+                        <h3>Your Connections (<span id="connection-total">5</span>)</h3>
+                        <div id="connections-list"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="create-tab">
+                    <div class="post-creator">
+                        <h2>Create a Post</h2>
+                        
+                        <div class="post-type-selector">
+                            <label>Post Type:</label>
+                            <select id="post-type">
+                                <option value="update">Status Update</option>
+                                <option value="article">Article</option>
+                                <option value="video">Video</option>
+                                <option value="poll">Poll</option>
+                            </select>
+                        </div>
+
+                        <textarea id="post-content" placeholder="What do you want to talk about?" rows="6"></textarea>
+                        
+                        <div class="post-options">
+                            <button class="btn btn-secondary" onclick="game.generatePostIdea()">
+                                💡 Generate Idea
+                            </button>
+                            <button class="btn btn-secondary" onclick="game.suggestHashtags()">
+                                # Add Hashtags
+                            </button>
+                        </div>
+
+                        <div class="post-cost">
+                            <span>Energy Cost: 15 ⚡</span>
+                        </div>
+
+                        <button class="btn btn-primary btn-large" onclick="game.publishPost()">
+                            📤 Publish Post
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="events-tab">
+                    <div class="events-header">
+                        <h2>Virtual Events & Challenges</h2>
+                        <button class="btn btn-primary" onclick="game.refreshEvents()">
+                            🔄 Refresh Events
+                        </button>
+                    </div>
+
+                    <div id="active-events"></div>
+                    <div id="completed-challenges">
+                        <h3>Completed Challenges</h3>
+                        <div id="challenges-list"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="skills-tab">
+                    <div class="skills-header">
+                        <h2>Skill Development</h2>
+                        <p>Invest in your professional growth</p>
+                    </div>
+
+                    <div class="skill-categories">
+                        <div class="skill-category">
+                            <h3>💻 Technical Skills</h3>
+                            <div id="technical-skills"></div>
+                        </div>
+
+                        <div class="skill-category">
+                            <h3>🗣️ Soft Skills</h3>
+                            <div id="soft-skills"></div>
+                        </div>
+
+                        <div class="skill-category">
+                            <h3>📈 Marketing Skills</h3>
+                            <div id="marketing-skills"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="sidebar-right">
+                <div class="leaderboard-card">
+                    <h3>🏆 Top Networkers</h3>
+                    <div id="leaderboard"></div>
+                </div>
+
+                <div class="notifications-card">
+                    <h3>🔔 Notifications</h3>
+                    <div id="notifications"></div>
+                </div>
+
+                <div class="shop-card">
+                    <h3>💼 Career Shop</h3>
+                    <div class="shop-items" id="shop-items"></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay" onclick="game.closeModal()"></div>
+    
+    <div id="connection-modal" class="modal">
+        <div class="modal-content">
+            <h2>Send Connection Request</h2>
+            <div id="connection-person-info"></div>
+            <textarea id="connection-message" rows="4" placeholder="Add a personal note..."></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="game.closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="game.sendConnectionRequest()">Send Request (10 ⚡)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="event-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="event-modal-title"></h2>
+            <div id="event-modal-body"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="game.closeModal()">Close</button>
+                <button class="btn btn-primary" id="event-action-btn"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
+
