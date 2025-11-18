@@ -3967,6 +3967,15 @@ class HomeScene extends Phaser.Scene {
     constructor() {
         super({ key: 'HomeScene' });
     }
+    
+    init() {
+        // CRITICAL: Reset all scene state on init (called before create)
+        this.playerReady = false;
+        this.interactables = null;
+        this.obstacles = null;
+        this.walls = null;
+        this.player = null;
+    }
 
     create() {
         // Fade in from black
@@ -3993,13 +4002,24 @@ class HomeScene extends Phaser.Scene {
             }
         }
 
+        // Determine spawn position based on where player came from BEFORE changing location
+        let spawnX = 320;
+        let spawnY = 240; // Default center position
+        
+        // If coming from city, spawn near the door (bottom of room)
+        if (gameState.data.location === 'city') {
+            spawnX = 320;
+            spawnY = 420; // Near the bottom door
+        }
+        
+        // NOW set location to home
         gameState.data.location = 'home';
 
         // Create room first
         this.createRoom();
-
-        // Create player sprite immediately (no delays needed now)
-        this.player = this.physics.add.sprite(320, 240, 'player');
+        
+        // Create player sprite at appropriate position
+        this.player = this.physics.add.sprite(spawnX, spawnY, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
 
@@ -4014,10 +4034,9 @@ class HomeScene extends Phaser.Scene {
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
         
-        // Create interactive objects (if not already created)
-        if (!this.interactables) {
-            this.createInteractiveObjects();
-        }
+        // ALWAYS create interactive objects when scene is created
+        // This ensures the apartment is fully furnished every time
+        this.createInteractiveObjects();
         
         // Mark player as ready - now update() can run safely
         this.playerReady = true;
@@ -4315,6 +4334,11 @@ class HomeScene extends Phaser.Scene {
     }
 
     checkInteractions() {
+        // Safety check - ensure interactables exists and is initialized
+        if (!this.interactables || !this.interactables.children || !this.interactables.children.entries) {
+            return;
+        }
+        
         let nearestObject = null;
         let minDistance = Infinity;
 
