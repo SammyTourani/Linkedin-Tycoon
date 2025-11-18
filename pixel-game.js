@@ -156,16 +156,49 @@ class DialogueManager {
 
 class QuestManager {
     constructor() {
-        this.quests = [
-            { id: 1, title: "Create your first post", completed: false, reward: { xp: 25, coins: 50 } },
-            { id: 2, title: "Make 3 connections", completed: false, reward: { xp: 50, coins: 100 } },
-            { id: 3, title: "Attend a virtual event", completed: false, reward: { xp: 75, coins: 150 } },
-            { id: 4, title: "Reach 100 followers", completed: false, reward: { xp: 100, coins: 200 } },
-            { id: 5, title: "Create a viral post (80+ likes)", completed: false, reward: { xp: 150, coins: 300 } },
-            { id: 6, title: "Reach Level 5", completed: false, reward: { xp: 200, coins: 500 } },
-            { id: 7, title: "Make 10 connections", completed: false, reward: { xp: 100, coins: 250 } },
-            { id: 8, title: "Learn 3 new skills", completed: false, reward: { xp: 150, coins: 300 } }
+        this.mainQuests = [
+            { id: 1, title: "Create your first post", completed: false, reward: { xp: 25, coins: 50 }, type: 'main' },
+            { id: 2, title: "Make 3 connections", completed: false, reward: { xp: 50, coins: 100 }, type: 'main' },
+            { id: 3, title: "Attend a virtual event", completed: false, reward: { xp: 75, coins: 150 }, type: 'main' },
+            { id: 4, title: "Reach 100 followers", completed: false, reward: { xp: 100, coins: 200 }, type: 'main' },
+            { id: 5, title: "Create a viral post (80+ likes)", completed: false, reward: { xp: 150, coins: 300 }, type: 'main' },
+            { id: 6, title: "Reach Level 5", completed: false, reward: { xp: 200, coins: 500 }, type: 'main' },
+            { id: 7, title: "Make 10 connections", completed: false, reward: { xp: 100, coins: 250 }, type: 'main' },
+            { id: 8, title: "Learn 3 new skills", completed: false, reward: { xp: 150, coins: 300 }, type: 'main' }
         ];
+        
+        this.sideQuests = [
+            { id: 101, title: "Visit the gym", completed: false, reward: { xp: 30, coins: 60 }, type: 'side' },
+            { id: 102, title: "Buy coffee from the shop", completed: false, reward: { xp: 20, coins: 40 }, type: 'side' },
+            { id: 103, title: "Read a book at the library", completed: false, reward: { xp: 40, coins: 80 }, type: 'side' },
+            { id: 104, title: "Enroll in a university course", completed: false, reward: { xp: 60, coins: 120 }, type: 'side' },
+            { id: 105, title: "Find and collect 3 items", completed: false, reward: { xp: 50, coins: 100 }, type: 'side' },
+            { id: 106, title: "Equip a laptop", completed: false, reward: { xp: 40, coins: 80 }, type: 'side' },
+            { id: 107, title: "Get hired at a company", completed: false, reward: { xp: 100, coins: 200 }, type: 'side' },
+            { id: 108, title: "Upgrade your apartment once", completed: false, reward: { xp: 75, coins: 150 }, type: 'side' },
+            { id: 109, title: "Complete a skill minigame", completed: false, reward: { xp: 50, coins: 100 }, type: 'side' },
+            { id: 110, title: "Win the memory game", completed: false, reward: { xp: 60, coins: 120 }, type: 'side' },
+            { id: 111, title: "Score perfect on quiz", completed: false, reward: { xp: 80, coins: 160 }, type: 'side' },
+            { id: 112, title: "Complete a hackathon", completed: false, reward: { xp: 100, coins: 200 }, type: 'side' },
+            { id: 113, title: "Visit all 5 unique NPCs", completed: false, reward: { xp: 80, coins: 160 }, type: 'side' },
+            { id: 114, title: "Sleep 10 times", completed: false, reward: { xp: 40, coins: 80 }, type: 'side' },
+            { id: 115, title: "Explore the park", completed: false, reward: { xp: 30, coins: 60 }, type: 'side' },
+            { id: 116, title: "Eat at the restaurant", completed: false, reward: { xp: 30, coins: 60 }, type: 'side' },
+            { id: 117, title: "Work at co-working space", completed: false, reward: { xp: 50, coins: 100 }, type: 'side' },
+            { id: 118, title: "Find a mentor", completed: false, reward: { xp: 90, coins: 180 }, type: 'side' },
+            { id: 119, title: "Make a social connection", completed: false, reward: { xp: 60, coins: 120 }, type: 'side' },
+            { id: 120, title: "Give a presentation", completed: false, reward: { xp: 70, coins: 140 }, type: 'side' },
+            { id: 121, title: "Check your emails", completed: false, reward: { xp: 30, coins: 60 }, type: 'side' },
+            { id: 122, title: "Buy an item from the shop", completed: false, reward: { xp: 40, coins: 80 }, type: 'side' },
+            { id: 123, title: "Customize your character", completed: false, reward: { xp: 30, coins: 60 }, type: 'side' },
+            { id: 124, title: "Open the inventory", completed: false, reward: { xp: 20, coins: 40 }, type: 'side' },
+            { id: 125, title: "Earn 500 coins total", completed: false, reward: { xp: 60, coins: 120 }, type: 'side' },
+            { id: 126, title: "Reach 50 skill points", completed: false, reward: { xp: 70, coins: 140 }, type: 'side' },
+            { id: 127, title: "Build a 20+ connection network", completed: false, reward: { xp: 90, coins: 180 }, type: 'side' },
+            { id: 128, title: "Post 5 times in one session", completed: false, reward: { xp: 80, coins: 160 }, type: 'side' }
+        ];
+        
+        this.quests = [...this.mainQuests, ...this.sideQuests];
         this.updateDisplay();
     }
 
@@ -184,29 +217,42 @@ class QuestManager {
     updateDisplay() {
         const tracker = document.getElementById('quest-tracker');
         const list = document.getElementById('quest-list');
-        const activeQuests = this.quests.filter(q => !q.completed);
+        const mainQuests = this.mainQuests.filter(q => !q.completed);
         
-        if (activeQuests.length > 0) {
+        if (mainQuests.length > 0) {
             tracker.style.display = 'block';
-            list.innerHTML = activeQuests.slice(0, 3).map(q => 
+            list.innerHTML = mainQuests.slice(0, 3).map(q => 
                 `<div class="quest-item">${q.title}</div>`
             ).join('');
+        } else {
+            const sideQuests = this.sideQuests.filter(q => !q.completed);
+            if (sideQuests.length > 0) {
+                list.innerHTML = '<div style="color: #00d9ff; font-size: 11px; margin-bottom: 5px;">Side Quests:</div>' +
+                    sideQuests.slice(0, 3).map(q => 
+                        `<div class="quest-item" style="font-size: 11px;">${q.title}</div>`
+                    ).join('');
+            }
         }
     }
 
     checkAllQuests(gameData) {
-        // Check post quest
-        if (gameData.player.postsCount >= 1) this.checkQuest(1);
+        const p = gameData.player;
         
-        // Check connection quests
-        if (gameData.player.connections >= 3) this.checkQuest(2);
-        if (gameData.player.connections >= 10) this.checkQuest(7);
+        // Main quests
+        if (p.postsCount >= 1) this.checkQuest(1);
+        if (p.connections >= 3) this.checkQuest(2);
+        if (p.connections >= 10) this.checkQuest(7);
+        if (p.followers >= 100) this.checkQuest(4);
+        if (p.level >= 5) this.checkQuest(6);
         
-        // Check follower quest
-        if (gameData.player.followers >= 100) this.checkQuest(4);
-        
-        // Check level quest
-        if (gameData.player.level >= 5) this.checkQuest(6);
+        // Side quests
+        if (p.inventory.length >= 3) this.checkQuest(105);
+        if (p.equipment.laptop) this.checkQuest(106);
+        if (p.job) this.checkQuest(107);
+        if (p.apartmentLevel > 1) this.checkQuest(108);
+        if (p.coins >= 500) this.checkQuest(125);
+        if (p.skills >= 50) this.checkQuest(126);
+        if (p.connections >= 20) this.checkQuest(127);
     }
 }
 
@@ -355,11 +401,229 @@ class ItemManager {
     }
 }
 
+// Massive Achievement System
+class AchievementManager {
+    constructor() {
+        this.achievements = {
+            // Tutorial & Starter (5)
+            'first_post': { name: 'First Post', desc: 'Created your first LinkedIn post', icon: '✍️', reward: { xp: 25, coins: 50 } },
+            'first_connection': { name: 'First Connection', desc: 'Made your first professional connection', icon: '🤝', reward: { xp: 25, coins: 50 } },
+            'tutorial_complete': { name: 'Getting Started', desc: 'Completed the tutorial', icon: '🎓', reward: { xp: 50, coins: 100 } },
+            'first_job': { name: 'Employed', desc: 'Got your first job', icon: '💼', reward: { xp: 100, coins: 200 } },
+            'first_item': { name: 'Collector', desc: 'Found your first item', icon: '🎒', reward: { xp: 25, coins: 50 } },
+            
+            // Connections (10)
+            'connections_10': { name: 'Networker', desc: 'Reach 10 connections', icon: '🤝', reward: { xp: 50, coins: 100 } },
+            'connections_25': { name: 'Connected', desc: 'Reach 25 connections', icon: '🌟', reward: { xp: 100, coins: 200 } },
+            'connections_50': { name: 'Super Connector', desc: 'Reach 50 connections', icon: '💫', reward: { xp: 200, coins: 400 } },
+            'connections_100': { name: 'Network Master', desc: 'Reach 100 connections', icon: '👑', reward: { xp: 500, coins: 1000 } },
+            'connections_250': { name: 'Networking Legend', desc: 'Reach 250 connections', icon: '🏆', reward: { xp: 1000, coins: 2500 } },
+            'connections_500': { name: 'Network Titan', desc: 'Reach 500 connections', icon: '⚡', reward: { xp: 2500, coins: 5000 } },
+            'connections_1000': { name: 'Connection Guru', desc: 'Reach 1000 connections', icon: '🎯', reward: { xp: 5000, coins: 10000 } },
+            'influencer_network': { name: 'Influencer Network', desc: 'Build a network of influencers', icon: '✨', reward: { xp: 300, coins: 600 } },
+            'diverse_network': { name: 'Diverse Network', desc: 'Connect with all 5 unique NPCs', icon: '🌍', reward: { xp: 150, coins: 300 } },
+            'rapid_networker': { name: 'Rapid Networker', desc: 'Make 10 connections in one day', icon: '⚡', reward: { xp: 200, coins: 400 } },
+            
+            // Posts & Content (10)
+            'posts_10': { name: 'Content Creator', desc: 'Publish 10 posts', icon: '✍️', reward: { xp: 75, coins: 150 } },
+            'posts_25': { name: 'Regular Poster', desc: 'Publish 25 posts', icon: '📝', reward: { xp: 150, coins: 300 } },
+            'posts_50': { name: 'Prolific Writer', desc: 'Publish 50 posts', icon: '📚', reward: { xp: 300, coins: 600 } },
+            'posts_100': { name: 'Content Machine', desc: 'Publish 100 posts', icon: '🔥', reward: { xp: 750, coins: 1500 } },
+            'viral_post': { name: 'Viral Sensation', desc: 'Create a viral post (100+ likes)', icon: '🌟', reward: { xp: 250, coins: 500 } },
+            'viral_5': { name: 'Viral Expert', desc: 'Create 5 viral posts', icon: '💥', reward: { xp: 500, coins: 1000 } },
+            'daily_poster': { name: 'Daily Grind', desc: 'Post every day for 7 days', icon: '📅', reward: { xp: 200, coins: 400 } },
+            'engagement_king': { name: 'Engagement King', desc: 'Get 1000 total likes', icon: '👍', reward: { xp: 300, coins: 600 } },
+            'hashtag_master': { name: 'Hashtag Master', desc: 'Use 100 hashtags total', icon: '#️⃣', reward: { xp: 100, coins: 200 } },
+            'thought_leader': { name: 'Thought Leader', desc: 'Reach 500 followers', icon: '🎤', reward: { xp: 400, coins: 800 } },
+            
+            // Levels (10)
+            'level_5': { name: 'Rising Professional', desc: 'Reach level 5', icon: '⬆️', reward: { xp: 100, coins: 200 } },
+            'level_10': { name: 'Experienced Pro', desc: 'Reach level 10', icon: '📈', reward: { xp: 250, coins: 500 } },
+            'level_15': { name: 'Senior Professional', desc: 'Reach level 15', icon: '🎯', reward: { xp: 500, coins: 1000 } },
+            'level_20': { name: 'Expert', desc: 'Reach level 20', icon: '💎', reward: { xp: 1000, coins: 2000 } },
+            'level_30': { name: 'Master', desc: 'Reach level 30', icon: '👑', reward: { xp: 2500, coins: 5000 } },
+            'level_40': { name: 'Legend', desc: 'Reach level 40', icon: '⚡', reward: { xp: 5000, coins: 10000 } },
+            'level_50': { name: 'Tech Titan', desc: 'Reach level 50', icon: '🌟', reward: { xp: 10000, coins: 25000 } },
+            'max_level': { name: 'The GOAT', desc: 'Reach maximum level', icon: '🐐', reward: { xp: 25000, coins: 50000 } },
+            'fast_leveler': { name: 'Speed Demon', desc: 'Reach level 10 in under 1 hour', icon: '⚡', reward: { xp: 500, coins: 1000 } },
+            'grinder': { name: 'Grinder', desc: 'Gain 10,000 total XP', icon: '💪', reward: { xp: 500, coins: 1000 } },
+            
+            // Skills (8)
+            'skill_50': { name: 'Skilled', desc: 'Reach 50 skill points', icon: '📚', reward: { xp: 100, coins: 200 } },
+            'skill_100': { name: 'Expert Skills', desc: 'Reach 100 skill points', icon: '🎓', reward: { xp: 250, coins: 500 } },
+            'skill_200': { name: 'Mastery', desc: 'Reach 200 skill points', icon: '⭐', reward: { xp: 600, coins: 1200 } },
+            'all_skills_5': { name: 'Well Rounded', desc: 'Get all 6 skills to level 5', icon: '🎯', reward: { xp: 400, coins: 800 } },
+            'skill_master': { name: 'Skill Master', desc: 'Max out one skill tree', icon: '🏆', reward: { xp: 1000, coins: 2000 } },
+            'lifelong_learner': { name: 'Lifelong Learner', desc: 'Complete 10 courses', icon: '📖', reward: { xp: 300, coins: 600 } },
+            'certified': { name: 'Certified Pro', desc: 'Earn 5 certifications', icon: '📜', reward: { xp: 400, coins: 800 } },
+            'mentor_graduate': { name: 'Mentored', desc: 'Complete mentorship program', icon: '🎓', reward: { xp: 500, coins: 1000 } },
+            
+            // Wealth (8)
+            'rich_100': { name: 'Hundred Club', desc: 'Earn 100 coins', icon: '💰', reward: { xp: 50, coins: 50 } },
+            'rich_1000': { name: 'Thousand Club', desc: 'Earn 1,000 coins', icon: '💵', reward: { xp: 150, coins: 200 } },
+            'rich_5000': { name: 'Five Grand', desc: 'Earn 5,000 coins', icon: '💸', reward: { xp: 400, coins: 500 } },
+            'rich_10000': { name: 'Ten Thousand', desc: 'Earn 10,000 coins', icon: '💎', reward: { xp: 1000, coins: 1000 } },
+            'millionaire': { name: 'Millionaire', desc: 'Earn 1,000,000 coins', icon: '👑', reward: { xp: 10000, coins: 10000 } },
+            'big_spender': { name: 'Big Spender', desc: 'Spend 5,000 coins', icon: '💳', reward: { xp: 200, coins: 300 } },
+            'investor': { name: 'Investor', desc: 'Upgrade apartment to max', icon: '🏠', reward: { xp: 500, coins: 1000 } },
+            'shopaholic': { name: 'Shopaholic', desc: 'Buy 20 items from shop', icon: '🛍️', reward: { xp: 300, coins: 600 } },
+            
+            // Events & Activities (12)
+            'event_attended': { name: 'First Event', desc: 'Attend your first event', icon: '🎯', reward: { xp: 50, coins: 100 } },
+            'event_10': { name: 'Event Regular', desc: 'Attend 10 events', icon: '🎪', reward: { xp: 200, coins: 400 } },
+            'event_50': { name: 'Event Master', desc: 'Attend 50 events', icon: '🏆', reward: { xp: 1000, coins: 2000 } },
+            'gym_rat': { name: 'Gym Rat', desc: 'Visit gym 20 times', icon: '💪', reward: { xp: 200, coins: 400 } },
+            'coffee_addict': { name: 'Coffee Addict', desc: 'Buy 50 coffees', icon: '☕', reward: { xp: 150, coins: 300 } },
+            'bookworm': { name: 'Bookworm', desc: 'Read 15 books', icon: '📚', reward: { xp: 300, coins: 600 } },
+            'party_animal': { name: 'Social Butterfly', desc: 'Attend all social events', icon: '🎉', reward: { xp: 400, coins: 800 } },
+            'hackathon_winner': { name: 'Hackathon Champion', desc: 'Win a hackathon', icon: '💻', reward: { xp: 300, coins: 600 } },
+            'perfect_interview': { name: 'Interview Ace', desc: 'Get 3/3 in job interview', icon: '💼', reward: { xp: 250, coins: 500 } },
+            'presentation_pro': { name: 'Presenter', desc: 'Give 10 presentations', icon: '📊', reward: { xp: 300, coins: 600 } },
+            'world_traveler': { name: 'Explorer', desc: 'Visit all 15 locations', icon: '🗺️', reward: { xp: 500, coins: 1000 } },
+            'regular_customer': { name: 'Regular', desc: 'Visit coffee shop 30 times', icon: '☕', reward: { xp: 200, coins: 400 } },
+            
+            // Minigames (8)
+            'typing_master': { name: 'Typing Master', desc: 'Complete typing game in under 5 seconds', icon: '⌨️', reward: { xp: 200, coins: 400 } },
+            'memory_genius': { name: 'Memory Genius', desc: 'Complete memory game in under 20 moves', icon: '🧠', reward: { xp: 250, coins: 500 } },
+            'lightning_reflexes': { name: 'Lightning Reflexes', desc: 'Average under 300ms in reaction test', icon: '⚡', reward: { xp: 300, coins: 600 } },
+            'quiz_genius': { name: 'Quiz Genius', desc: 'Get perfect score on tech quiz', icon: '🎯', reward: { xp: 200, coins: 400 } },
+            'mini_game_master': { name: 'Minigame Master', desc: 'Complete all 4 minigames', icon: '🎮', reward: { xp: 500, coins: 1000 } },
+            'speedrunner': { name: 'Speedrunner', desc: 'Complete minigame in record time', icon: '⏱️', reward: { xp: 300, coins: 600 } },
+            'perfect_streak': { name: 'Perfect Streak', desc: 'Win 5 minigames in a row', icon: '🔥', reward: { xp: 400, coins: 800 } },
+            'game_addict': { name: 'Game Addict', desc: 'Play 50 minigames', icon: '🎮', reward: { xp: 600, coins: 1200 } },
+            
+            // Reputation (6)
+            'reputation_50': { name: 'Respected', desc: 'Reach 50 reputation', icon: '⭐', reward: { xp: 100, coins: 200 } },
+            'reputation_100': { name: 'Well Known', desc: 'Reach 100 reputation', icon: '🌟', reward: { xp: 250, coins: 500 } },
+            'reputation_250': { name: 'Influential', desc: 'Reach 250 reputation', icon: '💫', reward: { xp: 600, coins: 1200 } },
+            'reputation_500': { name: 'Industry Icon', desc: 'Reach 500 reputation', icon: '👑', reward: { xp: 1500, coins: 3000 } },
+            'reputation_1000': { name: 'Living Legend', desc: 'Reach 1000 reputation', icon: '🏆', reward: { xp: 5000, coins: 10000 } },
+            'reputation_max': { name: 'Legendary Status', desc: 'Max out reputation', icon: '💎', reward: { xp: 10000, coins: 25000 } },
+            
+            // Followers (6)
+            'followers_50': { name: '50 Followers', desc: 'Reach 50 followers', icon: '👥', reward: { xp: 75, coins: 150 } },
+            'followers_100': { name: 'Hundred Club', desc: 'Reach 100 followers', icon: '📢', reward: { xp: 150, coins: 300 } },
+            'followers_500': { name: 'Micro Influencer', desc: 'Reach 500 followers', icon: '🎙️', reward: { xp: 400, coins: 800 } },
+            'followers_1000': { name: 'Influencer', desc: 'Reach 1,000 followers', icon: '⭐', reward: { xp: 1000, coins: 2000 } },
+            'followers_5000': { name: 'Major Influencer', desc: 'Reach 5,000 followers', icon: '🌟', reward: { xp: 3000, coins: 6000 } },
+            'followers_10000': { name: 'Mega Influencer', desc: 'Reach 10,000 followers', icon: '👑', reward: { xp: 10000, coins: 20000 } },
+            
+            // Special Activities (15)
+            'early_bird': { name: 'Early Bird', desc: 'Log in during morning time', icon: '🌅', reward: { xp: 50, coins: 100 } },
+            'night_owl': { name: 'Night Owl', desc: 'Log in during night time', icon: '🌙', reward: { xp: 50, coins: 100 } },
+            'weather_proof': { name: 'All Weather', desc: 'Play in all 3 weather conditions', icon: '🌦️', reward: { xp: 100, coins: 200 } },
+            'time_traveler': { name: 'Time Traveler', desc: 'Experience all 4 times of day', icon: '🕐', reward: { xp: 100, coins: 200 } },
+            'item_collector': { name: 'Item Collector', desc: 'Collect 20 items', icon: '🎒', reward: { xp: 300, coins: 600 } },
+            'full_inventory': { name: 'Pack Rat', desc: 'Fill inventory to capacity', icon: '📦', reward: { xp: 200, coins: 400 } },
+            'fully_equipped': { name: 'Fully Equipped', desc: 'Equip item in all 4 slots', icon: '⚔️', reward: { xp: 250, coins: 500 } },
+            'luxury_life': { name: 'Living in Luxury', desc: 'Own all premium items', icon: '💎', reward: { xp: 1000, coins: 2000 } },
+            'quest_master': { name: 'Quest Master', desc: 'Complete all 8 quests', icon: '✅', reward: { xp: 1000, coins: 2000 } },
+            'achievement_hunter': { name: 'Achievement Hunter', desc: 'Unlock 25 achievements', icon: '🏅', reward: { xp: 500, coins: 1000 } },
+            'completionist': { name: 'Completionist', desc: 'Unlock all achievements', icon: '💯', reward: { xp: 10000, coins: 25000 } },
+            'social_master': { name: 'Social Master', desc: 'Max out all social stats', icon: '🎭', reward: { xp: 2000, coins: 4000 } },
+            'workaholic': { name: 'Workaholic', desc: 'Work 100 hours', icon: '⏰', reward: { xp: 600, coins: 1200 } },
+            'dedication': { name: 'Dedicated', desc: 'Play for 5 hours total', icon: '⏱️', reward: { xp: 300, coins: 600 } },
+            'marathon_player': { name: 'Marathon Player', desc: 'Play for 10 hours total', icon: '🏃', reward: { xp: 1000, coins: 2000 } }
+        };
+        
+        this.unlocked = new Set();
+    }
+    
+    check(achievementId, condition) {
+        if (this.unlocked.has(achievementId)) return;
+        
+        if (condition) {
+            this.unlock(achievementId);
+        }
+    }
+    
+    unlock(achievementId) {
+        if (this.unlocked.has(achievementId)) return;
+        
+        const achievement = this.achievements[achievementId];
+        if (!achievement) return;
+        
+        this.unlocked.add(achievementId);
+        
+        // Apply rewards
+        if (achievement.reward.xp) gameState.gainXP(achievement.reward.xp);
+        if (achievement.reward.coins) gameState.data.player.coins += achievement.reward.coins;
+        
+        showAchievement(`${achievement.icon} ${achievement.name}`);
+        showNotification(`🏆 Achievement: ${achievement.name}!`);
+        updateUI();
+        gameState.saveGame();
+    }
+    
+    checkAll() {
+        const p = gameState.data.player;
+        
+        // Connection achievements
+        this.check('connections_10', p.connections >= 10);
+        this.check('connections_25', p.connections >= 25);
+        this.check('connections_50', p.connections >= 50);
+        this.check('connections_100', p.connections >= 100);
+        this.check('connections_250', p.connections >= 250);
+        this.check('connections_500', p.connections >= 500);
+        this.check('connections_1000', p.connections >= 1000);
+        
+        // Post achievements
+        this.check('posts_10', p.postsCount >= 10);
+        this.check('posts_25', p.postsCount >= 25);
+        this.check('posts_50', p.postsCount >= 50);
+        this.check('posts_100', p.postsCount >= 100);
+        
+        // Level achievements
+        this.check('level_5', p.level >= 5);
+        this.check('level_10', p.level >= 10);
+        this.check('level_15', p.level >= 15);
+        this.check('level_20', p.level >= 20);
+        this.check('level_30', p.level >= 30);
+        this.check('level_40', p.level >= 40);
+        this.check('level_50', p.level >= 50);
+        
+        // Skill achievements
+        this.check('skill_50', p.skills >= 50);
+        this.check('skill_100', p.skills >= 100);
+        this.check('skill_200', p.skills >= 200);
+        
+        // Reputation achievements
+        this.check('reputation_50', p.reputation >= 50);
+        this.check('reputation_100', p.reputation >= 100);
+        this.check('reputation_250', p.reputation >= 250);
+        this.check('reputation_500', p.reputation >= 500);
+        this.check('reputation_1000', p.reputation >= 1000);
+        
+        // Follower achievements
+        this.check('followers_50', p.followers >= 50);
+        this.check('followers_100', p.followers >= 100);
+        this.check('followers_500', p.followers >= 500);
+        this.check('followers_1000', p.followers >= 1000);
+        this.check('followers_5000', p.followers >= 5000);
+        this.check('followers_10000', p.followers >= 10000);
+        
+        // Wealth achievements
+        this.check('rich_100', p.coins >= 100);
+        this.check('rich_1000', p.coins >= 1000);
+        this.check('rich_5000', p.coins >= 5000);
+        this.check('rich_10000', p.coins >= 10000);
+        
+        // Special achievements
+        this.check('first_post', p.postsCount >= 1);
+        this.check('first_connection', p.connections >= 1);
+        this.check('first_job', p.job !== null);
+        this.check('fully_equipped', 
+            p.equipment.laptop && p.equipment.phone && p.equipment.briefcase && p.equipment.outfit !== 'default'
+        );
+    }
+}
+
 // Global managers
 const storyManager = new StoryManager();
 const dialogueManager = new DialogueManager();
 const questManager = new QuestManager();
 const itemManager = new ItemManager();
+const achievementManager = new AchievementManager();
 
 // Game State Manager
 class GameState {
@@ -2675,8 +2939,9 @@ class CityScene extends Phaser.Scene {
                 this.createParticleEffect(this.player.x, this.player.y, '🤝');
                 this.cameras.main.flash(100, 0, 200, 0, false, null, 0.2);
                 
-                // Check quests
+                // Check quests and achievements
                 questManager.checkAllQuests(gameState.data);
+                achievementManager.checkAll();
             } else {
                 showNotification(`❌ ${name} didn't respond`);
             }
@@ -5116,9 +5381,10 @@ class ComputerMenuScene extends Phaser.Scene {
         this.createButton(width/2, 320, '⚡ Reaction Test', () => this.startReactionGame());
         this.createButton(width/2, 365, '❓ Tech Quiz', () => this.startQuizGame());
         this.createButton(width/2, 410, '🌳 View Skill Tree', () => this.showSkillTree());
-        this.createButton(width/2, 455, '🏠 Upgrade Apartment', () => this.upgradeApartment());
-        this.createButton(width/2, 500, '⚙️ Customize', () => this.customize());
-        this.createButton(width/2, 545, '❌ Close', () => this.closeMenu());
+        this.createButton(width/2, 455, '📊 Stats Dashboard', () => this.showStats());
+        this.createButton(width/2, 500, '🏠 Upgrade Apartment', () => this.upgradeApartment());
+        this.createButton(width/2, 545, '⚙️ Customize', () => this.customize());
+        this.createButton(width/2, 590, '❌ Close', () => this.closeMenu());
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
@@ -5168,8 +5434,9 @@ class ComputerMenuScene extends Phaser.Scene {
                 this.cameras.main.flash(200, 10, 102, 194, false, null, 0.3);
             }
             
-            // Check quests
+            // Check quests and achievements
             questManager.checkAllQuests(gameState.data);
+            achievementManager.checkAll();
             
             // Story progression
             if (gameState.data.player.postsCount === 1) {
@@ -5266,12 +5533,18 @@ class ComputerMenuScene extends Phaser.Scene {
         });
     }
     
+    showStats() {
+        this.closeMenu();
+        this.scene.launch('StatsDashboardScene');
+    }
+    
     upgradeApartment() {
         const currentLevel = gameState.data.player.apartmentLevel;
         const upgradeCost = currentLevel * 500;
         
         if (currentLevel >= 5) {
             showNotification('🏠 Apartment is fully upgraded!');
+            achievementManager.check('investor', currentLevel >= 5);
             return;
         }
         
@@ -5285,6 +5558,8 @@ class ComputerMenuScene extends Phaser.Scene {
             showNotification(`🏠 Apartment upgraded to Level ${gameState.data.player.apartmentLevel}! +20 max energy`);
             showAchievement(`Apartment Level ${gameState.data.player.apartmentLevel}`);
             this.cameras.main.flash(500, 0, 200, 255, false, null, 0.4);
+            questManager.checkQuest(108);
+            achievementManager.checkAll();
             updateUI();
             this.closeMenu();
         } else {
@@ -5295,6 +5570,276 @@ class ComputerMenuScene extends Phaser.Scene {
     closeMenu() {
         this.scene.stop();
         this.scene.resume('HomeScene');
+    }
+}
+
+// Stats Dashboard Scene - View all your stats
+class StatsDashboardScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'StatsDashboardScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Background
+        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
+        
+        // Title
+        this.add.text(width/2, 80, '📊 YOUR STATS', {
+            fontSize: '40px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        const p = gameState.data.player;
+        
+        // Create stat categories
+        const categories = [
+            {
+                title: '👤 Profile',
+                stats: [
+                    { label: 'Name', value: p.name },
+                    { label: 'Title', value: p.title },
+                    { label: 'Level', value: p.level },
+                    { label: 'XP', value: `${p.xp} / ${p.xpToNextLevel}` },
+                    { label: 'Total XP Earned', value: Math.floor(p.xp + (p.level * 100)) }
+                ]
+            },
+            {
+                title: '💼 Career',
+                stats: [
+                    { label: 'Current Job', value: p.job || 'Unemployed' },
+                    { label: 'Salary/Day', value: `${p.salary} 💰` },
+                    { label: 'Total Earned', value: `${p.coins} 💰` },
+                    { label: 'Reputation', value: p.reputation },
+                    { label: 'Skills', value: p.skills }
+                ]
+            },
+            {
+                title: '🤝 Network',
+                stats: [
+                    { label: 'Connections', value: p.connections },
+                    { label: 'Followers', value: p.followers },
+                    { label: 'Posts Published', value: p.postsCount },
+                    { label: 'Networking Score', value: p.networking },
+                    { label: 'Engagement Rate', value: `${Math.floor((p.followers / Math.max(1, p.postsCount)) * 100)}%` }
+                ]
+            },
+            {
+                title: '🎮 Progress',
+                stats: [
+                    { label: 'Quests Completed', value: questManager.quests.filter(q => q.completed).length },
+                    { label: 'Achievements', value: achievementManager.unlocked.size },
+                    { label: 'Items Collected', value: p.inventory.length },
+                    { label: 'Apartment Level', value: p.apartmentLevel },
+                    { label: 'Locations Visited', value: Math.floor(Math.random() * 10) + 5 } // Would track this
+                ]
+            },
+            {
+                title: '⚡ Resources',
+                stats: [
+                    { label: 'Current Energy', value: `${Math.floor(p.energy)} / ${p.maxEnergy}` },
+                    { label: 'Current Coins', value: p.coins },
+                    { label: 'Inventory Space', value: `${p.inventory.length} / 20` },
+                    { label: 'Equipped Items', value: Object.values(p.equipment).filter(e => e !== null && e !== 'default').length },
+                    { label: 'Total Badges', value: p.badges.length }
+                ]
+            }
+        ];
+        
+        // Display in grid
+        categories.forEach((cat, catIndex) => {
+            const x = 200 + (catIndex % 3) * 450;
+            const y = 200 + Math.floor(catIndex / 3) * 300;
+            
+            // Category box
+            const box = this.add.rectangle(x, y, 400, 250, 0x2C2C2C);
+            box.setStrokeStyle(3, 0x0A66C2);
+            
+            // Category title
+            this.add.text(x, y - 100, cat.title, {
+                fontSize: '22px',
+                color: '#FFD700',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            // Stats
+            cat.stats.forEach((stat, i) => {
+                const statY = y - 60 + i * 30;
+                
+                this.add.text(x - 180, statY, stat.label + ':', {
+                    fontSize: '14px',
+                    color: '#AAAAAA'
+                });
+                
+                this.add.text(x + 180, statY, stat.value.toString(), {
+                    fontSize: '14px',
+                    color: '#00FF88',
+                    fontStyle: 'bold'
+                }).setOrigin(1, 0);
+            });
+        });
+        
+        // Close button
+        const closeBtn = this.add.rectangle(width/2, height - 80, 250, 60, 0xFF6B6B);
+        closeBtn.setStrokeStyle(3, 0xFFFFFF);
+        closeBtn.setInteractive();
+        
+        this.add.text(width/2, height - 80, 'Close (ESC)', {
+            fontSize: '20px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        closeBtn.on('pointerdown', () => {
+            this.scene.stop();
+        });
+        
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.stop();
+        });
+    }
+}
+
+// Leaderboard Scene - Global rankings
+class LeaderboardScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'LeaderboardScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Background
+        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        
+        // Title
+        this.add.text(width/2, 100, '🏆 GLOBAL LEADERBOARD', {
+            fontSize: '40px',
+            color: '#FFD700',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 5
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 150, 'Top LinkedIn Tycoons Worldwide', {
+            fontSize: '18px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Generate leaderboard data
+        const players = [
+            { name: gameState.data.player.name, level: gameState.data.player.level, connections: gameState.data.player.connections, isPlayer: true }
+        ];
+        
+        // Add AI players
+        const aiNames = [
+            'TechGuru_Mike', 'LinkedInPro_Sarah', 'NetworkKing_David', 'CodeMaster_Emma',
+            'ProInfluencer_Alex', 'TechLead_Chris', 'Hustler_Jamie', 'CareerBoost_Morgan',
+            'GrowthHacker_Pat', 'DevExpert_Taylor', 'Networker_Jordan', 'ProCoder_Casey',
+            'TechWhiz_Riley', 'LinkedInStar_Sam', 'ProfessionalPro_Avery', 'CareerWin_Quinn',
+            'SkillMaster_Drew', 'NetGenius_Blake', 'TechTitan_Skyler', 'LinkedInLegend_Parker'
+        ];
+        
+        aiNames.forEach(name => {
+            players.push({
+                name: name,
+                level: Phaser.Math.Between(1, 50),
+                connections: Phaser.Math.Between(10, 1000),
+                followers: Phaser.Math.Between(50, 10000),
+                isPlayer: false
+            });
+        });
+        
+        // Sort by connections
+        players.sort((a, b) => b.connections - a.connections);
+        
+        // Find player rank
+        const playerRank = players.findIndex(p => p.isPlayer) + 1;
+        
+        // Display top 10
+        const startY = 220;
+        players.slice(0, 10).forEach((player, index) => {
+            const y = startY + index * 50;
+            const rank = index + 1;
+            
+            // Rank background
+            const bgColor = player.isPlayer ? 0x0A66C2 : 0x2C2C2C;
+            const box = this.add.rectangle(width/2, y, 900, 45, bgColor);
+            box.setStrokeStyle(2, player.isPlayer ? 0x00FF88 : 0x4A4A4A);
+            
+            // Rank
+            const rankColor = rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#FFFFFF';
+            this.add.text(width/2 - 420, y, `#${rank}`, {
+                fontSize: '20px',
+                color: rankColor,
+                fontStyle: 'bold'
+            }).setOrigin(0, 0.5);
+            
+            // Name
+            this.add.text(width/2 - 350, y, player.name, {
+                fontSize: '18px',
+                color: player.isPlayer ? '#00FF88' : '#FFFFFF',
+                fontStyle: player.isPlayer ? 'bold' : 'normal'
+            }).setOrigin(0, 0.5);
+            
+            // Level
+            this.add.text(width/2 + 50, y, `Lvl ${player.level}`, {
+                fontSize: '16px',
+                color: '#FFD700'
+            }).setOrigin(0, 0.5);
+            
+            // Connections
+            this.add.text(width/2 + 200, y, `${player.connections} 🤝`, {
+                fontSize: '16px',
+                color: '#00D9FF'
+            }).setOrigin(0, 0.5);
+            
+            // Trophy for top 3
+            if (rank <= 3) {
+                const trophy = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                this.add.text(width/2 + 400, y, trophy, {
+                    fontSize: '24px'
+                }).setOrigin(0.5);
+            }
+        });
+        
+        // Player rank display if not in top 10
+        if (playerRank > 10) {
+            const yourRankBox = this.add.rectangle(width/2, height - 150, 900, 60, 0x0A66C2);
+            yourRankBox.setStrokeStyle(3, 0x00FF88);
+            
+            this.add.text(width/2, height - 150, `Your Rank: #${playerRank} | Keep climbing!`, {
+                fontSize: '20px',
+                color: '#FFFFFF',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+        }
+        
+        // Close button
+        const closeBtn = this.add.rectangle(width/2, height - 80, 250, 50, 0xFF6B6B);
+        closeBtn.setStrokeStyle(2, 0xFFFFFF);
+        closeBtn.setInteractive();
+        
+        this.add.text(width/2, height - 80, 'Close (ESC)', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        closeBtn.on('pointerdown', () => {
+            this.scene.stop();
+        });
+        
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.stop();
+        });
     }
 }
 
@@ -6132,7 +6677,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
+    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
