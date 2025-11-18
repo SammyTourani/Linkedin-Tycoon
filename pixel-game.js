@@ -2698,12 +2698,16 @@ class CharacterCustomizationScene extends Phaser.Scene {
         const data = this.scene.settings.data;
         this.fromWardrobe = data && data.fromWardrobe;
         
-        // Options panel (left side)
+        // Store button references for updating
+        this.buttonGroups = {};
+        
+        // Options panel (left side) - FIXED SPACING
         const optionsX = width/4;
-        const optionsY = height/2 + 100;
+        const startY = 200;
+        const sectionSpacing = 100;
         
         // Skin Tone
-        this.createOptionSection(optionsX, optionsY - 200, 'Skin Tone', [
+        this.createOptionSection(optionsX, startY, 'Skin Tone', [
             { name: 'Light', value: 0 },
             { name: 'Medium', value: 1 },
             { name: 'Tan', value: 2 },
@@ -2711,7 +2715,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'skinTone');
         
         // Hair Color
-        this.createOptionSection(optionsX, optionsY - 100, 'Hair Color', [
+        this.createOptionSection(optionsX, startY + sectionSpacing, 'Hair Color', [
             { name: 'Black', value: 0 },
             { name: 'Brown', value: 1 },
             { name: 'Blonde', value: 2 },
@@ -2721,7 +2725,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'hairColor');
         
         // Hair Style
-        this.createOptionSection(optionsX, optionsY, 'Hair Style', [
+        this.createOptionSection(optionsX, startY + sectionSpacing * 2, 'Hair Style', [
             { name: 'Short', value: 0 },
             { name: 'Medium', value: 1 },
             { name: 'Long', value: 2 },
@@ -2729,7 +2733,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'hairStyle');
         
         // Shirt Color
-        this.createOptionSection(optionsX, optionsY + 100, 'Shirt Color', [
+        this.createOptionSection(optionsX, startY + sectionSpacing * 3, 'Shirt Color', [
             { name: 'LinkedIn Blue', value: 0 },
             { name: 'Red', value: 1 },
             { name: 'Green', value: 2 },
@@ -2740,16 +2744,16 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'shirtColor');
         
         // Pants Color
-        this.createOptionSection(optionsX, optionsY + 200, 'Pants Color', [
+        this.createOptionSection(optionsX, startY + sectionSpacing * 4, 'Pants Color', [
             { name: 'Navy', value: 0 },
             { name: 'Black', value: 1 },
             { name: 'Gray', value: 2 },
             { name: 'Brown', value: 3 }
         ], 'pantsColor');
         
-        // Name input area (right side)
+        // Name input area (right side) - MOVED TO AVOID OVERLAP
         const nameX = width * 3/4;
-        const nameY = height/2;
+        const nameY = height/2 - 50;
         
         this.add.text(nameX, nameY - 100, 'Your Name:', {
             fontSize: '24px',
@@ -2839,40 +2843,85 @@ class CharacterCustomizationScene extends Phaser.Scene {
     }
     
     createOptionSection(x, y, title, options, key) {
-        const titleText = this.add.text(x, y - 30, title + ':', {
-            fontSize: '18px',
+        // Title
+        const titleText = this.add.text(x, y - 25, title + ':', {
+            fontSize: '20px',
             color: '#FFFFFF',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
         }).setOrigin(0, 0.5);
         
+        // Store buttons for this section
+        if (!this.buttonGroups[key]) {
+            this.buttonGroups[key] = [];
+        }
+        
+        // Create buttons in a clean grid (3 columns max)
+        const buttonWidth = 110;
+        const buttonHeight = 45;
+        const buttonSpacingX = 120;
+        const buttonSpacingY = 55;
+        const buttonsPerRow = 3;
+        
         options.forEach((option, i) => {
-            const btnX = x + (i % 3) * 120;
-            const btnY = y + Math.floor(i / 3) * 50;
+            const col = i % buttonsPerRow;
+            const row = Math.floor(i / buttonsPerRow);
+            const btnX = x + col * buttonSpacingX;
+            const btnY = y + row * buttonSpacingY;
             
-            const btn = this.add.rectangle(btnX, btnY, 100, 40, 0x0A66C2);
-            btn.setStrokeStyle(2, 0xFFFFFF);
+            // Button background
+            const isSelected = this.customization[key] === option.value;
+            const btn = this.add.rectangle(btnX, btnY, buttonWidth, buttonHeight, isSelected ? 0x00FF88 : 0x0A66C2);
+            btn.setStrokeStyle(3, 0xFFFFFF);
             btn.setInteractive();
+            btn.setData('value', option.value);
+            btn.setData('key', key);
             
+            // Button text
             const btnText = this.add.text(btnX, btnY, option.name, {
-                fontSize: '12px',
-                color: '#FFFFFF'
+                fontSize: '13px',
+                color: '#FFFFFF',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 1,
+                wordWrap: { width: buttonWidth - 10 }
             }).setOrigin(0.5);
             
-            // Check if selected
-            if (this.customization[key] === option.value) {
-                btn.setFillStyle(0x00FF88);
-            }
+            // Store button reference
+            this.buttonGroups[key].push({ btn, btnText, value: option.value });
             
+            // Hover effects
+            btn.on('pointerover', () => {
+                if (!isSelected) {
+                    btn.setFillStyle(0x0E7FE8);
+                }
+                btn.setScale(1.05);
+            });
+            
+            btn.on('pointerout', () => {
+                const currentSelected = this.customization[key] === option.value;
+                btn.setFillStyle(currentSelected ? 0x00FF88 : 0x0A66C2);
+                btn.setScale(1);
+            });
+            
+            // Click handler
             btn.on('pointerdown', () => {
+                // Update customization
                 this.customization[key] = option.value;
+                
+                // Update ALL buttons in this section
+                this.buttonGroups[key].forEach(buttonData => {
+                    const isNowSelected = buttonData.value === option.value;
+                    buttonData.btn.setFillStyle(isNowSelected ? 0x00FF88 : 0x0A66C2);
+                    buttonData.btn.setScale(1);
+                });
+                
+                // Update character preview
                 this.updateCharacterPreview();
                 
-                // Update button colors
-                options.forEach((opt, idx) => {
-                    const optBtnX = x + (idx % 3) * 120;
-                    const optBtnY = y + Math.floor(idx / 3) * 50;
-                    // Would need to track buttons, but for now just update preview
-                });
+                // Visual feedback
+                this.cameras.main.flash(100, 0, 255, 0, false, null, 0.2);
             });
         });
     }
