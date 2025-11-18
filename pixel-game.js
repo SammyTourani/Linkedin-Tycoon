@@ -2064,18 +2064,236 @@ class BootScene extends Phaser.Scene {
         // Hide loading screen
         document.getElementById('loading').style.display = 'none';
         
-        // Check if player has completed tutorial
-        if (!gameState.data.tutorialComplete) {
-            this.scene.start('TutorialScene');
-        } else if (gameState.data.player.postsCount === 0 && gameState.data.player.connections <= 5) {
-            storyManager.showStory(0);
-            document.getElementById('story-continue').onclick = () => {
-                storyManager.closeStory();
-                this.scene.start('HomeScene');
-            };
-        } else {
-            this.scene.start('HomeScene');
+        // Go to main menu
+        this.scene.start('MainMenuScene');
+    }
+}
+
+// Main Menu Scene - Start screen with New Game, Continue, Options
+class MainMenuScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MainMenuScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Dark background
+        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        
+        // Animated background particles
+        for (let i = 0; i < 50; i++) {
+            const star = this.add.circle(
+                Phaser.Math.Between(0, width),
+                Phaser.Math.Between(0, height),
+                2,
+                0xFFFFFF,
+                Phaser.Math.FloatBetween(0.3, 1)
+            );
+            
+            this.tweens.add({
+                targets: star,
+                alpha: 0.2,
+                duration: 2000 + Math.random() * 2000,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
         }
+        
+        // Game Title
+        const title = this.add.text(width/2, height/4, 'LINKEDIN TYCOON', {
+            fontSize: '64px',
+            color: '#0A66C2',
+            fontStyle: 'bold',
+            stroke: '#FFFFFF',
+            strokeThickness: 6
+        }).setOrigin(0.5);
+        
+        // Subtitle
+        const subtitle = this.add.text(width/2, height/4 + 80, 'Pixel Edition', {
+            fontSize: '28px',
+            color: '#00FF88',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Animate title
+        this.tweens.add({
+            targets: [title, subtitle],
+            alpha: 0,
+            y: height/4 - 50,
+            duration: 0
+        });
+        
+        this.tweens.add({
+            targets: title,
+            alpha: 1,
+            y: height/4,
+            duration: 1000,
+            ease: 'Power2'
+        });
+        
+        this.tweens.add({
+            targets: subtitle,
+            alpha: 1,
+            y: height/4 + 80,
+            duration: 1000,
+            delay: 300,
+            ease: 'Power2'
+        });
+        
+        // Check if save exists
+        const hasSave = localStorage.getItem('linkedinTycoonSave') !== null;
+        
+        // Menu buttons
+        const buttonY = height/2 + 50;
+        const buttonSpacing = 80;
+        
+        // New Game button (always available)
+        const newGameBtn = this.createMenuButton(width/2, buttonY, '🆕 NEW GAME', () => {
+            // Reset game state
+            gameState.data = gameState.createNewGame();
+            gameState.saveGame();
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('TutorialScene');
+            });
+        });
+        
+        // Continue button (only if save exists)
+        if (hasSave) {
+            const continueBtn = this.createMenuButton(width/2, buttonY + buttonSpacing, '▶️ CONTINUE', () => {
+                // Load existing game
+                gameState.data = gameState.loadGame();
+                this.cameras.main.fadeOut(500);
+                this.time.delayedCall(500, () => {
+                    if (!gameState.data.tutorialComplete) {
+                        this.scene.start('TutorialScene');
+                    } else {
+                        this.scene.start('HomeScene');
+                    }
+                });
+            });
+        }
+        
+        // Options button
+        const optionsBtn = this.createMenuButton(width/2, buttonY + buttonSpacing * (hasSave ? 2 : 1), '⚙️ OPTIONS', () => {
+            this.showOptions();
+        });
+        
+        // Credits/Version
+        this.add.text(width/2, height - 40, 'Version 1.0 | Made with Phaser 3', {
+            fontSize: '14px',
+            color: '#666666'
+        }).setOrigin(0.5);
+    }
+    
+    createMenuButton(x, y, text, callback) {
+        const btn = this.add.rectangle(x, y, 400, 70, 0x0A66C2);
+        btn.setStrokeStyle(4, 0xFFFFFF);
+        btn.setInteractive();
+        
+        const btnText = this.add.text(x, y, text, {
+            fontSize: '28px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        btn.on('pointerover', () => {
+            btn.setFillStyle(0x0E7FE8);
+            btn.setScale(1.05);
+            this.tweens.add({
+                targets: btn,
+                scale: 1.05,
+                duration: 100
+            });
+        });
+        
+        btn.on('pointerout', () => {
+            btn.setFillStyle(0x0A66C2);
+            this.tweens.add({
+                targets: btn,
+                scale: 1,
+                duration: 100
+            });
+        });
+        
+        btn.on('pointerdown', () => {
+            this.cameras.main.flash(200, 255, 255, 255);
+            callback();
+        });
+        
+        return btn;
+    }
+    
+    showOptions() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Options overlay
+        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
+        overlay.setDepth(1000);
+        
+        const optionsBox = this.add.rectangle(width/2, height/2, 600, 500, 0x1E3A8A);
+        optionsBox.setStrokeStyle(4, 0xFFD700);
+        optionsBox.setDepth(1001);
+        
+        const title = this.add.text(width/2, height/2 - 200, '⚙️ OPTIONS', {
+            fontSize: '36px',
+            color: '#FFD700',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setDepth(1002);
+        
+        // Fullscreen toggle
+        const fullscreenBtn = this.add.rectangle(width/2, height/2 - 50, 500, 60, 0x0A66C2);
+        fullscreenBtn.setStrokeStyle(2, 0xFFFFFF);
+        fullscreenBtn.setInteractive();
+        fullscreenBtn.setDepth(1002);
+        
+        const fullscreenText = this.add.text(width/2, height/2 - 50, '🖥️ Toggle Fullscreen', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5).setDepth(1003);
+        
+        fullscreenBtn.on('pointerdown', () => {
+            if (window.game && window.game.scale.isFullscreen) {
+                window.game.scale.stopFullscreen();
+            } else {
+                window.game.scale.startFullscreen();
+            }
+        });
+        
+        // Sound toggle (placeholder)
+        const soundBtn = this.add.rectangle(width/2, height/2 + 50, 500, 60, 0x0A66C2);
+        soundBtn.setStrokeStyle(2, 0xFFFFFF);
+        soundBtn.setDepth(1002);
+        
+        this.add.text(width/2, height/2 + 50, '🔊 Sound: ON', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5).setDepth(1003);
+        
+        // Close button
+        const closeBtn = this.add.rectangle(width/2, height/2 + 200, 300, 60, 0xFF6B6B);
+        closeBtn.setStrokeStyle(2, 0xFFFFFF);
+        closeBtn.setInteractive();
+        closeBtn.setDepth(1002);
+        
+        this.add.text(width/2, height/2 + 200, 'Back to Menu', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5).setDepth(1003);
+        
+        closeBtn.on('pointerdown', () => {
+            overlay.destroy();
+            optionsBox.destroy();
+            title.destroy();
+            fullscreenBtn.destroy();
+            fullscreenText.destroy();
+            soundBtn.destroy();
+            closeBtn.destroy();
+        });
     }
 }
 
@@ -5758,61 +5976,84 @@ class CoffeeShopScene extends Phaser.Scene {
     }
 }
 
-// Computer Menu Scene - For creating posts and managing profile
+// Computer Menu Scene - For creating posts and managing profile (FULLSCREEN)
 class ComputerMenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'ComputerMenuScene' });
     }
 
     create() {
-        const width = 800;
-        const height = 600;
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
         
-        // Dark overlay
-        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.8);
+        // Fullscreen dark overlay
+        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.85);
+        overlay.setScrollFactor(0);
         
-        // Menu background
-        const menuBg = this.add.rectangle(width/2, height/2, 500, 400, 0x0A66C2);
-        menuBg.setStrokeStyle(4, 0xffffff);
+        // Main menu container (centered, fullscreen-friendly)
+        const menuWidth = Math.min(900, width - 100);
+        const menuHeight = Math.min(700, height - 100);
+        const menuBg = this.add.rectangle(width/2, height/2, menuWidth, menuHeight, 0x0A66C2);
+        menuBg.setStrokeStyle(5, 0xFFFFFF);
+        menuBg.setScrollFactor(0);
         
         // Title
-        this.add.text(width/2, 150, '💻 LINKEDIN DASHBOARD', {
-            fontSize: '24px',
-            color: '#ffffff',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        // Create buttons
-        this.createButton(width/2, 140, '✍️ Create Post (15⚡)', () => this.createPost());
-        this.createButton(width/2, 185, '📚 Learn Skills (50💰)', () => this.learnSkills());
-        this.createButton(width/2, 210, '⌨️ Typing Game', () => this.startMinigame());
-        this.createButton(width/2, 250, '🧠 Memory Game', () => this.startMemoryGame());
-        this.createButton(width/2, 290, '⚡ Reaction Test', () => this.startReactionGame());
-        this.createButton(width/2, 330, '❓ Tech Quiz', () => this.startQuizGame());
-        this.createButton(width/2, 370, '🌳 View Skill Tree', () => this.showSkillTree());
-        this.createButton(width/2, 410, '📊 Stats Dashboard', () => this.showStats());
-        this.createButton(width/2, 450, '🎓 Earn Certifications', () => this.showCertifications());
-        this.createButton(width/2, 490, '🏠 Upgrade Apartment', () => this.upgradeApartment());
-        this.createButton(width/2, 530, '⚙️ Customize', () => this.customize());
-        this.createButton(width/2, 570, '❌ Close', () => this.closeMenu());
+        const title = this.add.text(width/2, height/2 - menuHeight/2 + 50, '💻 LINKEDIN DASHBOARD', {
+            fontSize: '36px',
+            color: '#FFFFFF',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5).setScrollFactor(0);
+        
+        // Create scrollable button area
+        const buttonAreaY = height/2 - menuHeight/2 + 120;
+        const buttonSpacing = 55;
+        const buttonWidth = menuWidth - 80;
+        
+        // Create buttons in a grid layout (2 columns)
+        const buttons = [
+            { text: '✍️ Create Post (15⚡)', action: () => this.createPost(), col: 0, row: 0 },
+            { text: '📚 Learn Skills (50💰)', action: () => this.learnSkills(), col: 1, row: 0 },
+            { text: '⌨️ Typing Game', action: () => this.startMinigame(), col: 0, row: 1 },
+            { text: '🧠 Memory Game', action: () => this.startMemoryGame(), col: 1, row: 1 },
+            { text: '⚡ Reaction Test', action: () => this.startReactionGame(), col: 0, row: 2 },
+            { text: '❓ Tech Quiz', action: () => this.startQuizGame(), col: 1, row: 2 },
+            { text: '🌳 View Skill Tree', action: () => this.showSkillTree(), col: 0, row: 3 },
+            { text: '📊 Stats Dashboard', action: () => this.showStats(), col: 1, row: 3 },
+            { text: '🎓 Earn Certifications', action: () => this.showCertifications(), col: 0, row: 4 },
+            { text: '🏠 Upgrade Apartment', action: () => this.upgradeApartment(), col: 1, row: 4 },
+            { text: '⚙️ Customize', action: () => this.customize(), col: 0, row: 5 },
+            { text: '❌ Close', action: () => this.closeMenu(), col: 1, row: 5 }
+        ];
+        
+        buttons.forEach(btn => {
+            const x = width/2 - menuWidth/2 + 50 + (btn.col * (buttonWidth/2 + 20));
+            const y = buttonAreaY + (btn.row * buttonSpacing);
+            
+            this.createButton(x, y, btn.text, btn.action, buttonWidth/2 - 10);
+        });
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
     }
 
-    createButton(x, y, text, callback) {
-        const button = this.add.rectangle(x, y, 400, 50, 0x004182);
-        button.setStrokeStyle(2, 0xffffff);
+    createButton(x, y, text, callback, width = 400) {
+        const button = this.add.rectangle(x, y, width, 48, 0x004182);
+        button.setStrokeStyle(2, 0xFFFFFF);
         button.setInteractive();
+        button.setScrollFactor(0);
         
         const buttonText = this.add.text(x, y, text, {
-            fontSize: '18px',
-            color: '#ffffff'
-        }).setOrigin(0.5);
+            fontSize: '16px',
+            color: '#FFFFFF',
+            fontStyle: 'bold',
+            wordWrap: { width: width - 20 }
+        }).setOrigin(0.5).setScrollFactor(0);
 
         button.on('pointerover', () => {
             button.setFillStyle(0x0066CC);
-            button.setScale(1.05);
+            button.setScale(1.02);
         });
 
         button.on('pointerout', () => {
@@ -8362,8 +8603,8 @@ class HackathonScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: 1280,
-    height: 720,
+    width: window.innerWidth,
+    height: window.innerHeight,
     parent: 'game-container',
     backgroundColor: '#1a1a2e',
     pixelArt: true,
@@ -8374,12 +8615,12 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
+    scene: [IntroScene, BootScene, MainMenuScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: '100%',
-        height: '100%'
+        width: window.innerWidth,
+        height: window.innerHeight
     }
 };
 
@@ -8387,6 +8628,24 @@ const config = {
 const game = new Phaser.Game(config);
 window.game = game; // Expose globally for fullscreen toggle
 window.gameState = gameState; // Expose for customization
+
+// Auto-resize on window resize
+window.addEventListener('resize', () => {
+    if (game && game.scale) {
+        game.scale.resize(window.innerWidth, window.innerHeight);
+    }
+});
+
+// Try to enter fullscreen automatically (requires user interaction)
+document.addEventListener('click', () => {
+    if (game && game.scale && !game.scale.isFullscreen) {
+        // Only try once
+        game.scale.startFullscreen().catch(() => {
+            // User denied or browser doesn't support
+            console.log('Fullscreen not available');
+        });
+    }
+}, { once: true });
 
 // Update UI periodically
 setInterval(updateUI, 1000);
