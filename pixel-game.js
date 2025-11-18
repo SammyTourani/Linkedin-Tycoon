@@ -64,45 +64,65 @@ class StoryManager {
 class DialogueManager {
     constructor() {
         this.currentDialogue = null;
+        this.conversationDepth = {}; // Track conversation progress
         this.npcs = {
             'Sarah Chen': {
-                intro: "Hey! I'm Sarah, a product manager at a startup. Always looking to connect with talented engineers!",
+                intro: "Hey! I'm Sarah, a product manager at a startup. Always looking to connect with talented engineers! How's your LinkedIn journey going?",
                 responses: {
-                    networking: "Networking is everything in this industry. The more people you know, the more doors open!",
-                    advice: "My advice? Post consistently and engage with others. Don't just broadcast - have real conversations.",
-                    goodbye: "Let's stay connected! Feel free to reach out anytime."
+                    networking: "Networking is everything in this industry. The more people you know, the more doors open! I went from zero to 500 connections in my first year. Here's my secret: engage authentically. Comment on posts, share insights, and always add value. Don't just connect for the sake of numbers - build real relationships. Quality conversations lead to quality opportunities.",
+                    advice: "My advice? Post consistently and engage with others. Don't just broadcast - have real conversations. I post 3 times a week minimum, and I spend at least an hour daily engaging with others' content. That's where the magic happens. Also, use storytelling in your posts. People don't care about what you did - they care about the lesson, the struggle, the growth. Make them feel something.",
+                    career: "Product management is fascinating because you're at the intersection of business, tech, and users. I started as an engineer, then transitioned to PM. Best decision ever. If you're interested in PM, start by learning user research, prioritization frameworks like RICE, and get comfortable with ambiguity. It's not about having all the answers - it's about asking the right questions.",
+                    startup: "Working at a startup is intense but rewarding. We're building something from scratch, and every decision matters. The pace is fast, the resources are limited, but the learning is exponential. I've grown more in 2 years here than 5 years at a big corp. If you're thinking about startups, make sure you're comfortable with uncertainty and wearing multiple hats.",
+                    goodbye: "Let's stay connected! Feel free to reach out anytime. Seriously, my DMs are always open. I love helping people grow their careers. Oh, and if you're ever looking for PM roles, I know some great startups hiring. Keep crushing it!"
                 }
             },
             'Marcus Johnson': {
-                intro: "Marcus here, Senior Developer. Been in the game for 10 years. What brings you here?",
+                intro: "Marcus here, Senior Developer with 10+ years in the trenches. I've seen it all - startups that IPO'd, companies that crashed, tech stacks that came and went. What brings you to LinkedIn City today?",
                 responses: {
-                    networking: "At your level, quantity matters. Connect with everyone you can. Later, you can be selective.",
-                    advice: "Learn TypeScript and React. Trust me, they're everywhere in job postings right now.",
-                    goodbye: "Good luck out there. It's a jungle, but you'll make it!"
+                    networking: "At your level, quantity matters more than quality initially. Connect with everyone you can. Cast a wide net. Later, when you're established, you can be selective. But right now? Every connection is a potential opportunity. I have over 2000 connections, and I can trace most of my opportunities back to someone in my network. It's all about building that web of relationships early.",
+                    advice: "Learn TypeScript and React. Trust me, they're in 80% of job postings right now. But here's the real advice nobody tells you: Learn to read documentation, learn to debug systematically, and learn to communicate technical concepts to non-technical people. Those skills will take you further than any framework. Oh, and contribute to open source. GitHub is your second resume.",
+                    career: "I started as a junior dev making $50k. Now I'm a senior making $180k+ total comp. How? Consistent learning, strategic job hopping every 2-3 years, and building a strong personal brand on LinkedIn. Your salary growth isn't just about getting better at coding - it's about negotiation, market timing, and knowing your worth. Never accept the first offer. Always negotiate.",
+                    mentorship: "I mentor 5-10 junior devs every year. Why? Because someone did it for me when I was starting out. Here's what I tell everyone: Focus on fundamentals over frameworks. Frameworks change every year, but data structures, algorithms, and system design principles are forever. Read 'Clean Code', practice LeetCode, and build real projects. Theory is useless without application.",
+                    techstack: "I've worked with everything - Java, Python, Node, Go, Rust, you name it. My advice? Pick one language and master it deeply before jumping to the next. Jack of all trades, master of none gets you nowhere. I'm a TypeScript/Node specialist, and that focus has paid off massively. Companies respect deep expertise over shallow breadth.",
+                    goodbye: "Good luck out there. It's a jungle, but you'll make it if you stay consistent. One last thing - imposter syndrome never goes away, even at senior level. Embrace it. It means you're still growing. Now go build something awesome!"
                 }
             },
             'Emily Rodriguez': {
-                intro: "Hi! Emily Rodriguez, Tech Recruiter. I help engineers find their dream jobs. Looking for opportunities?",
+                intro: "Hi! Emily Rodriguez, Tech Recruiter with 8 years placing developers at FAANG and top startups. I've seen thousands of LinkedIn profiles. Want to know what actually works?",
                 responses: {
-                    networking: "Your profile is your resume now. Make sure it tells a story. And connections? They're your references.",
-                    advice: "Attend virtual events, contribute to discussions, and don't be afraid to reach out to people. Most folks are happy to chat!",
-                    goodbye: "Let's connect officially! I'll keep you in mind for openings."
+                    networking: "Your profile is your resume 2.0. Make sure it tells a story. Not just 'I did X at Company Y' but 'I solved Problem Z using Technology A, resulting in Impact B'. Quantify everything. 'Improved performance' means nothing. 'Reduced load time by 40%, serving 1M users' - that's a story. And connections? They're your references, your network, your safety net. Never underestimate the power of a strong network.",
+                    advice: "Attend virtual events, contribute to discussions, and don't be afraid to reach out to people. Most folks are happy to chat! Here's what most people don't do: Follow up. You made a connection? Great. Now nurture it. Comment on their posts, share their content, congratulate them on milestones. That's how connections become relationships. And relationships become opportunities.",
+                    resume: "Your LinkedIn profile should be keyword-rich. Recruiters use Boolean search. If your profile doesn't have the right keywords, we won't find you. Include: specific technologies you know, frameworks, methodologies, certifications. But also tell your story. Why did you transition from X to Y? What drives you? Humans hire humans, not robots.",
+                    interview: "Interviews have three phases: technical, behavioral, and culture fit. Most people prep only for technical. Big mistake. Behavioral questions reveal how you think, how you handle conflict, how you learn from failure. Have stories ready. Use the STAR method: Situation, Task, Action, Result. Practice telling your stories concisely but compellingly.",
+                    salary: "Always ask about salary range upfront. Don't waste time on opportunities that don't match your expectations. When you get an offer, negotiate. Always. Even if you're happy with the number, negotiate for something - more stock, signing bonus, remote flexibility, learning budget. Companies expect negotiation. Not doing it signals you don't value yourself.",
+                    redflags: "Red flags in job postings: 'We're a family', 'Looking for rockstars', 'Must handle ambiguity', 'Wearing many hats', 'Fast-paced environment'. These usually mean: long hours, unclear roles, chaos. Green flags: Clear comp ranges, defined responsibilities, career growth paths, emphasis on work-life balance.",
+                    goodbye: "Let's connect officially! I'll keep you in mind for openings. And hey, even if I don't have something right now, I know hundreds of recruiters. A warm intro from me is worth 10 cold applications. Keep your profile updated and stay visible. Opportunities come to those who are found."
                 }
             },
             'David Park': {
-                intro: "What's up? David Park. I run a coding YouTube channel. Tech content is the future!",
+                intro: "Yo! David Park here. I run a coding YouTube channel with 250K subscribers. Started from zero 3 years ago. Now I make $15K/month from content alone. Tech content is the FUTURE, and LinkedIn is where it's popping off right now. Want the blueprint?",
                 responses: {
-                    networking: "Dude, LinkedIn is insane for growth. I went from 50 to 5000 followers in 6 months just by posting daily.",
-                    advice: "Post about your projects, share what you're learning. People love authenticity over perfection.",
-                    goodbye: "Follow me! And tag me in your posts - I'll share the good stuff!"
+                    networking: "Dude, LinkedIn is INSANE for growth. I went from 50 to 5000 followers in 6 months just by posting daily. Here's the hack: Post in the morning (7-9 AM) when everyone's checking LinkedIn with their coffee. Use the algorithm - ask questions, create polls, share personal stories. The algorithm LOVES engagement. And tag people! When you tag someone, their network sees it too. That's exponential reach.",
+                    advice: "Post about your projects, share what you're learning. People love authenticity over perfection. Nobody cares about your perfectly polished highlight reel. They want the struggle, the late nights debugging, the 'I finally figured it out!' moments. Be vulnerable. Share your failures. That's what goes viral. I had a post about getting rejected from 50 jobs that got 100K views. Authenticity wins.",
+                    content: "Content creation changed my life. Here's my strategy: Create once, distribute everywhere. One long-form post becomes: a YouTube video, a Twitter thread, a LinkedIn post, an Instagram carousel, a TikTok. Repurpose everything. And batch create - I film 4 videos in one day, then schedule them across a month. Work smarter, not harder.",
+                    youtube: "YouTube is a long game. My first video got 12 views (10 were me refreshing). My first 100 videos got maybe 50 views each. But I stayed consistent. Posted every week for 2 years before I hit 10K subs. Then it exploded. The algorithm rewards consistency over quality initially. Just ship. Improve as you go. Done is better than perfect.",
+                    money: "I make money from: AdSense ($3K/month), sponsorships ($8K/month), course sales ($3K/month), affiliate links ($1K/month). Diversification is key. Don't rely on one income source. And here's the secret: Your audience is your asset. With 250K followers, I can launch anything and get traction. That's the real value of content creation.",
+                    growth: "Growth hacks that actually work: Collaborate with creators slightly bigger than you, comment on viral posts early (first 10 comments get insane reach), use trending audio on short-form content, hook them in the first 3 seconds, end with a clear CTA. Most important? Provide value. Entertainment, education, or inspiration. Pick one and go deep.",
+                    goodbye: "Follow me @DavidParkCodes! And tag me in your posts - I'll share the good stuff! Actually, let me give you a piece of gold: Start documenting your learning journey TODAY. In 6 months, you'll have a content library. In a year, you'll have an audience. In 2 years, you'll have opportunities you can't even imagine. The best time to start was yesterday. Second best? Right now. Let's go!"
                 }
             },
             'Dr. Jennifer Liu': {
-                intro: "Hello, I'm Dr. Liu. I teach Computer Science and mentor young professionals. How can I help you?",
+                intro: "Hello, I'm Dr. Jennifer Liu. I teach Computer Science at Tech University and mentor young professionals. I've been in academia and industry for 15 years. I've seen students go from zero to FAANG, from struggling to thriving. How can I help you on your journey?",
                 responses: {
-                    networking: "Networking isn't just about collecting connections. It's about building genuine relationships. Quality over quantity.",
-                    advice: "Never stop learning. The industry changes fast. Invest in skills that compound - fundamentals, communication, and problem-solving.",
-                    goodbye: "Feel free to reach out if you need mentorship. My door is always open."
+                    networking: "Networking isn't just about collecting connections like Pokemon cards. It's about building genuine relationships over time. I've seen students with 50 meaningful connections get better opportunities than those with 500 random ones. Quality over quantity. Reach out with intention, add value first, and stay in touch. That's the formula.",
+                    advice: "Never stop learning. The industry changes fast. What's hot today might be obsolete in 5 years. Invest in skills that compound - fundamentals, communication, and problem-solving. Master data structures and algorithms. Learn system design. Understand how computers actually work. These fundamentals never go out of style. Frameworks are tools. Principles are wisdom.",
+                    education: "I teach hundreds of students each year. The ones who succeed aren't always the smartest or most talented. They're the most consistent. They show up. They do the work. They ask questions. They help their peers. Success in tech isn't about being a genius - it's about being persistent, curious, and collaborative.",
+                    research: "My research is in AI/ML and its applications in education. We're building systems that can personalize learning at scale. It's fascinating work. If you're interested in ML, start with Andrew Ng's course on Coursera. Get the fundamentals down. Then pick a problem that interests you and start building. Theory without practice is useless.",
+                    industry: "Academia and industry are different beasts. In academia, we value depth, rigor, publication. In industry, it's speed, impact, revenue. Neither is better - they're just different. I've worked in both, and the best engineers I know can toggle between the two mindsets. Deep thinking AND pragmatic execution.",
+                    career: "Career advice? Play the long game. Don't optimize for salary in your first few years - optimize for learning. Join companies where you'll be surrounded by people smarter than you. That's how you level up fastest. Your network is your net worth, but your skills are your foundation. Build both simultaneously.",
+                    mentorship: "I've mentored over 100 students. Here's what I tell everyone: Set clear goals, break them into milestones, track your progress, celebrate small wins. Career growth isn't linear - it's exponential once you hit critical mass. But you need to put in the work upfront, often without seeing results. Trust the process.",
+                    life: "Work-life balance in tech is tough. I've burned out twice. Learned the hard way that you can't pour from an empty cup. Set boundaries. Take breaks. Exercise. Sleep. Eat well. Your brain is your most valuable asset. Treat it accordingly. Hustle culture is toxic. Sustainable excellence beats burnout every time.",
+                    goodbye: "Feel free to reach out if you need mentorship. My door is always open. And remember: You're not behind. You're not too old. It's not too late. I've seen people start coding at 30, 40, even 50 and build successful careers. The only timeline that matters is yours. Now go build something amazing!"
                 }
             }
         };
@@ -121,11 +141,41 @@ class DialogueManager {
         text.textContent = npc.intro;
         
         choices.innerHTML = '';
-        const options = [
+        
+        // More dialogue options based on NPC
+        let options = [
             { text: "💼 Tell me about networking", key: 'networking' },
-            { text: "💡 Got any advice?", key: 'advice' },
-            { text: "👋 Nice meeting you!", key: 'goodbye' }
+            { text: "💡 Got any advice?", key: 'advice' }
         ];
+        
+        // Add NPC-specific options
+        if (npcName === 'Sarah Chen') {
+            options.push({ text: "💼 Product Management?", key: 'career' });
+            options.push({ text: "🚀 Startup life?", key: 'startup' });
+        } else if (npcName === 'Marcus Johnson') {
+            options.push({ text: "💰 Career growth?", key: 'career' });
+            options.push({ text: "🎓 Mentorship tips?", key: 'mentorship' });
+            options.push({ text: "🛠️ Tech stack advice?", key: 'techstack' });
+        } else if (npcName === 'Emily Rodriguez') {
+            options.push({ text: "📄 Resume tips?", key: 'resume' });
+            options.push({ text: "💼 Interview prep?", key: 'interview' });
+            options.push({ text: "💰 Salary negotiation?", key: 'salary' });
+            options.push({ text: "🚩 Job red flags?", key: 'redflags' });
+        } else if (npcName === 'David Park') {
+            options.push({ text: "📹 Content creation?", key: 'content' });
+            options.push({ text: "🎥 YouTube tips?", key: 'youtube' });
+            options.push({ text: "💵 Making money?", key: 'money' });
+            options.push({ text: "📈 Growth hacks?", key: 'growth' });
+        } else if (npcName === 'Dr. Jennifer Liu') {
+            options.push({ text: "🎓 Education advice?", key: 'education' });
+            options.push({ text: "🔬 Your research?", key: 'research' });
+            options.push({ text: "🏢 Industry vs Academia?", key: 'industry' });
+            options.push({ text: "💼 Career planning?", key: 'career' });
+            options.push({ text: "🎯 Mentorship wisdom?", key: 'mentorship' });
+            options.push({ text: "⚖️ Work-life balance?", key: 'life' });
+        }
+        
+        options.push({ text: "👋 Nice meeting you!", key: 'goodbye' });
 
         options.forEach(option => {
             const btn = document.createElement('button');
