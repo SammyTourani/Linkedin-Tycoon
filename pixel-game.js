@@ -1745,6 +1745,13 @@ class CityScene extends Phaser.Scene {
         parkDoor.setData('name', 'Park');
         parkDoor.setData('target', 'ParkScene');
         parkDoor.refreshBody();
+        
+        // RESTAURANT
+        this.createBuilding(650, 850, 120, 100, 0xFFD700, '🍽️ Restaurant');
+        const restaurantDoor = this.interactables.create(650, 895, 'door');
+        restaurantDoor.setData('type', 'location');
+        restaurantDoor.setData('name', 'Restaurant');
+        restaurantDoor.refreshBody();
 
         // Named NPCs to network with (using new detailed sprites)
         const npcData = [
@@ -1903,6 +1910,12 @@ class CityScene extends Phaser.Scene {
                     this.changeScene('GymScene');
                 } else if (name === 'Conference Center') {
                     this.attendEvent();
+                } else if (name === 'Co-working Space') {
+                    this.changeScene('CoworkingScene');
+                } else if (name === 'Office Building') {
+                    this.changeScene('CoworkingScene'); // Use coworking for now
+                } else if (name === 'Restaurant') {
+                    this.changeScene('RestaurantScene');
                 } else {
                     this.visitLocation(name);
                 }
@@ -2457,6 +2470,297 @@ class ParkScene extends Phaser.Scene {
     }
 }
 
+// Restaurant Scene
+class RestaurantScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'RestaurantScene' });
+    }
+
+    create() {
+        const width = 640;
+        const height = 480;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Background
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(320, 30, '🍽️ RESTAURANT', {
+            fontSize: '24px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(320, 400, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createRestaurant();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('🍽️ Grab a meal to restore energy and network!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createRestaurant() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Tables (4x3 grid)
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 4; col++) {
+                const x = 120 + col * 130;
+                const y = 140 + row * 100;
+                
+                const table = this.add.circle(x, y, 30, 0xA0522D);
+                table.setStrokeStyle(2, 0x654321);
+                
+                const tableCol = this.obstacles.create(x, y, null);
+                tableCol.setSize(60, 60);
+                tableCol.setAlpha(0);
+                tableCol.refreshBody();
+                
+                // Plates on some tables
+                if (Math.random() > 0.5) {
+                    this.add.circle(x, y, 10, 0xFFFFFF);
+                }
+            }
+        }
+        
+        // NPCs at tables
+        const dinerSpots = [
+            {x: 120, y: 140, sprite: 'npc1'},
+            {x: 380, y: 240, sprite: 'npc3'},
+            {x: 510, y: 340, sprite: 'npc5'}
+        ];
+        
+        dinerSpots.forEach(spot => {
+            this.add.sprite(spot.x, spot.y, spot.sprite).setScale(1.2);
+        });
+        
+        // Plants
+        this.add.image(60, 80, 'plant');
+        this.add.image(580, 80, 'plant');
+        
+        // Exit
+        const door = this.interactables.create(320, 450, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check door
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                this.cameras.main.fadeOut(500);
+                this.time.delayedCall(500, () => {
+                    this.scene.start(nearest.getData('target'));
+                });
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
+// Co-working Space Scene
+class CoworkingScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'CoworkingScene' });
+    }
+
+    create() {
+        const width = 640;
+        const height = 480;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Background
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(320, 30, '💼 CO-WORKING SPACE', {
+            fontSize: '24px',
+            color: '#2A9D8F',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(320, 400, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createCoworking();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('💼 Work and network with other professionals!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createCoworking() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Work desks (grid of 3x2)
+        for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 3; col++) {
+                const x = 140 + col * 180;
+                const y = 130 + row * 140;
+                
+                const desk = this.obstacles.create(x, y, 'desk');
+                desk.refreshBody();
+                
+                this.add.image(x, y, 'laptop');
+                
+                // Some desks have people working
+                if (Math.random() > 0.4) {
+                    const sprites = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'];
+                    this.add.sprite(x, y - 20, Phaser.Math.RND.pick(sprites)).setScale(1.2);
+                }
+            }
+        }
+        
+        // Coffee station
+        const coffeeStation = this.obstacles.create(550, 350, null);
+        coffeeStation.setSize(60, 40);
+        coffeeStation.setAlpha(0);
+        coffeeStation.refreshBody();
+        this.add.rectangle(550, 350, 60, 40, 0x8B4513);
+        this.add.image(550, 350, 'coffee').setScale(2);
+        
+        // Plants
+        this.add.image(50, 80, 'plant');
+        this.add.image(590, 80, 'plant');
+        this.add.image(50, 400, 'plant');
+        this.add.image(590, 400, 'plant');
+        
+        // Exit
+        const door = this.interactables.create(320, 450, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Proximity networking boost
+        if (Math.random() < 0.01) {
+            gameState.data.player.networking += 1;
+            updateUI();
+        }
+        
+        // Check door
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                this.cameras.main.fadeOut(500);
+                this.time.delayedCall(500, () => {
+                    this.scene.start(nearest.getData('target'));
+                });
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
 // Coffee Shop Scene
 class CoffeeShopScene extends Phaser.Scene {
     constructor() {
@@ -2647,12 +2951,13 @@ class ComputerMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Create buttons
-        this.createButton(width/2, 200, '✍️ Create Post (15⚡)', () => this.createPost());
-        this.createButton(width/2, 260, '📚 Learn Skills (50💰)', () => this.learnSkills());
-        this.createButton(width/2, 320, '🎮 Skill Minigame (Free)', () => this.startMinigame());
-        this.createButton(width/2, 380, '⚙️ Customize Character', () => this.customize());
-        this.createButton(width/2, 440, '👁️ View Profile', () => this.viewProfile());
-        this.createButton(width/2, 500, '❌ Close', () => this.closeMenu());
+        this.createButton(width/2, 180, '✍️ Create Post (15⚡)', () => this.createPost());
+        this.createButton(width/2, 235, '📚 Learn Skills (50💰)', () => this.learnSkills());
+        this.createButton(width/2, 290, '🎮 Skill Minigame (Free)', () => this.startMinigame());
+        this.createButton(width/2, 345, '🌳 View Skill Tree', () => this.showSkillTree());
+        this.createButton(width/2, 400, '⚙️ Customize Character', () => this.customize());
+        this.createButton(width/2, 455, '👁️ View Profile', () => this.viewProfile());
+        this.createButton(width/2, 510, '❌ Close', () => this.closeMenu());
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
@@ -2762,6 +3067,27 @@ class ComputerMenuScene extends Phaser.Scene {
     
     customize() {
         document.getElementById('customization-menu').style.display = 'block';
+    }
+    
+    showSkillTree() {
+        document.getElementById('skill-tree-menu').style.display = 'block';
+        // Update skill levels based on player stats
+        const skillLevels = {
+            js: Math.floor(gameState.data.player.skills / 20),
+            python: Math.floor(gameState.data.player.skills / 25),
+            leadership: Math.floor(gameState.data.player.networking / 20),
+            comm: Math.floor(gameState.data.player.reputation / 20),
+            content: Math.floor(gameState.data.player.postsCount / 2),
+            seo: Math.floor(gameState.data.player.followers / 20)
+        };
+        
+        Object.keys(skillLevels).forEach(skill => {
+            const lvl = Math.min(10, skillLevels[skill]);
+            const elem = document.getElementById(`skill-${skill}`);
+            const bar = document.getElementById(`skill-${skill}-bar`);
+            if (elem) elem.textContent = `Lvl ${lvl}`;
+            if (bar) bar.style.width = `${lvl * 10}%`;
+        });
     }
 
     closeMenu() {
@@ -2917,7 +3243,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, ComputerMenuScene, SkillMinigameScene],
+    scene: [IntroScene, BootScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, ComputerMenuScene, SkillMinigameScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
