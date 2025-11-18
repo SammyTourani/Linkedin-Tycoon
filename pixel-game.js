@@ -5109,14 +5109,16 @@ class ComputerMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Create buttons
-        this.createButton(width/2, 160, '✍️ Create Post (15⚡)', () => this.createPost());
-        this.createButton(width/2, 210, '📚 Learn Skills (50💰)', () => this.learnSkills());
-        this.createButton(width/2, 260, '🎮 Skill Minigame (Free)', () => this.startMinigame());
-        this.createButton(width/2, 310, '🌳 View Skill Tree', () => this.showSkillTree());
-        this.createButton(width/2, 360, '🏠 Upgrade Apartment', () => this.upgradeApartment());
-        this.createButton(width/2, 410, '⚙️ Customize Character', () => this.customize());
-        this.createButton(width/2, 460, '👁️ View Profile', () => this.viewProfile());
-        this.createButton(width/2, 510, '❌ Close', () => this.closeMenu());
+        this.createButton(width/2, 140, '✍️ Create Post (15⚡)', () => this.createPost());
+        this.createButton(width/2, 185, '📚 Learn Skills (50💰)', () => this.learnSkills());
+        this.createButton(width/2, 230, '⌨️ Typing Game', () => this.startMinigame());
+        this.createButton(width/2, 275, '🧠 Memory Game', () => this.startMemoryGame());
+        this.createButton(width/2, 320, '⚡ Reaction Test', () => this.startReactionGame());
+        this.createButton(width/2, 365, '❓ Tech Quiz', () => this.startQuizGame());
+        this.createButton(width/2, 410, '🌳 View Skill Tree', () => this.showSkillTree());
+        this.createButton(width/2, 455, '🏠 Upgrade Apartment', () => this.upgradeApartment());
+        this.createButton(width/2, 500, '⚙️ Customize', () => this.customize());
+        this.createButton(width/2, 545, '❌ Close', () => this.closeMenu());
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
@@ -5222,6 +5224,21 @@ class ComputerMenuScene extends Phaser.Scene {
     startMinigame() {
         this.closeMenu();
         this.scene.launch('SkillMinigameScene');
+    }
+    
+    startMemoryGame() {
+        this.closeMenu();
+        this.scene.launch('MemoryGameScene');
+    }
+    
+    startReactionGame() {
+        this.closeMenu();
+        this.scene.launch('ReactionGameScene');
+    }
+    
+    startQuizGame() {
+        this.closeMenu();
+        this.scene.launch('QuizGameScene');
     }
     
     customize() {
@@ -5410,6 +5427,693 @@ class SkillMinigameScene extends Phaser.Scene {
     }
 }
 
+// Memory Game Scene - Match pairs
+class MemoryGameScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MemoryGameScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Dark overlay
+        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
+        
+        // Game background
+        const bg = this.add.rectangle(width/2, height/2, 700, 500, 0x2A9D8F);
+        bg.setStrokeStyle(4, 0x00FF88);
+        
+        // Title
+        this.add.text(width/2, height/2 - 220, '🧠 MEMORY MATCH', {
+            fontSize: '32px',
+            color: '#00FF88',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, height/2 - 180, 'Match the LinkedIn skill pairs!', {
+            fontSize: '16px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        // Create cards
+        this.symbols = ['💻', '📱', '🎯', '💼', '📊', '🚀', '💡', '⭐'];
+        this.cards = [];
+        this.flippedCards = [];
+        this.matchedPairs = 0;
+        this.moves = 0;
+        this.startTime = Date.now();
+        
+        // Shuffle symbols
+        const gameSymbols = [...this.symbols, ...this.symbols];
+        Phaser.Utils.Array.Shuffle(gameSymbols);
+        
+        // Create 4x4 grid
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                const x = width/2 - 180 + col * 120;
+                const y = height/2 - 100 + row * 110;
+                const symbol = gameSymbols[row * 4 + col];
+                
+                const card = this.add.rectangle(x, y, 90, 90, 0x0A66C2);
+                card.setStrokeStyle(3, 0x00FF88);
+                card.setInteractive();
+                
+                const cardText = this.add.text(x, y, '?', {
+                    fontSize: '40px',
+                    color: '#FFFFFF'
+                }).setOrigin(0.5);
+                
+                const symbolText = this.add.text(x, y, symbol, {
+                    fontSize: '40px'
+                }).setOrigin(0.5).setAlpha(0);
+                
+                const cardData = {
+                    rect: card,
+                    questionMark: cardText,
+                    symbol: symbol,
+                    symbolText: symbolText,
+                    flipped: false,
+                    matched: false
+                };
+                
+                card.on('pointerdown', () => {
+                    if (!cardData.flipped && !cardData.matched && this.flippedCards.length < 2) {
+                        this.flipCard(cardData);
+                    }
+                });
+                
+                card.on('pointerover', () => {
+                    if (!cardData.matched) {
+                        card.setFillStyle(0x0E7FE8);
+                    }
+                });
+                
+                card.on('pointerout', () => {
+                    if (!cardData.matched) {
+                        card.setFillStyle(0x0A66C2);
+                    }
+                });
+                
+                this.cards.push(cardData);
+            }
+        }
+        
+        // Moves counter
+        this.movesText = this.add.text(width/2, height/2 + 220, 'Moves: 0', {
+            fontSize: '18px',
+            color: '#FFD700'
+        }).setOrigin(0.5);
+        
+        // Timer
+        this.timerText = this.add.text(width/2 + 200, height/2 - 220, 'Time: 0s', {
+            fontSize: '16px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+    }
+    
+    update() {
+        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+        this.timerText.setText(`Time: ${elapsed}s`);
+    }
+    
+    flipCard(card) {
+        card.flipped = true;
+        card.questionMark.setAlpha(0);
+        card.symbolText.setAlpha(1);
+        this.flippedCards.push(card);
+        
+        if (this.flippedCards.length === 2) {
+            this.moves++;
+            this.movesText.setText(`Moves: ${this.moves}`);
+            
+            this.time.delayedCall(500, () => {
+                this.checkMatch();
+            });
+        }
+    }
+    
+    checkMatch() {
+        const [card1, card2] = this.flippedCards;
+        
+        if (card1.symbol === card2.symbol) {
+            // Match!
+            card1.matched = true;
+            card2.matched = true;
+            card1.rect.setFillStyle(0x00FF88);
+            card2.rect.setFillStyle(0x00FF88);
+            this.matchedPairs++;
+            
+            if (this.matchedPairs === 8) {
+                this.completeGame();
+            }
+        } else {
+            // No match
+            card1.flipped = false;
+            card2.flipped = false;
+            card1.questionMark.setAlpha(1);
+            card1.symbolText.setAlpha(0);
+            card2.questionMark.setAlpha(1);
+            card2.symbolText.setAlpha(0);
+        }
+        
+        this.flippedCards = [];
+    }
+    
+    completeGame() {
+        const timeBonus = Math.max(0, 60 - Math.floor((Date.now() - this.startTime) / 1000));
+        const moveBonus = Math.max(0, 50 - this.moves);
+        const totalBonus = timeBonus * 5 + moveBonus * 10;
+        
+        gameState.data.player.skills += 20 + totalBonus;
+        gameState.data.player.coins += 100 + totalBonus * 2;
+        gameState.gainXP(50 + totalBonus);
+        
+        showNotification(`🧠 Memory Perfect! +${20 + totalBonus} skills, +${100 + totalBonus * 2} coins!`);
+        showAchievement('Memory Master 🧠');
+        updateUI();
+        
+        this.time.delayedCall(2000, () => {
+            this.scene.stop();
+        });
+    }
+}
+
+// Reaction Game Scene - Click as fast as possible
+class ReactionGameScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'ReactionGameScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Dark overlay
+        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
+        
+        // Game background
+        const bg = this.add.rectangle(width/2, height/2, 600, 400, 0xFF6B6B);
+        bg.setStrokeStyle(4, 0xFFFF00);
+        
+        // Title
+        this.add.text(width/2, height/2 - 150, '⚡ REACTION TEST', {
+            fontSize: '32px',
+            color: '#FFFF00',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, height/2 - 110, 'Click the green button as fast as you can!', {
+            fontSize: '14px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        this.round = 0;
+        this.maxRounds = 5;
+        this.reactions = [];
+        this.waitingForClick = false;
+        
+        // Create target button
+        this.targetButton = this.add.rectangle(width/2, height/2 + 20, 150, 150, 0xFF0000);
+        this.targetButton.setStrokeStyle(4, 0x000000);
+        this.targetButton.setInteractive();
+        
+        this.targetText = this.add.text(width/2, height/2 + 20, 'WAIT...', {
+            fontSize: '24px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Stats
+        this.statsText = this.add.text(width/2, height/2 + 130, `Round: ${this.round}/${this.maxRounds}`, {
+            fontSize: '16px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        this.targetButton.on('pointerdown', () => {
+            if (this.waitingForClick) {
+                const reactionTime = Date.now() - this.clickStartTime;
+                this.reactions.push(reactionTime);
+                this.round++;
+                
+                this.targetButton.setFillStyle(0xFF0000);
+                this.targetText.setText('WAIT...');
+                this.waitingForClick = false;
+                
+                if (this.round >= this.maxRounds) {
+                    this.completeGame();
+                } else {
+                    this.statsText.setText(`Round: ${this.round}/${this.maxRounds}\nLast: ${reactionTime}ms`);
+                    this.scheduleNextRound();
+                }
+            }
+        });
+        
+        // Start first round
+        this.scheduleNextRound();
+    }
+    
+    scheduleNextRound() {
+        const delay = Phaser.Math.Between(1000, 3000);
+        this.time.delayedCall(delay, () => {
+            this.targetButton.setFillStyle(0x00FF00);
+            this.targetText.setText('CLICK!');
+            this.clickStartTime = Date.now();
+            this.waitingForClick = true;
+        });
+    }
+    
+    completeGame() {
+        const avgReaction = this.reactions.reduce((a, b) => a + b, 0) / this.reactions.length;
+        const bestReaction = Math.min(...this.reactions);
+        
+        let rating = 'Average';
+        let bonus = 0;
+        
+        if (avgReaction < 300) {
+            rating = 'AMAZING!';
+            bonus = 150;
+        } else if (avgReaction < 400) {
+            rating = 'Great!';
+            bonus = 100;
+        } else if (avgReaction < 500) {
+            rating = 'Good!';
+            bonus = 50;
+        }
+        
+        gameState.data.player.skills += 15 + bonus;
+        gameState.data.player.coins += 75 + bonus;
+        gameState.gainXP(40 + bonus);
+        
+        this.targetText.setText(`${rating}\nAvg: ${Math.floor(avgReaction)}ms`);
+        showNotification(`⚡ Reaction Test Complete! +${15 + bonus} skills!`);
+        showAchievement('Lightning Fast ⚡');
+        updateUI();
+        
+        this.time.delayedCall(3000, () => {
+            this.scene.stop();
+        });
+    }
+}
+
+// Tech Quiz Game Scene
+class QuizGameScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'QuizGameScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Dark overlay
+        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
+        
+        // Game background
+        const bg = this.add.rectangle(width/2, height/2, 700, 500, 0x7B1FA2);
+        bg.setStrokeStyle(4, 0xFFD700);
+        
+        // Title
+        this.add.text(width/2, height/2 - 220, '❓ TECH QUIZ', {
+            fontSize: '32px',
+            color: '#FFD700',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, height/2 - 180, 'Test your technical knowledge!', {
+            fontSize: '16px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        this.currentQuestion = 0;
+        this.score = 0;
+        
+        this.quizQuestions = [
+            {
+                q: "What does HTML stand for?",
+                answers: ["HyperText Markup Language", "High Tech Modern Language", "Home Tool Markup Language"],
+                correct: 0
+            },
+            {
+                q: "Which language is known for 'Write Once, Run Anywhere'?",
+                answers: ["Python", "Java", "C++"],
+                correct: 1
+            },
+            {
+                q: "What is React?",
+                answers: ["A database", "A JavaScript library", "An operating system"],
+                correct: 1
+            },
+            {
+                q: "What does API stand for?",
+                answers: ["Application Programming Interface", "Advanced Program Integration", "Automated Process Interface"],
+                correct: 0
+            },
+            {
+                q: "Which is a NoSQL database?",
+                answers: ["MySQL", "MongoDB", "PostgreSQL"],
+                correct: 1
+            },
+            {
+                q: "What is Git used for?",
+                answers: ["Version control", "Database management", "Web hosting"],
+                correct: 0
+            },
+            {
+                q: "What does CSS stand for?",
+                answers: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style System"],
+                correct: 1
+            },
+            {
+                q: "Which is a backend framework?",
+                answers: ["React", "Express.js", "Bootstrap"],
+                correct: 1
+            },
+            {
+                q: "What is Docker?",
+                answers: ["A containerization platform", "A programming language", "A cloud provider"],
+                correct: 0
+            },
+            {
+                q: "What does REST stand for in APIs?",
+                answers: ["Representational State Transfer", "Remote Service Technology", "Rapid Exchange System Transfer"],
+                correct: 0
+            }
+        ];
+        
+        // Shuffle questions
+        Phaser.Utils.Array.Shuffle(this.quizQuestions);
+        this.quizQuestions = this.quizQuestions.slice(0, 5); // Use 5 questions
+        
+        this.showQuestion();
+    }
+    
+    showQuestion() {
+        if (this.currentQuestion >= this.quizQuestions.length) {
+            this.endQuiz();
+            return;
+        }
+        
+        const q = this.quizQuestions[this.currentQuestion];
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Question number
+        if (this.questionNum) this.questionNum.destroy();
+        this.questionNum = this.add.text(width/2, height/2 - 130, `Question ${this.currentQuestion + 1}/${this.quizQuestions.length}`, {
+            fontSize: '16px',
+            color: '#FFD700'
+        }).setOrigin(0.5);
+        
+        // Question text
+        if (this.questionText) this.questionText.destroy();
+        this.questionText = this.add.text(width/2, height/2 - 80, q.q, {
+            fontSize: '20px',
+            color: '#FFFFFF',
+            align: 'center',
+            wordWrap: { width: 600 }
+        }).setOrigin(0.5);
+        
+        // Answer buttons
+        if (this.answerButtons) {
+            this.answerButtons.forEach(btn => {
+                btn.rect.destroy();
+                btn.text.destroy();
+            });
+        }
+        
+        this.answerButtons = [];
+        q.answers.forEach((answer, i) => {
+            const y = height/2 + 20 + i * 70;
+            
+            const rect = this.add.rectangle(width/2, y, 600, 60, 0x4A4A4A);
+            rect.setStrokeStyle(3, 0xFFD700);
+            rect.setInteractive();
+            
+            const text = this.add.text(width/2, y, answer, {
+                fontSize: '16px',
+                color: '#FFFFFF'
+            }).setOrigin(0.5);
+            
+            rect.on('pointerover', () => {
+                rect.setFillStyle(0x6A6A6A);
+                rect.setScale(1.02);
+            });
+            
+            rect.on('pointerout', () => {
+                rect.setFillStyle(0x4A4A4A);
+                rect.setScale(1);
+            });
+            
+            rect.on('pointerdown', () => {
+                const isCorrect = i === q.correct;
+                
+                if (isCorrect) {
+                    this.score++;
+                    rect.setFillStyle(0x00FF88);
+                    this.cameras.main.flash(150, 0, 255, 0, false, null, 0.2);
+                    showNotification('✓ Correct!');
+                } else {
+                    rect.setFillStyle(0xFF0000);
+                    this.cameras.main.shake(150, 0.002);
+                    showNotification('✗ Incorrect');
+                }
+                
+                this.time.delayedCall(1000, () => {
+                    this.currentQuestion++;
+                    this.showQuestion();
+                });
+            });
+            
+            this.answerButtons.push({ rect, text });
+        });
+    }
+    
+    endQuiz() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Clear
+        if (this.questionText) this.questionText.destroy();
+        if (this.questionNum) this.questionNum.destroy();
+        if (this.answerButtons) {
+            this.answerButtons.forEach(btn => {
+                btn.rect.destroy();
+                btn.text.destroy();
+            });
+        }
+        
+        const percentage = (this.score / this.quizQuestions.length) * 100;
+        const bonus = this.score * 25;
+        
+        gameState.data.player.skills += 10 + bonus;
+        gameState.data.player.reputation += this.score * 5;
+        gameState.data.player.coins += 50 + bonus;
+        gameState.gainXP(30 + bonus);
+        
+        this.add.text(width/2, height/2, `Quiz Complete!\n\nScore: ${this.score}/${this.quizQuestions.length} (${Math.floor(percentage)}%)\n\n+${10 + bonus} Skills\n+${50 + bonus} Coins`, {
+            fontSize: '24px',
+            color: '#00FF88',
+            align: 'center',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        if (this.score === this.quizQuestions.length) {
+            showAchievement('Perfect Score! 🎯');
+        }
+        
+        updateUI();
+        
+        this.time.delayedCall(4000, () => {
+            this.scene.stop();
+        });
+    }
+}
+
+// Hackathon Scene - Build a project
+class HackathonScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'HackathonScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Tech background
+        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        
+        // Matrix effect
+        for (let i = 0; i < 30; i++) {
+            const x = Phaser.Math.Between(0, width);
+            const code = this.add.text(x, -50, '01010101\n10101010\n01110011', {
+                fontSize: '12px',
+                color: '#00FF00',
+                alpha: 0.3,
+                fontFamily: 'Courier New'
+            });
+            
+            this.tweens.add({
+                targets: code,
+                y: height + 50,
+                duration: 5000 + Math.random() * 5000,
+                repeat: -1,
+                delay: Math.random() * 5000
+            });
+        }
+        
+        // Title
+        this.add.text(width/2, 120, '💻 24-HOUR HACKATHON', {
+            fontSize: '36px',
+            color: '#00FF00',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 170, 'Build something amazing in 60 seconds!', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        // Project options
+        const projects = [
+            { name: '🤖 AI Chatbot', difficulty: 'Hard', reward: { xp: 200, coins: 400, skills: 50 } },
+            { name: '📱 Mobile App', difficulty: 'Medium', reward: { xp: 150, coins: 300, skills: 35 } },
+            { name: '🌐 Website', difficulty: 'Easy', reward: { xp: 100, coins: 200, skills: 25 } }
+        ];
+        
+        projects.forEach((project, i) => {
+            const y = height/2 + 50 + i * 100;
+            
+            const card = this.add.rectangle(width/2, y, 500, 90, 0x1E3A8A);
+            card.setStrokeStyle(3, 0x00FF00);
+            card.setInteractive();
+            
+            this.add.text(width/2, y - 20, project.name, {
+                fontSize: '22px',
+                color: '#00FF00',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            this.add.text(width/2, y + 10, `Difficulty: ${project.difficulty}`, {
+                fontSize: '14px',
+                color: '#FFD700'
+            }).setOrigin(0.5);
+            
+            const rewardText = `XP: +${project.reward.xp} | Coins: +${project.reward.coins} | Skills: +${project.reward.skills}`;
+            this.add.text(width/2, y + 30, rewardText, {
+                fontSize: '12px',
+                color: '#FFFFFF'
+            }).setOrigin(0.5);
+            
+            card.on('pointerover', () => {
+                card.setFillStyle(0x2E5AAA);
+                card.setScale(1.02);
+            });
+            
+            card.on('pointerout', () => {
+                card.setFillStyle(0x1E3A8A);
+                card.setScale(1);
+            });
+            
+            card.on('pointerdown', () => {
+                this.startHackathon(project);
+            });
+        });
+        
+        // Cancel button
+        const cancelBtn = this.add.rectangle(width/2, height - 120, 200, 50, 0xFF6B6B);
+        cancelBtn.setStrokeStyle(2, 0xFFFFFF);
+        cancelBtn.setInteractive();
+        
+        this.add.text(width/2, height - 120, 'Leave', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        cancelBtn.on('pointerdown', () => {
+            this.scene.stop();
+            this.scene.start('CityScene');
+        });
+    }
+    
+    startHackathon(project) {
+        if (gameState.useEnergy(40)) {
+            const width = this.cameras.main.width;
+            const height = this.cameras.main.height;
+            
+            // Clear scene
+            this.children.removeAll();
+            
+            // Progress bar
+            this.add.rectangle(width/2, height/2, width, height, 0x000000);
+            
+            this.add.text(width/2, height/2 - 100, 'BUILDING PROJECT...', {
+                fontSize: '32px',
+                color: '#00FF00',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            const progressBg = this.add.rectangle(width/2, height/2, 600, 50, 0x2C2C2C);
+            progressBg.setStrokeStyle(3, 0x00FF00);
+            
+            const progressBar = this.add.rectangle(width/2 - 297, height/2, 0, 44, 0x00FF00);
+            progressBar.setOrigin(0, 0.5);
+            
+            // Simulate building
+            this.tweens.add({
+                targets: progressBar,
+                width: 594,
+                duration: 3000,
+                ease: 'Linear',
+                onComplete: () => {
+                    // Complete!
+                    gameState.gainXP(project.reward.xp);
+                    gameState.data.player.coins += project.reward.coins;
+                    gameState.data.player.skills += project.reward.skills;
+                    gameState.data.player.reputation += 30;
+                    
+                    showNotification(`💻 Project complete! Massive rewards!`);
+                    showAchievement('Hackathon Winner 🏆');
+                    updateUI();
+                    
+                    // Confetti
+                    for (let i = 0; i < 40; i++) {
+                        const confetti = this.add.text(
+                            width/2 + Phaser.Math.Between(-200, 200),
+                            height/2 - 100,
+                            Phaser.Math.RND.pick(['🎉', '⭐', '💻', '🚀']),
+                            { fontSize: '24px' }
+                        );
+                        
+                        this.tweens.add({
+                            targets: confetti,
+                            y: height/2 + 200,
+                            x: confetti.x + Phaser.Math.Between(-150, 150),
+                            alpha: 0,
+                            rotation: Phaser.Math.Between(-4, 4),
+                            duration: 2500,
+                            onComplete: () => confetti.destroy()
+                        });
+                    }
+                    
+                    this.time.delayedCall(3000, () => {
+                        this.scene.stop();
+                        this.scene.start('CityScene');
+                    });
+                }
+            });
+        } else {
+            showNotification('⚡ Need 40 energy for hackathon!');
+        }
+    }
+}
+
 // ============================================================================
 // PHASER GAME CONFIGURATION
 // ============================================================================
@@ -5428,7 +6132,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, ComputerMenuScene, SkillMinigameScene, EmailScene],
+    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
