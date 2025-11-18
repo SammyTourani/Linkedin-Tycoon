@@ -480,8 +480,18 @@
                     <span class="stat-label">🤝 Network</span>
                     <span class="stat-value" id="network-display">5</span>
                 </div>
+                <div class="stat">
+                    <span class="stat-label">💼 Items</span>
+                    <span class="stat-value" id="inventory-count">0</span>
+                </div>
             </div>
         </div>
+        <button id="inventory-button" style="position: absolute; bottom: 20px; left: 20px; background: rgba(0, 0, 0, 0.7); color: white; border: 2px solid #0a66c2; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; z-index: 1003; transition: all 0.3s;" onmouseover="this.style.background='#0a66c2'" onmouseout="this.style.background='rgba(0, 0, 0, 0.7)'">
+            🎒 Inventory (I)
+        </button>
+        <button id="email-button" style="position: absolute; bottom: 20px; left: 200px; background: rgba(0, 0, 0, 0.7); color: white; border: 2px solid #0a66c2; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; z-index: 1003; transition: all 0.3s;" onmouseover="this.style.background='#0a66c2'" onmouseout="this.style.background='rgba(0, 0, 0, 0.7)'">
+            📧 Messages (<span id="email-count">0</span>)
+        </button>
         <div id="interaction-prompt">Press E to interact</div>
         <div id="notification"></div>
         <div id="loading">
@@ -582,9 +592,131 @@
             </div>
             <button style="margin-top: 30px; width: 100%; background: #FFD700; color: #000; border: none; padding: 12px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close Skill Tree</button>
         </div>
+        <div id="inventory-menu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); padding: 40px; border-radius: 16px; border: 4px solid #00ff88; z-index: 2500; max-width: 700px; min-width: 600px;">
+            <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px;">🎒 INVENTORY</h2>
+            <div id="inventory-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                <!-- Items will be added here dynamically -->
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(10, 102, 194, 0.3); border-radius: 8px;">
+                <h3 style="color: #00d9ff; margin-bottom: 10px;">📦 Equipment</h3>
+                <div style="color: white;">
+                    <p>💻 Laptop: <span id="equipped-laptop">None</span></p>
+                    <p>📱 Phone: <span id="equipped-phone">None</span></p>
+                    <p>💼 Briefcase: <span id="equipped-briefcase">None</span></p>
+                    <p>👔 Outfit: <span id="equipped-outfit">Default</span></p>
+                </div>
+            </div>
+            <button style="margin-top: 20px; width: 100%; background: #00ff88; color: #000; border: none; padding: 12px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="document.getElementById('inventory-menu').style.display='none'">Close Inventory</button>
+        </div>
     </div>
 
     <script>
+        // Inventory button handler
+        document.getElementById('inventory-button').addEventListener('click', () => {
+            const menu = document.getElementById('inventory-menu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            updateInventoryDisplay();
+        });
+        
+        // Email button handler
+        document.getElementById('email-button').addEventListener('click', () => {
+            if (window.game && window.game.scene.scenes) {
+                const activeScene = window.game.scene.getScenes(true)[0];
+                if (activeScene) {
+                    activeScene.scene.launch('EmailScene');
+                }
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'i' || e.key === 'I') {
+                const menu = document.getElementById('inventory-menu');
+                if (menu.style.display !== 'block') {
+                    menu.style.display = 'block';
+                    updateInventoryDisplay();
+                }
+            }
+            if (e.key === 'm' || e.key === 'M') {
+                if (window.game && window.game.scene.scenes) {
+                    const activeScene = window.game.scene.getScenes(true)[0];
+                    if (activeScene) {
+                        activeScene.scene.launch('EmailScene');
+                    }
+                }
+            }
+        });
+        
+        function updateInventoryDisplay() {
+            if (!window.gameState) return;
+            
+            const grid = document.getElementById('inventory-grid');
+            const inventory = window.gameState.data.player.inventory || [];
+            
+            grid.innerHTML = '';
+            
+            if (inventory.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #666; padding: 20px;">No items yet. Explore the city to find items!</div>';
+            } else {
+                inventory.forEach((item, index) => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.cssText = 'background: rgba(10, 102, 194, 0.5); border: 2px solid #00ff88; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s;';
+                    itemDiv.innerHTML = `
+                        <div style="font-size: 32px; margin-bottom: 5px;">${item.icon}</div>
+                        <div style="color: white; font-size: 12px; font-weight: bold;">${item.name}</div>
+                        <div style="color: #00ff88; font-size: 10px; margin-top: 5px;">${item.effect}</div>
+                    `;
+                    itemDiv.onmouseover = () => itemDiv.style.transform = 'scale(1.05)';
+                    itemDiv.onmouseout = () => itemDiv.style.transform = 'scale(1)';
+                    itemDiv.onclick = () => useItem(index);
+                    grid.appendChild(itemDiv);
+                });
+            }
+            
+            // Update equipment
+            const eq = window.gameState.data.player.equipment;
+            document.getElementById('equipped-laptop').textContent = eq.laptop || 'None';
+            document.getElementById('equipped-phone').textContent = eq.phone || 'None';
+            document.getElementById('equipped-briefcase').textContent = eq.briefcase || 'None';
+            document.getElementById('equipped-outfit').textContent = eq.outfit || 'Default';
+            document.getElementById('inventory-count').textContent = inventory.length;
+        }
+        
+        function useItem(index) {
+            if (!window.gameState) return;
+            const item = window.gameState.data.player.inventory[index];
+            if (!item) return;
+            
+            // Use item
+            if (item.type === 'consumable') {
+                // Apply effect
+                if (item.energyBoost) {
+                    window.gameState.data.player.energy = Math.min(
+                        window.gameState.data.player.maxEnergy,
+                        window.gameState.data.player.energy + item.energyBoost
+                    );
+                }
+                if (item.coinBoost) {
+                    window.gameState.data.player.coins += item.coinBoost;
+                }
+                if (item.xpBoost) {
+                    window.gameState.gainXP(item.xpBoost);
+                }
+                
+                // Remove from inventory
+                window.gameState.data.player.inventory.splice(index, 1);
+                showNotification(`Used ${item.name}!`);
+                updateUI();
+                updateInventoryDisplay();
+            } else if (item.type === 'equipment') {
+                // Equip item
+                window.gameState.data.player.equipment[item.slot] = item.name;
+                window.gameState.data.player.inventory.splice(index, 1);
+                showNotification(`Equipped ${item.name}!`);
+                updateInventoryDisplay();
+            }
+        }
+        
         function customizeCharacter(part, color) {
             if (window.gameState) {
                 if (!window.gameState.data.customization) {

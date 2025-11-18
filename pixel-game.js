@@ -210,10 +210,156 @@ class QuestManager {
     }
 }
 
+// Item Database
+class ItemManager {
+    constructor() {
+        this.itemDatabase = {
+            'energy_drink': {
+                name: 'Energy Drink',
+                icon: '🥤',
+                type: 'consumable',
+                energyBoost: 50,
+                effect: '+50 Energy',
+                rarity: 'common'
+            },
+            'coffee': {
+                name: 'Coffee',
+                icon: '☕',
+                type: 'consumable',
+                energyBoost: 30,
+                effect: '+30 Energy',
+                rarity: 'common'
+            },
+            'protein_bar': {
+                name: 'Protein Bar',
+                icon: '🍫',
+                type: 'consumable',
+                energyBoost: 20,
+                effect: '+20 Energy',
+                rarity: 'common'
+            },
+            'lucky_coin': {
+                name: 'Lucky Coin',
+                icon: '🪙',
+                type: 'consumable',
+                coinBoost: 100,
+                effect: '+100 Coins',
+                rarity: 'uncommon'
+            },
+            'xp_boost': {
+                name: 'XP Booster',
+                icon: '⭐',
+                type: 'consumable',
+                xpBoost: 50,
+                effect: '+50 XP',
+                rarity: 'uncommon'
+            },
+            'basic_laptop': {
+                name: 'Basic Laptop',
+                icon: '💻',
+                type: 'equipment',
+                slot: 'laptop',
+                effect: '+10% Post Quality',
+                rarity: 'common'
+            },
+            'pro_laptop': {
+                name: 'Pro Laptop',
+                icon: '💻',
+                type: 'equipment',
+                slot: 'laptop',
+                effect: '+25% Post Quality',
+                rarity: 'rare'
+            },
+            'smartphone': {
+                name: 'Smartphone',
+                icon: '📱',
+                type: 'equipment',
+                slot: 'phone',
+                effect: '+15% Networking',
+                rarity: 'common'
+            },
+            'pro_phone': {
+                name: 'Pro Phone',
+                icon: '📱',
+                type: 'equipment',
+                slot: 'phone',
+                effect: '+30% Networking',
+                rarity: 'rare'
+            },
+            'leather_briefcase': {
+                name: 'Leather Briefcase',
+                icon: '💼',
+                type: 'equipment',
+                slot: 'briefcase',
+                effect: '+20 Reputation',
+                rarity: 'uncommon'
+            },
+            'designer_briefcase': {
+                name: 'Designer Briefcase',
+                icon: '💼',
+                type: 'equipment',
+                slot: 'briefcase',
+                effect: '+50 Reputation',
+                rarity: 'rare'
+            },
+            'business_suit': {
+                name: 'Business Suit',
+                icon: '👔',
+                type: 'equipment',
+                slot: 'outfit',
+                effect: '+15 Reputation',
+                rarity: 'uncommon'
+            },
+            'designer_suit': {
+                name: 'Designer Suit',
+                icon: '👔',
+                type: 'equipment',
+                slot: 'outfit',
+                effect: '+40 Reputation',
+                rarity: 'rare'
+            }
+        };
+    }
+    
+    getItem(itemId) {
+        return {...this.itemDatabase[itemId]};
+    }
+    
+    addItemToInventory(itemId) {
+        const item = this.getItem(itemId);
+        if (item) {
+            gameState.data.player.inventory.push(item);
+            gameState.saveGame();
+            return true;
+        }
+        return false;
+    }
+    
+    spawnRandomItem() {
+        const commonItems = ['energy_drink', 'coffee', 'protein_bar'];
+        const uncommonItems = ['lucky_coin', 'xp_boost', 'leather_briefcase', 'business_suit'];
+        const rareItems = ['pro_laptop', 'pro_phone', 'designer_briefcase', 'designer_suit'];
+        
+        const roll = Math.random();
+        let itemId;
+        
+        if (roll < 0.6) {
+            itemId = Phaser.Math.RND.pick(commonItems);
+        } else if (roll < 0.9) {
+            itemId = Phaser.Math.RND.pick(uncommonItems);
+        } else {
+            itemId = Phaser.Math.RND.pick(rareItems);
+        }
+        
+        return itemId;
+    }
+}
+
 // Global managers
 const storyManager = new StoryManager();
 const dialogueManager = new DialogueManager();
 const questManager = new QuestManager();
+const itemManager = new ItemManager();
 
 // Game State Manager
 class GameState {
@@ -238,7 +384,17 @@ class GameState {
                 connections: 5,
                 followers: 12,
                 postsCount: 0,
-                badges: ['🎓 Student']
+                badges: ['🎓 Student'],
+                inventory: [], // New inventory system
+                equipment: { // Currently equipped items
+                    laptop: null,
+                    phone: null,
+                    briefcase: null,
+                    outfit: 'default'
+                },
+                job: null, // Current job
+                salary: 0, // Income per day
+                apartmentLevel: 1 // Apartment upgrade level
             },
             location: 'home',
             lastEnergyUpdate: Date.now(),
@@ -249,7 +405,9 @@ class GameState {
             achievements: [],
             time: 'morning', // morning, afternoon, evening, night
             weather: 'sunny', // sunny, rain, cloudy
-            gameTime: 0
+            gameTime: 0,
+            tutorialComplete: false,
+            emails: [] // Email inbox
         };
     }
 
@@ -357,6 +515,10 @@ function updateUI() {
     
     document.getElementById('game-time').textContent = timeMap[gameState.data.time] || 'Morning';
     document.getElementById('game-weather').textContent = weatherMap[gameState.data.weather] || 'Sunny';
+    
+    // Update email count
+    const emailCount = gameState.data.emails ? gameState.data.emails.filter(e => !e.read).length : 0;
+    document.getElementById('email-count').textContent = emailCount;
 }
 
 function showNotification(message) {
@@ -633,6 +795,17 @@ class SpriteGenerator {
         sCtx.fillStyle = '#C41E3A';
         sCtx.fillRect(14, 7, 4, 1);
         sarah.refresh();
+        
+        // Create mentor badge sprite
+        const mentorBadge = scene.textures.createCanvas('mentor_badge', 16, 16);
+        const mbCtx = mentorBadge.getContext();
+        mbCtx.fillStyle = '#FFD700';
+        mbCtx.beginPath();
+        mbCtx.arc(8, 8, 7, 0, Math.PI * 2);
+        mbCtx.fill();
+        mbCtx.fillStyle = '#000000';
+        mbCtx.fillText('M', 5, 11);
+        mentorBadge.refresh();
         
         // Marcus Johnson - Male, bald/short hair, athletic build
         const marcus = scene.textures.createCanvas('npc2', 32, 32);
@@ -1485,6 +1658,13 @@ class HomeScene extends Phaser.Scene {
                 gameState.data.gameTime++;
                 if (gameState.data.gameTime % 6 === 0) {
                     this.cycleTimeOfDay();
+                    
+                    // Collect salary if employed
+                    if (gameState.data.player.job && gameState.data.player.salary > 0) {
+                        gameState.data.player.coins += gameState.data.player.salary;
+                        showNotification(`💰 Daily salary: +${gameState.data.player.salary} coins`);
+                        updateUI();
+                    }
                 }
             },
             loop: true
@@ -2157,6 +2337,12 @@ class CityScene extends Phaser.Scene {
         restaurantDoor.setData('type', 'location');
         restaurantDoor.setData('name', 'Restaurant');
         restaurantDoor.refreshBody();
+        
+        this.createBuilding(950, 250, 110, 120, 0xFF1744, '🛍️ Shop');
+        const shopDoor = this.interactables.create(950, 305, 'door');
+        shopDoor.setData('type', 'location');
+        shopDoor.setData('name', 'Shop');
+        shopDoor.refreshBody();
 
         // BUSINESS DISTRICT (Northeast - Tall buildings!)
         this.createBuilding(1300, 200, 160, 300, 0x4A4A4A, '🏢 Tech Corp Tower');
@@ -2218,6 +2404,9 @@ class CityScene extends Phaser.Scene {
         parkDoor.setData('target', 'ParkScene');
         parkDoor.refreshBody();
 
+        // Spawn collectible items around city
+        this.spawnCityItems();
+        
         // Named NPCs to network with (using new detailed sprites)
         const npcData = [
             { name: 'Sarah Chen', sprite: 'npc1', x: 300, y: 350 },
@@ -2264,11 +2453,81 @@ class CityScene extends Phaser.Scene {
             this.physics.add.collider(npc.sprite, this.obstacles);
         });
     }
+    
+    spawnCityItems() {
+        this.cityItems = [];
+        
+        // Spawn 10 random items around the city
+        for (let i = 0; i < 10; i++) {
+            const x = Phaser.Math.Between(200, 1400);
+            const y = Phaser.Math.Between(150, 1000);
+            
+            const itemId = itemManager.spawnRandomItem();
+            const itemData = itemManager.getItem(itemId);
+            
+            // Create visual item
+            const itemSprite = this.add.text(x, y, itemData.icon, {
+                fontSize: '24px'
+            });
+            
+            // Add glow effect
+            const glow = this.add.circle(x, y, 20, 0xFFFF00, 0.3);
+            
+            // Bobbing animation
+            this.tweens.add({
+                targets: [itemSprite, glow],
+                y: y - 10,
+                duration: 1000,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+            
+            this.cityItems.push({
+                sprite: itemSprite,
+                glow: glow,
+                itemId: itemId,
+                x: x,
+                y: y
+            });
+        }
+    }
+    
+    checkItemPickup() {
+        if (!this.cityItems) return;
+        
+        this.cityItems.forEach((item, index) => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y,
+                item.x, item.y
+            );
+            
+            if (dist < 40) {
+                // Pick up item
+                itemManager.addItemToInventory(item.itemId);
+                const itemData = itemManager.getItem(item.itemId);
+                showNotification(`Found ${itemData.name}! ${itemData.effect}`);
+                
+                // Remove from world
+                item.sprite.destroy();
+                item.glow.destroy();
+                this.cityItems.splice(index, 1);
+                
+                // Spawn new item elsewhere after 10 seconds
+                this.time.delayedCall(10000, () => {
+                    if (this.scene.isActive()) {
+                        this.spawnCityItems();
+                    }
+                });
+            }
+        });
+    }
 
     update() {
         this.handleMovement();
         this.checkInteractions();
         this.updateNPCAI();
+        this.checkItemPickup();
     }
     
     updateNPCAI() {
@@ -2384,6 +2643,10 @@ class CityScene extends Phaser.Scene {
                     this.changeScene('LibraryScene');
                 } else if (name === 'University') {
                     this.changeScene('UniversityScene');
+                } else if (name === 'Shop') {
+                    this.changeScene('ShopScene');
+                } else if (name === 'LinkedIn Headquarters') {
+                    this.changeScene('JobInterviewScene');
                 } else {
                     this.visitLocation(name);
                 }
@@ -3580,6 +3843,1082 @@ class UniversityScene extends Phaser.Scene {
     }
 }
 
+// Shop Scene - Buy items and equipment
+class ShopScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'ShopScene' });
+    }
+
+    create() {
+        const width = 640;
+        const height = 480;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Background
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(320, 40, '🛍️ PROFESSIONAL SHOP', {
+            fontSize: '26px',
+            color: '#FF6B6B',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        this.add.text(320, 70, 'Gear Up for Success', {
+            fontSize: '14px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(320, 400, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createShop();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('🛍️ Shop for equipment to boost your stats!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createShop() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Shop keeper
+        const keeper = this.add.sprite(320, 120, 'npc4');
+        keeper.setScale(1.6);
+        this.add.text(320, 85, 'Shop Owner', {
+            fontSize: '12px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+        
+        // Counter
+        const counter = this.add.rectangle(320, 150, 200, 50, 0x8B4513);
+        counter.setStrokeStyle(3, 0x654321);
+        const counterCol = this.obstacles.create(320, 150, null);
+        counterCol.setSize(200, 50);
+        counterCol.setAlpha(0);
+        counterCol.refreshBody();
+        
+        // Shop items on display
+        const shopItems = [
+            { icon: '💻', x: 150, y: 250, itemId: 'pro_laptop', price: 500 },
+            { icon: '📱', x: 250, y: 250, itemId: 'pro_phone', price: 300 },
+            { icon: '💼', x: 350, y: 250, itemId: 'designer_briefcase', price: 400 },
+            { icon: '👔', x: 450, y: 250, itemId: 'designer_suit', price: 600 },
+            { icon: '🥤', x: 200, y: 330, itemId: 'energy_drink', price: 50 },
+            { icon: '⭐', x: 320, y: 330, itemId: 'xp_boost', price: 75 },
+            { icon: '🪙', x: 440, y: 330, itemId: 'lucky_coin', price: 80 }
+        ];
+        
+        shopItems.forEach(item => {
+            // Display item
+            const itemText = this.add.text(item.x, item.y, item.icon, {
+                fontSize: '32px'
+            }).setOrigin(0.5);
+            
+            // Price label
+            this.add.text(item.x, item.y + 30, `${item.price} 💰`, {
+                fontSize: '12px',
+                color: '#FFD700',
+                stroke: '#000000',
+                strokeThickness: 2
+            }).setOrigin(0.5);
+            
+            // Create interactive zone
+            const shopSpot = this.interactables.create(item.x, item.y, null);
+            shopSpot.setSize(50, 50);
+            shopSpot.setData('type', 'shop_item');
+            shopSpot.setData('itemId', item.itemId);
+            shopSpot.setData('price', item.price);
+            shopSpot.refreshBody();
+        });
+        
+        // Plants
+        this.add.image(60, 200, 'plant');
+        this.add.image(580, 200, 'plant');
+        
+        // Exit
+        const door = this.interactables.create(320, 450, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check interactions
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                const type = nearest.getData('type');
+                if (type === 'door') {
+                    this.cameras.main.fadeOut(500);
+                    this.time.delayedCall(500, () => {
+                        this.scene.start(nearest.getData('target'));
+                    });
+                } else if (type === 'shop_item') {
+                    const itemId = nearest.getData('itemId');
+                    const price = nearest.getData('price');
+                    
+                    if (gameState.data.player.coins >= price) {
+                        gameState.data.player.coins -= price;
+                        itemManager.addItemToInventory(itemId);
+                        const item = itemManager.getItem(itemId);
+                        showNotification(`Purchased ${item.name}! Check inventory (I)`);
+                        this.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
+                        updateUI();
+                    } else {
+                        showNotification(`💰 Need ${price} coins! (You have ${gameState.data.player.coins})`);
+                    }
+                }
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
+// Job Interview Scene
+class JobInterviewScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'JobInterviewScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Dark office setting
+        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
+        
+        // Conference table
+        this.add.rectangle(width/2, height/2, 400, 200, 0x8B4513);
+        
+        // Interviewer
+        const interviewer = this.add.sprite(width/2, height/2 - 80, 'npc5');
+        interviewer.setScale(2.5);
+        
+        this.add.text(width/2, height/2 - 150, 'HR Manager', {
+            fontSize: '20px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+        
+        // Title
+        this.add.text(width/2, height/2 - 200, '💼 JOB INTERVIEW', {
+            fontSize: '32px',
+            color: '#00FF88',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Interview questions
+        this.currentQuestion = 0;
+        this.correctAnswers = 0;
+        
+        this.questions = [
+            {
+                q: "What's your greatest strength?",
+                answers: [
+                    { text: "Problem solving & adaptability", correct: true },
+                    { text: "I work too hard", correct: false },
+                    { text: "I'm perfect", correct: false }
+                ]
+            },
+            {
+                q: "Why do you want this position?",
+                answers: [
+                    { text: "Money", correct: false },
+                    { text: "Growth opportunity & team", correct: true },
+                    { text: "It's close to home", correct: false }
+                ]
+            },
+            {
+                q: "Tell me about a challenge you overcame",
+                answers: [
+                    { text: "I debugged a complex issue", correct: true },
+                    { text: "I woke up on time", correct: false },
+                    { text: "Never had challenges", correct: false }
+                ]
+            }
+        ];
+        
+        this.showQuestion();
+    }
+    
+    showQuestion() {
+        if (this.currentQuestion >= this.questions.length) {
+            this.endInterview();
+            return;
+        }
+        
+        const q = this.questions[this.currentQuestion];
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Question text
+        if (this.questionText) this.questionText.destroy();
+        this.questionText = this.add.text(width/2, height/2 + 50, q.q, {
+            fontSize: '20px',
+            color: '#FFFFFF',
+            align: 'center',
+            wordWrap: { width: 500 }
+        }).setOrigin(0.5);
+        
+        // Answer buttons
+        if (this.answerButtons) {
+            this.answerButtons.forEach(btn => {
+                btn.text.destroy();
+                btn.rect.destroy();
+            });
+        }
+        
+        this.answerButtons = [];
+        q.answers.forEach((answer, i) => {
+            const y = height/2 + 120 + i * 60;
+            
+            const rect = this.add.rectangle(width/2, y, 500, 50, 0x0A66C2);
+            rect.setStrokeStyle(2, 0x00FF88);
+            rect.setInteractive();
+            
+            const text = this.add.text(width/2, y, answer.text, {
+                fontSize: '16px',
+                color: '#FFFFFF'
+            }).setOrigin(0.5);
+            
+            rect.on('pointerover', () => {
+                rect.setFillStyle(0x0E7FE8);
+                rect.setScale(1.02);
+            });
+            
+            rect.on('pointerout', () => {
+                rect.setFillStyle(0x0A66C2);
+                rect.setScale(1);
+            });
+            
+            rect.on('pointerdown', () => {
+                if (answer.correct) {
+                    this.correctAnswers++;
+                    this.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
+                    showNotification('✓ Good answer!');
+                } else {
+                    this.cameras.main.shake(200, 0.003);
+                    showNotification('✗ Could be better...');
+                }
+                
+                this.currentQuestion++;
+                this.time.delayedCall(800, () => {
+                    this.showQuestion();
+                });
+            });
+            
+            this.answerButtons.push({ rect, text });
+        });
+    }
+    
+    endInterview() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Clear everything
+        if (this.questionText) this.questionText.destroy();
+        if (this.answerButtons) {
+            this.answerButtons.forEach(btn => {
+                btn.text.destroy();
+                btn.rect.destroy();
+            });
+        }
+        
+        const passed = this.correctAnswers >= 2;
+        
+        if (passed) {
+            // Hired!
+            const jobTitles = ['Junior Dev', 'Software Engineer', 'Senior Dev', 'Lead Developer'];
+            const salaries = [100, 200, 350, 500];
+            const jobLevel = Math.min(3, Math.floor(gameState.data.player.level / 5));
+            
+            gameState.data.player.job = jobTitles[jobLevel];
+            gameState.data.player.salary = salaries[jobLevel];
+            gameState.data.player.coins += 200; // Signing bonus
+            gameState.gainXP(150);
+            
+            this.add.text(width/2, height/2, `🎉 YOU'RE HIRED!\n\nPosition: ${jobTitles[jobLevel]}\nSalary: ${salaries[jobLevel]} coins/day\nSigning Bonus: 200 coins`, {
+                fontSize: '24px',
+                color: '#00FF88',
+                align: 'center',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            showAchievement(`Hired as ${jobTitles[jobLevel]}!`);
+            
+            this.cameras.main.flash(500, 0, 255, 0);
+            
+            // Confetti
+            for (let i = 0; i < 30; i++) {
+                const confetti = this.add.text(
+                    Phaser.Math.Between(width/2 - 200, width/2 + 200),
+                    height/2 - 100,
+                    Phaser.Math.RND.pick(['🎉', '⭐', '✨']),
+                    { fontSize: '20px' }
+                );
+                
+                this.tweens.add({
+                    targets: confetti,
+                    y: height/2 + 200,
+                    x: confetti.x + Phaser.Math.Between(-100, 100),
+                    alpha: 0,
+                    rotation: Phaser.Math.Between(-3, 3),
+                    duration: 2000,
+                    onComplete: () => confetti.destroy()
+                });
+            }
+        } else {
+            // Rejected
+            this.add.text(width/2, height/2, `Unfortunately, we've decided to go\nwith another candidate.\n\nKeep improving your skills!`, {
+                fontSize: '20px',
+                color: '#FF6B6B',
+                align: 'center'
+            }).setOrigin(0.5);
+            
+            gameState.data.player.coins += 25; // Consolation
+            showNotification('Better luck next time! +25 coins for trying');
+        }
+        
+        updateUI();
+        
+        // Return to city
+        this.time.delayedCall(4000, () => {
+            this.cameras.main.fadeOut(1000);
+            this.time.delayedCall(1000, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
+// Email Scene - Check emails and respond
+class EmailScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'EmailScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Background
+        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
+        
+        // Email interface
+        const emailBox = this.add.rectangle(width/2, height/2, 800, 600, 0x2C2C2C);
+        emailBox.setStrokeStyle(4, 0x0A66C2);
+        
+        // Title bar
+        this.add.rectangle(width/2, height/2 - 270, 800, 60, 0x0A66C2);
+        this.add.text(width/2, height/2 - 270, '📧 LINKEDIN MESSAGES', {
+            fontSize: '24px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Generate emails if empty
+        if (gameState.data.emails.length === 0) {
+            this.generateEmails();
+        }
+        
+        // Display emails
+        this.displayEmails();
+        
+        // Close button
+        const closeBtn = this.add.rectangle(width/2, height/2 + 270, 200, 50, 0xFF6B6B);
+        closeBtn.setStrokeStyle(2, 0xFFFFFF);
+        closeBtn.setInteractive();
+        
+        const closeText = this.add.text(width/2, height/2 + 270, 'Close (ESC)', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        closeBtn.on('pointerdown', () => {
+            this.scene.stop();
+        });
+        
+        this.input.keyboard.on('keydown-ESC', () => {
+            this.scene.stop();
+        });
+    }
+    
+    generateEmails() {
+        const emailTemplates = [
+            {
+                from: 'LinkedIn Recruiter',
+                subject: 'Job Opportunity - Software Engineer',
+                body: 'Hi! I came across your profile. We have an opening that matches your skills. Interested in interviewing?',
+                action: 'interview',
+                reward: { type: 'interview' }
+            },
+            {
+                from: 'Sarah Chen',
+                subject: 'Great connecting with you!',
+                body: 'Thanks for connecting! I love your recent post about career growth. Let\'s collaborate!',
+                action: 'reply',
+                reward: { xp: 25, reputation: 5 }
+            },
+            {
+                from: 'Tech Conference',
+                subject: '🎯 You\'re Invited to Tech Summit 2024',
+                body: 'We noticed your engagement on LinkedIn. Join us at the Tech Summit next month!',
+                action: 'accept',
+                reward: { xp: 50, coins: 100 }
+            },
+            {
+                from: 'Marcus Johnson',
+                subject: 'Mentorship Opportunity',
+                body: 'I\'d like to offer you mentorship. I\'ve been in the industry for 10 years. Let me know if interested!',
+                action: 'accept',
+                reward: { skills: 20, reputation: 10 }
+            },
+            {
+                from: 'LinkedIn',
+                subject: 'Your post is trending!',
+                body: 'Congratulations! Your post has received 500 impressions in the last 24 hours.',
+                action: 'acknowledge',
+                reward: { followers: 10, coins: 50 }
+            }
+        ];
+        
+        // Add 3-5 random emails
+        const emailCount = Phaser.Math.Between(3, 5);
+        for (let i = 0; i < emailCount; i++) {
+            const template = Phaser.Math.RND.pick(emailTemplates);
+            gameState.data.emails.push({
+                id: Date.now() + i,
+                ...template,
+                read: false
+            });
+        }
+        
+        gameState.saveGame();
+    }
+    
+    displayEmails() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        const startY = height/2 - 210;
+        
+        gameState.data.emails.slice(0, 5).forEach((email, index) => {
+            const y = startY + index * 100;
+            
+            // Email item
+            const emailBg = this.add.rectangle(width/2, y, 750, 90, email.read ? 0x3A3A3A : 0x0A66C2);
+            emailBg.setStrokeStyle(2, email.read ? 0x5A5A5A : 0x00FF88);
+            emailBg.setInteractive();
+            
+            // From
+            this.add.text(width/2 - 360, y - 30, `From: ${email.from}`, {
+                fontSize: '14px',
+                color: email.read ? '#999999' : '#FFD700',
+                fontStyle: 'bold'
+            });
+            
+            // Subject
+            this.add.text(width/2 - 360, y - 5, email.subject, {
+                fontSize: '16px',
+                color: '#FFFFFF'
+            });
+            
+            // Action button
+            const actionBtn = this.add.rectangle(width/2 + 300, y, 100, 40, 0x00FF88);
+            actionBtn.setInteractive();
+            
+            const actionText = this.add.text(width/2 + 300, y, email.action.toUpperCase(), {
+                fontSize: '12px',
+                color: '#000000',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            actionBtn.on('pointerdown', () => {
+                this.handleEmail Action(email);
+            });
+            
+            emailBg.on('pointerover', () => {
+                emailBg.setFillStyle(email.read ? 0x4A4A4A : 0x0E7FE8);
+            });
+            
+            emailBg.on('pointerout', () => {
+                emailBg.setFillStyle(email.read ? 0x3A3A3A : 0x0A66C2);
+            });
+        });
+        
+        if (gameState.data.emails.length === 0) {
+            this.add.text(width/2, height/2, 'No new messages', {
+                fontSize: '18px',
+                color: '#666666'
+            }).setOrigin(0.5);
+        }
+    }
+    
+    handleEmailAction(email) {
+        email.read = true;
+        
+        if (email.action === 'interview') {
+            this.scene.stop();
+            this.scene.start('JobInterviewScene');
+            return;
+        }
+        
+        // Apply rewards
+        const reward = email.reward;
+        if (reward.xp) gameState.gainXP(reward.xp);
+        if (reward.coins) gameState.data.player.coins += reward.coins;
+        if (reward.reputation) gameState.data.player.reputation += reward.reputation;
+        if (reward.skills) gameState.data.player.skills += reward.skills;
+        if (reward.followers) gameState.data.player.followers += reward.followers;
+        
+        showNotification(`Email responded! Rewards received!`);
+        updateUI();
+        gameState.saveGame();
+        
+        // Remove email
+        gameState.data.emails = gameState.data.emails.filter(e => e.id !== email.id);
+        
+        // Refresh display
+        this.scene.restart();
+    }
+}
+
+// Mentor Scene - Get guidance from experienced professionals
+class MentorScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MentorScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Office background
+        this.add.rectangle(width/2, height/2, width, height, 0x2C2C2C);
+        
+        // Title
+        this.add.text(width/2, 100, '🎓 MENTORSHIP SESSION', {
+            fontSize: '32px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Mentor
+        const mentor = this.add.sprite(width/2, height/2 - 50, 'npc2');
+        mentor.setScale(3);
+        
+        this.add.text(width/2, height/2 - 140, 'Senior Mentor', {
+            fontSize: '20px',
+            color: '#00FF88',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+        
+        // Mentorship options
+        const options = [
+            { text: '💼 Career Advice', cost: 100, reward: { reputation: 25, xp: 75 } },
+            { text: '📚 Skill Training', cost: 150, reward: { skills: 40, xp: 100 } },
+            { text: '🤝 Network Introduction', cost: 200, reward: { networking: 30, connections: 3, xp: 125 } },
+            { text: '🎯 Job Referral', cost: 300, reward: { coins: 500, reputation: 40, xp: 200 } }
+        ];
+        
+        options.forEach((option, i) => {
+            const y = height/2 + 80 + i * 70;
+            
+            const btn = this.add.rectangle(width/2, y, 500, 60, 0x0A66C2);
+            btn.setStrokeStyle(3, 0xFFD700);
+            btn.setInteractive();
+            
+            const text = this.add.text(width/2, y - 10, option.text, {
+                fontSize: '18px',
+                color: '#FFFFFF',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            const cost = this.add.text(width/2, y + 15, `Cost: ${option.cost} 💰`, {
+                fontSize: '14px',
+                color: '#FFD700'
+            }).setOrigin(0.5);
+            
+            btn.on('pointerover', () => {
+                btn.setFillStyle(0x0E7FE8);
+                btn.setScale(1.02);
+            });
+            
+            btn.on('pointerout', () => {
+                btn.setFillStyle(0x0A66C2);
+                btn.setScale(1);
+            });
+            
+            btn.on('pointerdown', () => {
+                if (gameState.data.player.coins >= option.cost) {
+                    gameState.data.player.coins -= option.cost;
+                    
+                    // Apply rewards
+                    const r = option.reward;
+                    if (r.reputation) gameState.data.player.reputation += r.reputation;
+                    if (r.skills) gameState.data.player.skills += r.skills;
+                    if (r.networking) gameState.data.player.networking += r.networking;
+                    if (r.connections) gameState.data.player.connections += r.connections;
+                    if (r.coins) gameState.data.player.coins += r.coins;
+                    if (r.xp) gameState.gainXP(r.xp);
+                    
+                    showNotification(`✨ Mentorship completed! Rewards received`);
+                    showAchievement('Mentored by Expert!');
+                    this.cameras.main.flash(300, 255, 215, 0, false, null, 0.4);
+                    updateUI();
+                    
+                    this.time.delayedCall(2000, () => {
+                        this.cameras.main.fadeOut(1000);
+                        this.time.delayedCall(1000, () => {
+                            this.scene.start('CityScene');
+                        });
+                    });
+                } else {
+                    showNotification(`💰 Need ${option.cost} coins`);
+                }
+            });
+        });
+        
+        // Cancel button
+        const cancelBtn = this.add.rectangle(width/2, height/2 + 380, 200, 50, 0xFF6B6B);
+        cancelBtn.setStrokeStyle(2, 0xFFFFFF);
+        cancelBtn.setInteractive();
+        
+        this.add.text(width/2, height/2 + 380, 'Leave', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        cancelBtn.on('pointerdown', () => {
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
+// Dating/Social Scene - Build relationships
+class DatingScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'DatingScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Romantic setting
+        this.add.rectangle(width/2, height/2, width, height, 0xFF6B9D, 0.3);
+        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E, 0.7);
+        
+        // Hearts floating
+        for (let i = 0; i < 20; i++) {
+            const heart = this.add.text(
+                Phaser.Math.Between(100, width - 100),
+                Phaser.Math.Between(100, height - 100),
+                '💕',
+                { fontSize: '24px', alpha: 0.3 }
+            );
+            
+            this.tweens.add({
+                targets: heart,
+                y: heart.y - 100,
+                alpha: 0,
+                duration: 3000 + Math.random() * 2000,
+                repeat: -1,
+                delay: Math.random() * 2000
+            });
+        }
+        
+        // Title
+        this.add.text(width/2, 100, '💕 SOCIAL CONNECTION', {
+            fontSize: '32px',
+            color: '#FF69B4',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 140, 'Build meaningful relationships', {
+            fontSize: '16px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Potential connections
+        const people = [
+            { name: 'Sarah Chen', sprite: 'npc1', bio: 'Product Manager who loves hiking' },
+            { name: 'David Park', sprite: 'npc4', bio: 'Content creator and coffee enthusiast' }
+        ];
+        
+        people.forEach((person, i) => {
+            const x = width/2 - 200 + i * 400;
+            const y = height/2;
+            
+            // Card
+            const card = this.add.rectangle(x, y, 300, 400, 0x2C2C2C);
+            card.setStrokeStyle(4, 0xFF69B4);
+            
+            // Profile pic
+            this.add.sprite(x, y - 100, person.sprite).setScale(2.5);
+            
+            // Name
+            this.add.text(x, y + 20, person.name, {
+                fontSize: '20px',
+                color: '#FFD700',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            // Bio
+            this.add.text(x, y + 60, person.bio, {
+                fontSize: '14px',
+                color: '#FFFFFF',
+                align: 'center',
+                wordWrap: { width: 260 }
+            }).setOrigin(0.5);
+            
+            // Connect button
+            const connectBtn = this.add.rectangle(x, y + 140, 200, 50, 0xFF69B4);
+            connectBtn.setStrokeStyle(2, 0xFFFFFF);
+            connectBtn.setInteractive();
+            
+            const btnText = this.add.text(x, y + 140, '💬 Start Chat', {
+                fontSize: '16px',
+                color: '#FFFFFF',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            connectBtn.on('pointerover', () => {
+                connectBtn.setFillStyle(0xFF8AC0);
+                connectBtn.setScale(1.05);
+            });
+            
+            connectBtn.on('pointerout', () => {
+                connectBtn.setFillStyle(0xFF69B4);
+                connectBtn.setScale(1);
+            });
+            
+            connectBtn.on('pointerdown', () => {
+                // Start relationship
+                gameState.data.player.connections++;
+                gameState.data.player.networking += 10;
+                gameState.data.player.reputation += 15;
+                gameState.gainXP(50);
+                
+                showNotification(`💕 Started relationship with ${person.name}!`);
+                showAchievement('Social Butterfly 💕');
+                this.cameras.main.flash(500, 255, 105, 180, false, null, 0.5);
+                updateUI();
+                
+                // Hearts explosion
+                for (let j = 0; j < 20; j++) {
+                    const heart = this.add.text(x, y - 100, '💕', { fontSize: '20px' });
+                    this.tweens.add({
+                        targets: heart,
+                        y: y - 200,
+                        x: x + Phaser.Math.Between(-100, 100),
+                        alpha: 0,
+                        rotation: Phaser.Math.Between(-2, 2),
+                        duration: 1500,
+                        onComplete: () => heart.destroy()
+                    });
+                }
+                
+                this.time.delayedCall(2000, () => {
+                    this.cameras.main.fadeOut(1000);
+                    this.time.delayedCall(1000, () => {
+                        this.scene.start('CityScene');
+                    });
+                });
+            });
+        });
+        
+        // Back button
+        const backBtn = this.add.rectangle(width/2, height - 100, 200, 50, 0x4A4A4A);
+        backBtn.setStrokeStyle(2, 0xFFFFFF);
+        backBtn.setInteractive();
+        
+        this.add.text(width/2, height - 100, 'Back to City', {
+            fontSize: '16px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        backBtn.on('pointerdown', () => {
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
+// Conference Room Scene - Meetings and presentations
+class ConferenceRoomScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'ConferenceRoomScene' });
+    }
+
+    create() {
+        const width = 640;
+        const height = 480;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Background
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(320, 40, '📊 CONFERENCE ROOM', {
+            fontSize: '24px',
+            color: '#0A66C2',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(320, 400, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createConferenceRoom();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('📊 Attend meetings and give presentations!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createConferenceRoom() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Conference table (large, center)
+        const table = this.add.ellipse(320, 240, 280, 150, 0x654321);
+        table.setStrokeStyle(4, 0x8B4513);
+        const tableCol = this.obstacles.create(320, 240, null);
+        tableCol.setSize(280, 150);
+        tableCol.setAlpha(0);
+        tableCol.refreshBody();
+        
+        // Chairs around table with attendees
+        const chairPositions = [
+            { x: 320, y: 180, hasAttendee: true, sprite: 'npc1' },
+            { x: 260, y: 200, hasAttendee: true, sprite: 'npc2' },
+            { x: 380, y: 200, hasAttendee: false },
+            { x: 240, y: 260, hasAttendee: true, sprite: 'npc3' },
+            { x: 400, y: 260, hasAttendee: true, sprite: 'npc5' },
+            { x: 280, y: 300, hasAttendee: false },
+            { x: 360, y: 300, hasAttendee: false }
+        ];
+        
+        chairPositions.forEach(chair => {
+            // Chair
+            this.add.rectangle(chair.x, chair.y, 30, 30, 0x8B4513);
+            
+            // Attendee
+            if (chair.hasAttendee) {
+                this.add.sprite(chair.x, chair.y, chair.sprite).setScale(1.3);
+            }
+        });
+        
+        // Presentation screen
+        const screen = this.add.rectangle(320, 100, 200, 120, 0xFFFFFF);
+        screen.setStrokeStyle(4, 0x000000);
+        
+        // Projector content
+        this.add.text(320, 100, '📊 Q4 Results\n+350% Growth', {
+            fontSize: '16px',
+            color: '#0A66C2',
+            align: 'center',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Podium (interactive - present)
+        const podium = this.interactables.create(320, 340, null);
+        podium.setSize(60, 40);
+        podium.setData('type', 'podium');
+        podium.setData('name', 'Present');
+        podium.refreshBody();
+        
+        this.add.rectangle(320, 340, 60, 40, 0x8B4513);
+        this.add.text(320, 340, '🎤', {
+            fontSize: '24px'
+        }).setOrigin(0.5);
+        
+        // Exit
+        const door = this.interactables.create(320, 450, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check interactions
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                const type = nearest.getData('type');
+                if (type === 'door') {
+                    this.cameras.main.fadeOut(500);
+                    this.time.delayedCall(500, () => {
+                        this.scene.start(nearest.getData('target'));
+                    });
+                } else if (type === 'podium') {
+                    // Give presentation
+                    if (gameState.useEnergy(25)) {
+                        const quality = Phaser.Math.Between(50, 100);
+                        const coins = quality * 2;
+                        const rep = quality / 5;
+                        
+                        gameState.data.player.coins += coins;
+                        gameState.data.player.reputation += rep;
+                        gameState.data.player.followers += Math.floor(quality / 10);
+                        gameState.gainXP(quality);
+                        
+                        showNotification(`📊 Presentation success! +${coins} coins, +${rep} reputation`);
+                        showAchievement('Public Speaker 🎤');
+                        
+                        // Applause effect
+                        this.cameras.main.flash(500, 255, 255, 255, false, null, 0.3);
+                        for (let i = 0; i < 15; i++) {
+                            const applause = this.add.text(
+                                Phaser.Math.Between(200, 440),
+                                Phaser.Math.Between(160, 300),
+                                '👏',
+                                { fontSize: '20px' }
+                            );
+                            
+                            this.tweens.add({
+                                targets: applause,
+                                scale: 1.5,
+                                alpha: 0,
+                                duration: 1000,
+                                onComplete: () => applause.destroy()
+                            });
+                        }
+                        
+                        updateUI();
+                    } else {
+                        showNotification('⚡ Need 25 energy to present!');
+                    }
+                }
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
 // Coffee Shop Scene
 class CoffeeShopScene extends Phaser.Scene {
     constructor() {
@@ -3770,12 +5109,13 @@ class ComputerMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Create buttons
-        this.createButton(width/2, 180, '✍️ Create Post (15⚡)', () => this.createPost());
-        this.createButton(width/2, 235, '📚 Learn Skills (50💰)', () => this.learnSkills());
-        this.createButton(width/2, 290, '🎮 Skill Minigame (Free)', () => this.startMinigame());
-        this.createButton(width/2, 345, '🌳 View Skill Tree', () => this.showSkillTree());
-        this.createButton(width/2, 400, '⚙️ Customize Character', () => this.customize());
-        this.createButton(width/2, 455, '👁️ View Profile', () => this.viewProfile());
+        this.createButton(width/2, 160, '✍️ Create Post (15⚡)', () => this.createPost());
+        this.createButton(width/2, 210, '📚 Learn Skills (50💰)', () => this.learnSkills());
+        this.createButton(width/2, 260, '🎮 Skill Minigame (Free)', () => this.startMinigame());
+        this.createButton(width/2, 310, '🌳 View Skill Tree', () => this.showSkillTree());
+        this.createButton(width/2, 360, '🏠 Upgrade Apartment', () => this.upgradeApartment());
+        this.createButton(width/2, 410, '⚙️ Customize Character', () => this.customize());
+        this.createButton(width/2, 460, '👁️ View Profile', () => this.viewProfile());
         this.createButton(width/2, 510, '❌ Close', () => this.closeMenu());
 
         // ESC to close
@@ -3907,6 +5247,32 @@ class ComputerMenuScene extends Phaser.Scene {
             if (elem) elem.textContent = `Lvl ${lvl}`;
             if (bar) bar.style.width = `${lvl * 10}%`;
         });
+    }
+    
+    upgradeApartment() {
+        const currentLevel = gameState.data.player.apartmentLevel;
+        const upgradeCost = currentLevel * 500;
+        
+        if (currentLevel >= 5) {
+            showNotification('🏠 Apartment is fully upgraded!');
+            return;
+        }
+        
+        if (gameState.data.player.coins >= upgradeCost) {
+            gameState.data.player.coins -= upgradeCost;
+            gameState.data.player.apartmentLevel++;
+            gameState.data.player.maxEnergy += 20;
+            gameState.data.player.reputation += 10;
+            gameState.gainXP(100);
+            
+            showNotification(`🏠 Apartment upgraded to Level ${gameState.data.player.apartmentLevel}! +20 max energy`);
+            showAchievement(`Apartment Level ${gameState.data.player.apartmentLevel}`);
+            this.cameras.main.flash(500, 0, 200, 255, false, null, 0.4);
+            updateUI();
+            this.closeMenu();
+        } else {
+            showNotification(`💰 Need ${upgradeCost} coins to upgrade apartment`);
+        }
     }
 
     closeMenu() {
@@ -4062,7 +5428,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ComputerMenuScene, SkillMinigameScene],
+    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, ComputerMenuScene, SkillMinigameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
