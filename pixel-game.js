@@ -1155,8 +1155,49 @@ class GameState {
 // Initialize game state
 const gameState = new GameState();
 
+// Show/Hide UI functions
+function showAllUI() {
+    const uiElements = [
+        'ui-overlay',
+        'quest-tracker',
+        'time-weather',
+        'inventory-button',
+        'email-button',
+        'phone-button',
+        'leaderboard-button'
+    ];
+    
+    uiElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+    });
+}
+
+function hideAllUI() {
+    const uiElements = [
+        'ui-overlay',
+        'quest-tracker',
+        'time-weather',
+        'inventory-button',
+        'email-button',
+        'phone-button',
+        'leaderboard-button',
+        'interaction-prompt',
+        'notification'
+    ];
+    
+    uiElements.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+}
+
 // UI Update Functions
 function updateUI() {
+    // Only update if UI is visible (game is running)
+    const uiOverlay = document.getElementById('ui-overlay');
+    if (!uiOverlay || uiOverlay.style.display === 'none') return;
+    
     const p = gameState.data.player;
     document.getElementById('player-name').textContent = p.name;
     document.getElementById('player-title').textContent = p.title;
@@ -1218,89 +1259,214 @@ function showInteractionPrompt(show) {
 // Sprite Generator - Creates pixel art programmatically
 class SpriteGenerator {
     static createPlayerSprite(scene) {
-        const size = 32; // Bigger, better detail
-        const texture = scene.textures.createCanvas('player', size, size);
+        // Default customization
+        const defaultCustom = {
+            skinTone: 0,
+            hairColor: 0,
+            hairStyle: 0,
+            shirtColor: 0,
+            pantsColor: 0
+        };
+        this.createCustomPlayerSprite(scene, defaultCustom, 'player');
+    }
+    
+    static createCustomPlayerSprite(scene, customization = {}, textureKey = 'player') {
+        const size = 32;
+        const texture = scene.textures.createCanvas(textureKey, size, size);
         const ctx = texture.getContext();
         
-        // Shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.fillRect(6, 28, 20, 3);
+        // Color palettes
+        const skinTones = [
+            ['#FFDBAC', '#FFC9A3', '#FFB380'], // Light
+            ['#E8B88F', '#D4A574', '#C99A6A'], // Medium
+            ['#C68642', '#B87333', '#A05A2B'], // Tan
+            ['#8B4513', '#6B3410', '#5A2A0E']  // Dark
+        ];
         
-        // Shoes
-        ctx.fillStyle = '#2C2C2C';
+        const hairColors = [
+            ['#1A1A1A', '#2C2C2C'], // Black
+            ['#3D2817', '#5C4033'], // Brown
+            ['#D4A574', '#F4D03F'], // Blonde
+            ['#8B4513', '#A0522D'], // Red
+            ['#808080', '#A0A0A0'], // Gray
+            ['#4169E1', '#6495ED']  // Blue
+        ];
+        
+        const shirtColors = [
+            ['#0A66C2', '#0E7FE8'], // LinkedIn Blue
+            ['#DC143C', '#FF1744'], // Red
+            ['#2E7D32', '#4CAF50'], // Green
+            ['#7B1FA2', '#9C27B0'], // Purple
+            ['#FFD700', '#FFEB3B'], // Yellow
+            ['#FF6B35', '#FF8C42'], // Orange
+            ['#FFFFFF', '#F5F5F5']  // White
+        ];
+        
+        const pantsColors = [
+            ['#1E3A8A', '#2563EB'], // Navy
+            ['#1A1A1A', '#2C2C2C'], // Black
+            ['#4A4A4A', '#6B6B6B'], // Gray
+            ['#654321', '#8B4513']  // Brown
+        ];
+        
+        const skin = skinTones[customization.skinTone || 0];
+        const hair = hairColors[customization.hairColor || 0];
+        const shirt = shirtColors[customization.shirtColor || 0];
+        const pants = pantsColors[customization.pantsColor || 0];
+        const hairStyle = customization.hairStyle || 0;
+        
+        // Shadow (enhanced)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(6, 28, 20, 4);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(8, 30, 16, 2);
+        
+        // Shoes (enhanced with shine)
+        ctx.fillStyle = '#1A1A1A';
         ctx.fillRect(9, 24, 5, 4);
         ctx.fillRect(18, 24, 5, 4);
+        ctx.fillStyle = '#2C2C2C';
+        ctx.fillRect(10, 24, 3, 2);
+        ctx.fillRect(19, 24, 3, 2);
         
-        // Pants
-        ctx.fillStyle = '#1E3A8A';
+        // Pants (with better shading)
+        ctx.fillStyle = pants[0];
         ctx.fillRect(8, 16, 7, 8);
         ctx.fillRect(17, 16, 7, 8);
-        ctx.fillStyle = '#2563EB';
+        ctx.fillStyle = pants[1];
         ctx.fillRect(9, 17, 5, 6);
         ctx.fillRect(18, 17, 5, 6);
+        // Pants crease
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(11, 16, 1, 8);
+        ctx.fillRect(20, 16, 1, 8);
         
-        // Belt
+        // Belt (enhanced)
+        ctx.fillStyle = '#2C2C2C';
+        ctx.fillRect(8, 15, 16, 2);
         ctx.fillStyle = '#4A4A4A';
-        ctx.fillRect(8, 15, 16, 1);
+        ctx.fillRect(9, 15, 14, 1);
+        // Belt buckle
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(14, 14, 4, 3);
+        ctx.fillStyle = '#FFA500';
+        ctx.fillRect(15, 15, 2, 1);
         
-        // Shirt (LinkedIn Blue)
-        ctx.fillStyle = '#0A66C2';
+        // Shirt (with better detail)
+        ctx.fillStyle = shirt[0];
         ctx.fillRect(7, 9, 18, 7);
-        ctx.fillStyle = '#0E7FE8';
+        ctx.fillStyle = shirt[1];
         ctx.fillRect(8, 10, 16, 5);
-        
-        // Collar
+        // Shirt buttons
         ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(15, 11, 1, 1);
+        ctx.fillRect(15, 13, 1, 1);
+        ctx.fillRect(15, 15, 1, 1);
+        
+        // Collar (enhanced)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(13, 9, 6, 3);
+        ctx.fillStyle = '#E0E0E0';
         ctx.fillRect(14, 9, 4, 2);
         
-        // Arms
-        ctx.fillStyle = '#0A66C2';
+        // Arms (with muscle definition)
+        ctx.fillStyle = shirt[0];
         ctx.fillRect(5, 10, 2, 6);
         ctx.fillRect(25, 10, 2, 6);
-        ctx.fillStyle = '#FFD1B3';
+        ctx.fillStyle = shirt[1];
+        ctx.fillRect(5, 12, 2, 2);
+        ctx.fillRect(25, 12, 2, 2);
+        // Skin on arms
+        ctx.fillStyle = skin[0];
         ctx.fillRect(5, 16, 2, 4);
         ctx.fillRect(25, 16, 2, 4);
+        ctx.fillStyle = skin[1];
+        ctx.fillRect(5, 17, 2, 2);
+        ctx.fillRect(25, 17, 2, 2);
         
-        // Neck
-        ctx.fillStyle = '#FFD1B3';
+        // Neck (with shading)
+        ctx.fillStyle = skin[0];
         ctx.fillRect(13, 7, 6, 3);
+        ctx.fillStyle = skin[1];
+        ctx.fillRect(14, 7, 4, 2);
         
-        // Head
-        ctx.fillStyle = '#FFD1B3';
+        // Head (enhanced with better proportions)
+        ctx.fillStyle = skin[0];
         ctx.fillRect(11, 1, 10, 8);
-        ctx.fillStyle = '#FFB380';
+        ctx.fillStyle = skin[1];
         ctx.fillRect(12, 2, 8, 6);
+        ctx.fillStyle = skin[2];
+        ctx.fillRect(13, 3, 6, 4);
         
-        // Hair
-        ctx.fillStyle = '#3D2817';
-        ctx.fillRect(10, 0, 12, 3);
-        ctx.fillRect(9, 1, 2, 4);
-        ctx.fillRect(21, 1, 2, 4);
-        ctx.fillStyle = '#5C4033';
-        ctx.fillRect(11, 1, 10, 2);
+        // Hair (based on style)
+        if (hairStyle === 0) { // Short
+            ctx.fillStyle = hair[0];
+            ctx.fillRect(10, 0, 12, 3);
+            ctx.fillRect(9, 1, 2, 3);
+            ctx.fillRect(21, 1, 2, 3);
+            ctx.fillStyle = hair[1];
+            ctx.fillRect(11, 1, 10, 2);
+        } else if (hairStyle === 1) { // Medium
+            ctx.fillStyle = hair[0];
+            ctx.fillRect(10, 0, 12, 4);
+            ctx.fillRect(9, 1, 2, 4);
+            ctx.fillRect(21, 1, 2, 4);
+            ctx.fillStyle = hair[1];
+            ctx.fillRect(11, 1, 10, 3);
+        } else if (hairStyle === 2) { // Long
+            ctx.fillStyle = hair[0];
+            ctx.fillRect(10, 0, 12, 5);
+            ctx.fillRect(9, 1, 2, 5);
+            ctx.fillRect(21, 1, 2, 5);
+            ctx.fillStyle = hair[1];
+            ctx.fillRect(11, 1, 10, 4);
+        } // else bald (no hair)
         
-        // Eyes
+        // Eyes (HAPPY - bigger and brighter)
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(13, 4, 2, 2);
-        ctx.fillRect(17, 4, 2, 2);
+        ctx.fillRect(12, 4, 3, 3);
+        ctx.fillRect(17, 4, 3, 3);
+        // Eye shine
+        ctx.fillStyle = '#E0F2F1';
+        ctx.fillRect(13, 5, 1, 1);
+        ctx.fillRect(18, 5, 1, 1);
+        // Pupils (looking forward, happy)
         ctx.fillStyle = '#2C2C2C';
-        ctx.fillRect(14, 4, 1, 2);
-        ctx.fillRect(18, 4, 1, 2);
+        ctx.fillRect(13, 5, 1, 2);
+        ctx.fillRect(18, 5, 1, 2);
         
-        // Smile
-        ctx.fillStyle = '#E87E7E';
-        ctx.fillRect(14, 6, 4, 1);
-        ctx.fillRect(13, 7, 1, 1);
-        ctx.fillRect(18, 7, 1, 1);
+        // Eyebrows (friendly, not frowning)
+        ctx.fillStyle = hair[0];
+        ctx.fillRect(12, 3, 3, 1);
+        ctx.fillRect(17, 3, 3, 1);
+        
+        // SMILE (HAPPY FACE - big, friendly smile)
+        ctx.fillStyle = '#FF6B9D';
+        // Upper lip
+        ctx.fillRect(13, 7, 6, 1);
+        // Smile curve (happy, not frowning)
+        ctx.fillRect(12, 8, 1, 1);
+        ctx.fillRect(19, 8, 1, 1);
+        ctx.fillRect(13, 9, 1, 1);
+        ctx.fillRect(18, 9, 1, 1);
+        // Lower lip
+        ctx.fillRect(14, 9, 4, 1);
+        
+        // Cheeks (rosy, happy)
+        ctx.fillStyle = '#FFB3BA';
+        ctx.fillRect(10, 6, 2, 2);
+        ctx.fillRect(20, 6, 2, 2);
         
         texture.refresh();
         
-        // Single sprite, no animation needed for now - cleaner look
-        scene.anims.create({
-            key: 'idle',
-            frames: [{ key: 'player', frame: 0 }],
-            frameRate: 1
-        });
+        // Animation
+        if (!scene.anims.exists('idle')) {
+            scene.anims.create({
+                key: 'idle',
+                frames: [{ key: textureKey, frame: 0 }],
+                frameRate: 1
+            });
+        }
     }
 
     static createTileTextures(scene) {
@@ -1936,63 +2102,142 @@ class IntroScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         
-        // Black background
-        this.cameras.main.setBackgroundColor('#000000');
+        // HIDE ALL UI ELEMENTS
+        this.hideAllUI();
         
-        // Title animation
-        const title = this.add.text(width / 2, height / 2 - 100, 'LINKEDIN TYCOON', {
-            fontSize: '64px',
-            fontFamily: 'Arial Black',
-            color: '#0A66C2',
-            stroke: '#FFFFFF',
-            strokeThickness: 4
-        }).setOrigin(0.5).setAlpha(0);
+        // Animated gradient background
+        const bg = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        this.tweens.add({
+            targets: bg,
+            alpha: 0.8,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
         
-        // Subtitle
-        const subtitle = this.add.text(width / 2, height / 2, 'Build Your Professional Empire', {
-            fontSize: '24px',
-            color: '#FFFFFF'
-        }).setOrigin(0.5).setAlpha(0);
-        
-        // Press any key
-        const pressKey = this.add.text(width / 2, height / 2 + 100, 'Press Any Key to Start', {
-            fontSize: '20px',
-            color: '#00FF88'
-        }).setOrigin(0.5).setAlpha(0);
-        
-        // LinkedIn logo particles
-        for (let i = 0; i < 50; i++) {
-            const x = Phaser.Math.Between(0, width);
-            const y = Phaser.Math.Between(0, height);
-            const particle = this.add.text(x, y, '💼', {
-                fontSize: '20px'
-            }).setAlpha(0);
+        // Animated stars/particles background
+        this.stars = [];
+        for (let i = 0; i < 100; i++) {
+            const star = this.add.circle(
+                Phaser.Math.Between(0, width),
+                Phaser.Math.Between(0, height),
+                Phaser.Math.Between(1, 3),
+                0xFFFFFF,
+                Phaser.Math.FloatBetween(0.2, 1)
+            );
+            this.stars.push(star);
             
             this.tweens.add({
-                targets: particle,
-                alpha: 0.6,
-                y: y - 100,
-                duration: 3000 + Math.random() * 2000,
+                targets: star,
+                alpha: 0.1,
+                scale: 0.5,
+                duration: 2000 + Math.random() * 3000,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+                delay: Math.random() * 2000
+            });
+        }
+        
+        // Floating briefcase particles (more dynamic)
+        this.briefcases = [];
+        for (let i = 0; i < 80; i++) {
+            const x = Phaser.Math.Between(-100, width + 100);
+            const y = Phaser.Math.Between(-100, height + 100);
+            const briefcase = this.add.text(x, y, '💼', {
+                fontSize: Phaser.Math.Between(16, 32)
+            }).setAlpha(0);
+            this.briefcases.push(briefcase);
+            
+            // Complex floating animation
+            this.tweens.add({
+                targets: briefcase,
+                alpha: Phaser.Math.FloatBetween(0.3, 0.8),
+                x: x + Phaser.Math.Between(-200, 200),
+                y: y - Phaser.Math.Between(100, 300),
+                rotation: Phaser.Math.Between(-1, 1),
+                scale: Phaser.Math.FloatBetween(0.8, 1.2),
+                duration: 4000 + Math.random() * 3000,
                 delay: Math.random() * 2000,
-                ease: 'Power2',
+                ease: 'Sine.easeInOut',
                 yoyo: true,
                 repeat: -1
             });
         }
         
-        // Animate title
+        // LinkedIn logo icon (animated)
+        const logo = this.add.text(width/2, height/4 - 80, '💼', {
+            fontSize: '120px'
+        }).setOrigin(0.5).setAlpha(0).setScale(0);
+        
+        this.tweens.add({
+            targets: logo,
+            alpha: 1,
+            scale: 1,
+            duration: 1000,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // Rotate and pulse
+                this.tweens.add({
+                    targets: logo,
+                    rotation: 0.1,
+                    scale: 1.1,
+                    duration: 1500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            }
+        });
+        
+        // Main title (enhanced)
+        const title = this.add.text(width / 2, height / 4 + 40, 'LINKEDIN TYCOON', {
+            fontSize: '72px',
+            fontFamily: 'Arial Black',
+            color: '#0A66C2',
+            stroke: '#FFFFFF',
+            strokeThickness: 6,
+            shadow: {
+                offsetX: 4,
+                offsetY: 4,
+                color: '#000000',
+                blur: 8,
+                stroke: true,
+                fill: true
+            }
+        }).setOrigin(0.5).setAlpha(0).setScale(0.5);
+        
+        // Subtitle (enhanced)
+        const subtitle = this.add.text(width / 2, height / 4 + 120, 'Build Your Professional Empire', {
+            fontSize: '28px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Tagline
+        const tagline = this.add.text(width / 2, height / 4 + 160, 'Network • Grow • Succeed', {
+            fontSize: '18px',
+            color: '#FFFFFF',
+            alpha: 0.7
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Animate title entrance (epic)
         this.tweens.add({
             targets: title,
             alpha: 1,
-            scale: 1.2,
+            scale: 1,
             duration: 1500,
-            ease: 'Power2',
+            delay: 500,
+            ease: 'Elastic.easeOut',
             onComplete: () => {
-                // Pulse animation
+                // Continuous glow effect
                 this.tweens.add({
                     targets: title,
-                    scale: 1.1,
-                    duration: 1000,
+                    scale: 1.05,
+                    duration: 2000,
                     yoyo: true,
                     repeat: -1,
                     ease: 'Sine.easeInOut'
@@ -2004,25 +2249,49 @@ class IntroScene extends Phaser.Scene {
         this.tweens.add({
             targets: subtitle,
             alpha: 1,
-            y: height / 2 + 20,
-            duration: 1500,
-            delay: 800,
+            y: height / 4 + 120,
+            duration: 1200,
+            delay: 1200,
             ease: 'Power2'
         });
         
-        // Animate press key
+        // Animate tagline
         this.tweens.add({
-            targets: pressKey,
-            alpha: 1,
+            targets: tagline,
+            alpha: 0.7,
             duration: 1000,
-            delay: 2000,
+            delay: 1800,
+            ease: 'Power2'
+        });
+        
+        // Interactive elements - floating action buttons
+        const startBtn = this.add.rectangle(width/2, height/2 + 100, 350, 70, 0x0A66C2);
+        startBtn.setStrokeStyle(4, 0xFFFFFF);
+        startBtn.setInteractive();
+        startBtn.setAlpha(0);
+        
+        const startText = this.add.text(width/2, height/2 + 100, '🎮 START GAME', {
+            fontSize: '32px',
+            color: '#FFFFFF',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Animate button entrance
+        this.tweens.add({
+            targets: [startBtn, startText],
+            alpha: 1,
+            y: height/2 + 100,
+            duration: 1000,
+            delay: 2500,
             ease: 'Power2',
             onComplete: () => {
-                // Blink animation
+                // Button hover animation
                 this.tweens.add({
-                    targets: pressKey,
-                    alpha: 0.3,
-                    duration: 800,
+                    targets: startBtn,
+                    scale: 1.05,
+                    duration: 1500,
                     yoyo: true,
                     repeat: -1,
                     ease: 'Sine.easeInOut'
@@ -2030,20 +2299,77 @@ class IntroScene extends Phaser.Scene {
             }
         });
         
-        // Skip to game on any key
-        this.input.keyboard.once('keydown', () => {
-            this.cameras.main.fadeOut(1000);
-            this.time.delayedCall(1000, () => {
-                this.scene.start('BootScene');
-            });
+        // Hover effects
+        startBtn.on('pointerover', () => {
+            startBtn.setFillStyle(0x0E7FE8);
+            startBtn.setScale(1.1);
+            this.cameras.main.shake(100, 0.005);
         });
         
-        // Also allow click/tap
-        this.input.once('pointerdown', () => {
+        startBtn.on('pointerout', () => {
+            startBtn.setFillStyle(0x0A66C2);
+            startBtn.setScale(1.05);
+        });
+        
+        // Click handler
+        const startGame = () => {
+            // Explosion effect
+            for (let i = 0; i < 30; i++) {
+                const particle = this.add.circle(
+                    width/2,
+                    height/2 + 100,
+                    Phaser.Math.Between(3, 8),
+                    Phaser.Math.RND.pick([0x0A66C2, 0x00FF88, 0xFFD700, 0xFFFFFF])
+                );
+                
+                this.tweens.add({
+                    targets: particle,
+                    x: width/2 + Phaser.Math.Between(-200, 200),
+                    y: height/2 + 100 + Phaser.Math.Between(-200, 200),
+                    alpha: 0,
+                    scale: 0,
+                    duration: 800,
+                    onComplete: () => particle.destroy()
+                });
+            }
+            
+            this.cameras.main.flash(500, 255, 255, 255);
             this.cameras.main.fadeOut(1000);
             this.time.delayedCall(1000, () => {
                 this.scene.start('BootScene');
             });
+        };
+        
+        startBtn.on('pointerdown', startGame);
+        
+        // Keyboard input
+        this.input.keyboard.once('keydown', startGame);
+        
+        // Mouse click anywhere
+        this.input.once('pointerdown', (pointer) => {
+            if (pointer.y < height/2 + 50 || pointer.y > height/2 + 150) {
+                startGame();
+            }
+        });
+    }
+    
+    hideAllUI() {
+        // Hide all UI overlays
+        const uiElements = [
+            'ui-overlay',
+            'quest-tracker',
+            'time-weather',
+            'inventory-button',
+            'email-button',
+            'phone-button',
+            'leaderboard-button',
+            'interaction-prompt',
+            'notification'
+        ];
+        
+        uiElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
         });
     }
 }
@@ -2078,6 +2404,9 @@ class MainMenuScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        
+        // HIDE ALL UI ELEMENTS
+        this.hideAllUI();
         
         // Dark background
         this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
@@ -2157,7 +2486,7 @@ class MainMenuScene extends Phaser.Scene {
             gameState.saveGame();
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
-                this.scene.start('TutorialScene');
+                this.scene.start('CharacterCustomizationScene');
             });
         });
         
@@ -2295,6 +2624,272 @@ class MainMenuScene extends Phaser.Scene {
             closeBtn.destroy();
         });
     }
+    
+    hideAllUI() {
+        // Hide all UI overlays
+        const uiElements = [
+            'ui-overlay',
+            'quest-tracker',
+            'time-weather',
+            'inventory-button',
+            'email-button',
+            'phone-button',
+            'leaderboard-button',
+            'interaction-prompt',
+            'notification'
+        ];
+        
+        uiElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
+}
+
+// Character Customization Scene - Create your character
+class CharacterCustomizationScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'CharacterCustomizationScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // HIDE ALL UI
+        this.hideAllUI();
+        
+        // Background
+        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
+        
+        // Title
+        const title = this.add.text(width/2, 80, '👤 CREATE YOUR CHARACTER', {
+            fontSize: '48px',
+            color: '#0A66C2',
+            fontStyle: 'bold',
+            stroke: '#FFFFFF',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        // Character preview area (center)
+        const previewX = width/2;
+        const previewY = height/2 - 50;
+        const previewSize = 200;
+        
+        // Preview background
+        const previewBg = this.add.rectangle(previewX, previewY, previewSize + 40, previewSize + 40, 0x0A66C2);
+        previewBg.setStrokeStyle(4, 0xFFFFFF);
+        
+        // Character preview (will be updated)
+        this.characterPreview = this.add.sprite(previewX, previewY, 'player');
+        this.characterPreview.setScale(6);
+        
+        // Customization options
+        this.customization = {
+            skinTone: 0, // 0-4
+            hairColor: 0, // 0-5
+            hairStyle: 0, // 0-3
+            shirtColor: 0, // 0-6
+            pantsColor: 0 // 0-3
+        };
+        
+        // Options panel (left side)
+        const optionsX = width/4;
+        const optionsY = height/2 + 100;
+        
+        // Skin Tone
+        this.createOptionSection(optionsX, optionsY - 200, 'Skin Tone', [
+            { name: 'Light', value: 0 },
+            { name: 'Medium', value: 1 },
+            { name: 'Tan', value: 2 },
+            { name: 'Dark', value: 3 }
+        ], 'skinTone');
+        
+        // Hair Color
+        this.createOptionSection(optionsX, optionsY - 100, 'Hair Color', [
+            { name: 'Black', value: 0 },
+            { name: 'Brown', value: 1 },
+            { name: 'Blonde', value: 2 },
+            { name: 'Red', value: 3 },
+            { name: 'Gray', value: 4 },
+            { name: 'Blue', value: 5 }
+        ], 'hairColor');
+        
+        // Hair Style
+        this.createOptionSection(optionsX, optionsY, 'Hair Style', [
+            { name: 'Short', value: 0 },
+            { name: 'Medium', value: 1 },
+            { name: 'Long', value: 2 },
+            { name: 'Bald', value: 3 }
+        ], 'hairStyle');
+        
+        // Shirt Color
+        this.createOptionSection(optionsX, optionsY + 100, 'Shirt Color', [
+            { name: 'LinkedIn Blue', value: 0 },
+            { name: 'Red', value: 1 },
+            { name: 'Green', value: 2 },
+            { name: 'Purple', value: 3 },
+            { name: 'Yellow', value: 4 },
+            { name: 'Orange', value: 5 },
+            { name: 'White', value: 6 }
+        ], 'shirtColor');
+        
+        // Pants Color
+        this.createOptionSection(optionsX, optionsY + 200, 'Pants Color', [
+            { name: 'Navy', value: 0 },
+            { name: 'Black', value: 1 },
+            { name: 'Gray', value: 2 },
+            { name: 'Brown', value: 3 }
+        ], 'pantsColor');
+        
+        // Name input area (right side)
+        const nameX = width * 3/4;
+        const nameY = height/2;
+        
+        this.add.text(nameX, nameY - 100, 'Your Name:', {
+            fontSize: '24px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Name input box (visual)
+        const nameBox = this.add.rectangle(nameX, nameY, 300, 50, 0x2A2A4A);
+        nameBox.setStrokeStyle(3, 0x0A66C2);
+        
+        this.nameText = this.add.text(nameX, nameY, gameState.data.player.name, {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        // Name input handler
+        let nameInput = '';
+        this.input.keyboard.on('keydown', (event) => {
+            if (event.key === 'Backspace') {
+                nameInput = nameInput.slice(0, -1);
+            } else if (event.key === 'Enter') {
+                if (nameInput.trim()) {
+                    gameState.data.player.name = nameInput.trim();
+                    this.nameText.setText(gameState.data.player.name);
+                }
+                nameInput = '';
+            } else if (event.key.length === 1 && nameInput.length < 20) {
+                nameInput += event.key;
+                this.nameText.setText(nameInput || gameState.data.player.name);
+            }
+        });
+        
+        // Start Game button
+        const startBtn = this.add.rectangle(width/2, height - 100, 400, 80, 0x00FF88);
+        startBtn.setStrokeStyle(4, 0xFFFFFF);
+        startBtn.setInteractive();
+        
+        const startText = this.add.text(width/2, height - 100, '✅ START GAME', {
+            fontSize: '32px',
+            color: '#000000',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        startBtn.on('pointerover', () => {
+            startBtn.setFillStyle(0x00CC66);
+            startBtn.setScale(1.05);
+        });
+        
+        startBtn.on('pointerout', () => {
+            startBtn.setFillStyle(0x00FF88);
+            startBtn.setScale(1);
+        });
+        
+        startBtn.on('pointerdown', () => {
+            // Save customization
+            gameState.data.player.customization = {...this.customization};
+            gameState.data.player.name = this.nameText.text;
+            
+            // Regenerate player sprite with customization
+            SpriteGenerator.createCustomPlayerSprite(this, this.customization);
+            
+            gameState.saveGame();
+            
+            this.cameras.main.flash(300, 0, 255, 0);
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                // Check if coming from wardrobe
+                const data = this.scene.settings.data;
+                if (data && data.fromWardrobe) {
+                    this.scene.resume('HomeScene');
+                    this.scene.stop();
+                } else {
+                    this.scene.start('TutorialScene');
+                }
+            });
+        });
+        
+        // Update preview initially
+        this.updateCharacterPreview();
+    }
+    
+    createOptionSection(x, y, title, options, key) {
+        const titleText = this.add.text(x, y - 30, title + ':', {
+            fontSize: '18px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        }).setOrigin(0, 0.5);
+        
+        options.forEach((option, i) => {
+            const btnX = x + (i % 3) * 120;
+            const btnY = y + Math.floor(i / 3) * 50;
+            
+            const btn = this.add.rectangle(btnX, btnY, 100, 40, 0x0A66C2);
+            btn.setStrokeStyle(2, 0xFFFFFF);
+            btn.setInteractive();
+            
+            const btnText = this.add.text(btnX, btnY, option.name, {
+                fontSize: '12px',
+                color: '#FFFFFF'
+            }).setOrigin(0.5);
+            
+            // Check if selected
+            if (this.customization[key] === option.value) {
+                btn.setFillStyle(0x00FF88);
+            }
+            
+            btn.on('pointerdown', () => {
+                this.customization[key] = option.value;
+                this.updateCharacterPreview();
+                
+                // Update button colors
+                options.forEach((opt, idx) => {
+                    const optBtnX = x + (idx % 3) * 120;
+                    const optBtnY = y + Math.floor(idx / 3) * 50;
+                    // Would need to track buttons, but for now just update preview
+                });
+            });
+        });
+    }
+    
+    updateCharacterPreview() {
+        // Regenerate sprite with current customization
+        SpriteGenerator.createCustomPlayerSprite(this, this.customization, 'player_preview');
+        this.characterPreview.setTexture('player_preview');
+    }
+    
+    hideAllUI() {
+        const uiElements = [
+            'ui-overlay',
+            'quest-tracker',
+            'time-weather',
+            'inventory-button',
+            'email-button',
+            'phone-button',
+            'leaderboard-button',
+            'interaction-prompt',
+            'notification'
+        ];
+        
+        uiElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
 }
 
 // Tutorial Scene - Comprehensive guided introduction
@@ -2307,6 +2902,10 @@ class TutorialScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
+        
+        // SHOW UI - Game has started!
+        showAllUI();
+        updateUI();
         
         // Tutorial stage
         this.tutorialStep = 0;
@@ -2501,6 +3100,14 @@ class HomeScene extends Phaser.Scene {
     }
 
     create() {
+        // SHOW UI - Game has started!
+        showAllUI();
+        updateUI();
+        
+        // Load player customization if exists
+        if (gameState.data.player.customization) {
+            SpriteGenerator.createCustomPlayerSprite(this, gameState.data.player.customization);
+        }
         gameState.data.location = 'home';
         
         // Create room
@@ -2694,6 +3301,33 @@ class HomeScene extends Phaser.Scene {
         nightstand.refreshBody();
         this.add.image(580, 355, 'lamp');
         
+        // WARDROBE/CLOSET (for character customization) - BOTTOM LEFT
+        const wardrobe = this.interactables.create(100, 400, 'door');
+        wardrobe.setData('type', 'wardrobe');
+        wardrobe.setData('name', 'Wardrobe');
+        wardrobe.refreshBody();
+        
+        // Visual wardrobe (draw it)
+        const wardrobeBg = this.add.rectangle(100, 400, 80, 100, 0x654321);
+        wardrobeBg.setStrokeStyle(2, 0x8B4513);
+        const wardrobeDoor1 = this.add.rectangle(85, 400, 35, 100, 0x8B4513);
+        wardrobeDoor1.setStrokeStyle(2, 0x654321);
+        const wardrobeDoor2 = this.add.rectangle(115, 400, 35, 100, 0x8B4513);
+        wardrobeDoor2.setStrokeStyle(2, 0x654321);
+        // Wardrobe handles
+        this.add.circle(75, 400, 3, 0xFFD700);
+        this.add.circle(125, 400, 3, 0xFFD700);
+        // Wardrobe label
+        this.add.text(100, 360, '👔', {
+            fontSize: '20px'
+        }).setOrigin(0.5);
+        
+        // Wardrobe collision
+        const wardrobeCollision = this.obstacles.create(100, 400, null);
+        wardrobeCollision.setSize(80, 100);
+        wardrobeCollision.setAlpha(0);
+        wardrobeCollision.refreshBody();
+        
         // Plants in corners (decorative, no collision)
         this.add.image(40, 50, 'plant');
         this.add.image(600, 50, 'plant');
@@ -2824,10 +3458,20 @@ class HomeScene extends Phaser.Scene {
             case 'bed':
                 this.sleep();
                 break;
+            case 'wardrobe':
+                this.openWardrobe();
+                break;
             case 'door':
                 this.changeScene(object.getData('target'));
                 break;
         }
+    }
+    
+    openWardrobe() {
+        // Open character customization
+        this.cameras.main.flash(100, 255, 215, 0, false, null, 0.3);
+        this.scene.pause();
+        this.scene.launch('CharacterCustomizationScene', { fromWardrobe: true });
     }
 
     openComputerMenu() {
@@ -8615,7 +9259,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, MainMenuScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
+    scene: [IntroScene, BootScene, MainMenuScene, CharacterCustomizationScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
