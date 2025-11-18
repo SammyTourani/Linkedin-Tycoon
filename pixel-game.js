@@ -1477,7 +1477,10 @@ class SpriteGenerator {
         ctx.fillRect(10, 6, 2, 2);
         ctx.fillRect(20, 6, 2, 2);
         
-        texture.refresh();
+        // Refresh texture to apply changes
+        if (texture) {
+            texture.refresh();
+        }
         
         // Animation
         if (!scene.anims.exists('idle')) {
