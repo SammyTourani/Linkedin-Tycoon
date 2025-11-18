@@ -3126,28 +3126,33 @@ class CharacterCustomizationScene extends Phaser.Scene {
     }
     
     updateCharacterPreview() {
-        // Force regenerate sprite with current customization
-        const previewKey = 'player_preview_' + Date.now(); // Unique key to force refresh
+        // Use consistent preview key
+        const previewKey = 'player_preview';
         
-        // Destroy old texture if exists
-        if (this.textures.exists('player_preview')) {
-            this.textures.remove('player_preview');
+        // Destroy old texture if exists to force refresh
+        if (this.textures.exists(previewKey)) {
+            this.textures.remove(previewKey);
         }
         
         // Create new sprite with current customization
         SpriteGenerator.createCustomPlayerSprite(this, this.customization, previewKey);
         
-        // Update preview sprite
+        // Update preview sprite immediately
         if (this.characterPreview) {
-            this.characterPreview.setTexture(previewKey);
-            
-            // Add a subtle pulse animation on update
-            this.tweens.add({
-                targets: this.characterPreview,
-                scale: 8.2,
-                duration: 200,
-                yoyo: true,
-                ease: 'Power2'
+            // Small delay to ensure texture is ready
+            this.time.delayedCall(10, () => {
+                if (this.characterPreview && this.textures.exists(previewKey)) {
+                    this.characterPreview.setTexture(previewKey);
+                    
+                    // Add a subtle pulse animation on update
+                    this.tweens.add({
+                        targets: this.characterPreview,
+                        scale: 8.2,
+                        duration: 200,
+                        yoyo: true,
+                        ease: 'Power2'
+                    });
+                }
             });
         }
         
