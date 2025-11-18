@@ -3743,30 +3743,64 @@ class HomeScene extends Phaser.Scene {
     }
 
     create() {
+        // Fade in from black
+        this.cameras.main.fadeIn(500);
+        
         // SHOW UI - Game has started!
         showAllUI();
         updateUI();
         
-        // Load player customization if exists
-        if (gameState.data.player.customization) {
+        // Ensure player texture exists - create it if it doesn't
+        if (!this.textures.exists('player')) {
+            if (gameState.data.player.customization) {
+                SpriteGenerator.createCustomPlayerSprite(this, gameState.data.player.customization);
+            } else {
+                SpriteGenerator.createPlayerSprite(this);
+            }
+        } else if (gameState.data.player.customization) {
+            // Update existing texture with customization
             SpriteGenerator.createCustomPlayerSprite(this, gameState.data.player.customization);
         }
+        
         gameState.data.location = 'home';
         
         // Create room
         this.createRoom();
         
-        // Create player
-        this.player = this.physics.add.sprite(320, 240, 'player');
-        this.player.setScale(1.5);
-        this.player.setCollideWorldBounds(true);
+        // Wait a frame to ensure texture is ready
+        this.time.delayedCall(50, () => {
+            // Create player - ensure texture exists
+            if (this.textures.exists('player')) {
+                this.player = this.physics.add.sprite(320, 240, 'player');
+                this.player.setScale(1.5);
+                this.player.setCollideWorldBounds(true);
+            } else {
+                // Fallback: create default player
+                SpriteGenerator.createPlayerSprite(this);
+                this.time.delayedCall(50, () => {
+                    this.player = this.physics.add.sprite(320, 240, 'player');
+                    this.player.setScale(1.5);
+                    this.player.setCollideWorldBounds(true);
+                    this.setupPlayer();
+                });
+                return;
+            }
+            
+            this.setupPlayer();
+        });
+    }
+    
+    setupPlayer() {
+        if (!this.player) return;
         
         // Camera follows player
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
         
-        // Create interactive objects
-        this.createInteractiveObjects();
+        // Create interactive objects (if not already created)
+        if (!this.interactables) {
+            this.createInteractiveObjects();
+        }
         
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
