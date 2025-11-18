@@ -2997,6 +2997,7 @@ class NameInputScene extends Phaser.Scene {
         this.cameras.main.flash(300, 0, 255, 0);
         this.cameras.main.fadeOut(500);
         this.time.delayedCall(500, () => {
+            // Start the new scene and ensure it fades in
             this.scene.start('CharacterCustomizationScene');
         });
     }
@@ -3046,6 +3047,9 @@ class CharacterCustomizationScene extends Phaser.Scene {
         
         // HIDE ALL UI
         this.hideAllUI();
+        
+        // Fade in from black (in case we're transitioning from another scene)
+        this.cameras.main.fadeIn(500);
         
         // Enhanced gradient background
         const bgGradient = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
