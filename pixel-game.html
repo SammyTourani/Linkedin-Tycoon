@@ -706,11 +706,25 @@
             }
         });
         
-        // Keyboard shortcuts
+        // Keyboard shortcuts - DISABLED during name input
         document.addEventListener('keydown', (e) => {
+            // Check if name input is active - if so, ignore all shortcuts
+            const nameInput = document.getElementById('name-input');
+            if (nameInput && (document.activeElement === nameInput || nameInput === e.target)) {
+                return; // Don't process shortcuts when typing name
+            }
+            
+            // Check if we're in NameInputScene
+            if (window.game && window.game.scene.scenes) {
+                const activeScene = window.game.scene.getScenes(true)[0];
+                if (activeScene && activeScene.scene.key === 'NameInputScene') {
+                    return; // Don't process shortcuts in name input scene
+                }
+            }
+            
             if (e.key === 'i' || e.key === 'I') {
                 const menu = document.getElementById('inventory-menu');
-                if (menu.style.display !== 'block') {
+                if (menu && menu.style.display !== 'block') {
                     menu.style.display = 'block';
                     updateInventoryDisplay();
                 }
@@ -718,23 +732,26 @@
             if (e.key === 'm' || e.key === 'M') {
                 if (window.game && window.game.scene.scenes) {
                     const activeScene = window.game.scene.getScenes(true)[0];
-                    if (activeScene) {
+                    if (activeScene && activeScene.scene.key !== 'NameInputScene') {
                         activeScene.scene.launch('EmailScene');
                     }
                 }
             }
             if (e.key === 'p' || e.key === 'P') {
                 const phone = document.getElementById('phone-ui');
-                if (phone.style.display !== 'block') {
+                if (phone && phone.style.display !== 'block') {
                     phone.style.display = 'block';
                     const now = new Date();
-                    document.getElementById('phone-time').textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    const phoneTime = document.getElementById('phone-time');
+                    if (phoneTime) {
+                        phoneTime.textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    }
                 }
             }
             if (e.key === 'l' || e.key === 'L') {
                 if (window.game && window.game.scene.scenes) {
                     const activeScene = window.game.scene.getScenes(true)[0];
-                    if (activeScene) {
+                    if (activeScene && activeScene.scene.key !== 'NameInputScene') {
                         activeScene.scene.launch('LeaderboardScene');
                     }
                 }
