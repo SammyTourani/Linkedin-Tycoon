@@ -2659,30 +2659,67 @@ class CharacterCustomizationScene extends Phaser.Scene {
         // HIDE ALL UI
         this.hideAllUI();
         
-        // Background
-        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
+        // Enhanced gradient background
+        const bgGradient = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        this.tweens.add({
+            targets: bgGradient,
+            alpha: 0.9,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
         
-        // Title
-        const title = this.add.text(width/2, 80, '👤 CREATE YOUR CHARACTER', {
-            fontSize: '48px',
+        // Animated particles background
+        this.particles = [];
+        for (let i = 0; i < 50; i++) {
+            const particle = this.add.circle(
+                Phaser.Math.Between(0, width),
+                Phaser.Math.Between(0, height),
+                Phaser.Math.Between(2, 4),
+                0x0A66C2,
+                Phaser.Math.FloatBetween(0.1, 0.3)
+            );
+            this.particles.push(particle);
+            
+            this.tweens.add({
+                targets: particle,
+                x: particle.x + Phaser.Math.Between(-100, 100),
+                y: particle.y + Phaser.Math.Between(-100, 100),
+                alpha: 0.1,
+                duration: 3000 + Math.random() * 2000,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+                delay: Math.random() * 2000
+            });
+        }
+        
+        // Title with animation
+        const title = this.add.text(width/2, 60, '👤 CREATE YOUR CHARACTER', {
+            fontSize: '52px',
             color: '#0A66C2',
             fontStyle: 'bold',
             stroke: '#FFFFFF',
-            strokeThickness: 4
+            strokeThickness: 6,
+            shadow: {
+                offsetX: 3,
+                offsetY: 3,
+                color: '#000000',
+                blur: 8,
+                stroke: true,
+                fill: true
+            }
         }).setOrigin(0.5);
         
-        // Character preview area (center)
-        const previewX = width/2;
-        const previewY = height/2 - 50;
-        const previewSize = 200;
-        
-        // Preview background
-        const previewBg = this.add.rectangle(previewX, previewY, previewSize + 40, previewSize + 40, 0x0A66C2);
-        previewBg.setStrokeStyle(4, 0xFFFFFF);
-        
-        // Character preview (will be updated)
-        this.characterPreview = this.add.sprite(previewX, previewY, 'player');
-        this.characterPreview.setScale(6);
+        this.tweens.add({
+            targets: title,
+            scale: 1.05,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
         
         // Load existing customization or use defaults
         const existing = gameState.data.player.customization || {};
@@ -2701,13 +2738,19 @@ class CharacterCustomizationScene extends Phaser.Scene {
         // Store button references for updating
         this.buttonGroups = {};
         
-        // Options panel (left side) - FIXED SPACING
-        const optionsX = width/4;
-        const startY = 200;
-        const sectionSpacing = 100;
+        // ============================================
+        // LEFT PANEL: Customization Options
+        // ============================================
+        const leftPanelX = width * 0.2;
+        const leftPanelStartY = 140;
+        const sectionSpacing = 95;
+        
+        // Create scrollable panel background
+        const leftPanelBg = this.add.rectangle(leftPanelX, height/2 + 50, 380, height - 200, 0x1A1A2E, 0.85);
+        leftPanelBg.setStrokeStyle(3, 0x0A66C2);
         
         // Skin Tone
-        this.createOptionSection(optionsX, startY, 'Skin Tone', [
+        this.createOptionSection(leftPanelX, leftPanelStartY, '🎨 Skin Tone', [
             { name: 'Light', value: 0 },
             { name: 'Medium', value: 1 },
             { name: 'Tan', value: 2 },
@@ -2715,7 +2758,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'skinTone');
         
         // Hair Color
-        this.createOptionSection(optionsX, startY + sectionSpacing, 'Hair Color', [
+        this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing, '💇 Hair Color', [
             { name: 'Black', value: 0 },
             { name: 'Brown', value: 1 },
             { name: 'Blonde', value: 2 },
@@ -2725,7 +2768,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'hairColor');
         
         // Hair Style
-        this.createOptionSection(optionsX, startY + sectionSpacing * 2, 'Hair Style', [
+        this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing * 2, '✂️ Hair Style', [
             { name: 'Short', value: 0 },
             { name: 'Medium', value: 1 },
             { name: 'Long', value: 2 },
@@ -2733,7 +2776,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'hairStyle');
         
         // Shirt Color
-        this.createOptionSection(optionsX, startY + sectionSpacing * 3, 'Shirt Color', [
+        this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing * 3, '👔 Shirt Color', [
             { name: 'LinkedIn Blue', value: 0 },
             { name: 'Red', value: 1 },
             { name: 'Green', value: 2 },
@@ -2744,80 +2787,205 @@ class CharacterCustomizationScene extends Phaser.Scene {
         ], 'shirtColor');
         
         // Pants Color
-        this.createOptionSection(optionsX, startY + sectionSpacing * 4, 'Pants Color', [
+        this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing * 4, '👖 Pants Color', [
             { name: 'Navy', value: 0 },
             { name: 'Black', value: 1 },
             { name: 'Gray', value: 2 },
             { name: 'Brown', value: 3 }
         ], 'pantsColor');
         
-        // Name input area (right side) - MOVED TO AVOID OVERLAP
-        const nameX = width * 3/4;
-        const nameY = height/2 - 50;
+        // ============================================
+        // CENTER: Character Preview (LARGE & PROMINENT)
+        // ============================================
+        const previewX = width/2;
+        const previewY = height/2 + 20;
+        const previewSize = 280;
         
-        this.add.text(nameX, nameY - 100, 'Your Name:', {
+        // Preview background with glow effect
+        const previewBg = this.add.rectangle(previewX, previewY, previewSize + 60, previewSize + 60, 0x0A66C2, 0.3);
+        previewBg.setStrokeStyle(5, 0x00FF88);
+        
+        // Glow effect
+        this.tweens.add({
+            targets: previewBg,
+            alpha: 0.5,
+            duration: 1500,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        
+        // Inner preview background
+        const previewInner = this.add.rectangle(previewX, previewY, previewSize + 20, previewSize + 20, 0x000000, 0.8);
+        previewInner.setStrokeStyle(3, 0xFFFFFF);
+        
+        // Character preview sprite (will be updated in real-time)
+        this.characterPreview = this.add.sprite(previewX, previewY, 'player');
+        this.characterPreview.setScale(8);
+        this.characterPreview.setDepth(10);
+        
+        // Preview label
+        this.add.text(previewX, previewY - previewSize/2 - 20, 'LIVE PREVIEW', {
+            fontSize: '18px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // ============================================
+        // RIGHT PANEL: Name Input (PROPER HTML INPUT)
+        // ============================================
+        const rightPanelX = width * 0.8;
+        const rightPanelY = height/2;
+        
+        // Panel background
+        const rightPanelBg = this.add.rectangle(rightPanelX, rightPanelY, 320, 200, 0x1A1A2E, 0.85);
+        rightPanelBg.setStrokeStyle(3, 0x0A66C2);
+        
+        // Name label
+        this.add.text(rightPanelX, rightPanelY - 60, '✏️ Your Name', {
             fontSize: '24px',
             color: '#FFFFFF',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
         }).setOrigin(0.5);
         
-        // Name input box (visual)
-        const nameBox = this.add.rectangle(nameX, nameY, 300, 50, 0x2A2A4A);
-        nameBox.setStrokeStyle(3, 0x0A66C2);
+        // Create HTML input field (proper input) - positioned relative to game container
+        const gameContainer = document.getElementById('game-container');
+        const containerRect = gameContainer.getBoundingClientRect();
         
-        this.nameText = this.add.text(nameX, nameY, gameState.data.player.name, {
-            fontSize: '20px',
-            color: '#FFFFFF'
-        }).setOrigin(0.5);
+        const nameInputContainer = document.createElement('div');
+        nameInputContainer.id = 'character-name-input-container';
+        nameInputContainer.style.cssText = `
+            position: fixed;
+            left: ${containerRect.left + rightPanelX - 140}px;
+            top: ${containerRect.top + rightPanelY - 20}px;
+            width: 280px;
+            height: 50px;
+            z-index: 2000;
+            pointer-events: auto;
+        `;
         
-        // Name input handler
-        let nameInput = '';
-        this.input.keyboard.on('keydown', (event) => {
-            if (event.key === 'Backspace') {
-                nameInput = nameInput.slice(0, -1);
-            } else if (event.key === 'Enter') {
-                if (nameInput.trim()) {
-                    gameState.data.player.name = nameInput.trim();
-                    this.nameText.setText(gameState.data.player.name);
-                }
-                nameInput = '';
-            } else if (event.key.length === 1 && nameInput.length < 20) {
-                nameInput += event.key;
-                this.nameText.setText(nameInput || gameState.data.player.name);
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.id = 'character-name-input';
+        nameInput.value = gameState.data.player.name || 'Alex Developer';
+        nameInput.maxLength = 20;
+        nameInput.placeholder = 'Enter your name...';
+        nameInput.style.cssText = `
+            width: 100%;
+            height: 100%;
+            background: rgba(42, 42, 74, 0.95);
+            border: 3px solid #0A66C2;
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            padding: 0 10px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s;
+            cursor: text;
+        `;
+        
+        nameInput.addEventListener('focus', () => {
+            nameInput.style.borderColor = '#00FF88';
+            nameInput.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.5)';
+            nameInput.style.background = 'rgba(42, 42, 74, 1)';
+        });
+        
+        nameInput.addEventListener('blur', () => {
+            nameInput.style.borderColor = '#0A66C2';
+            nameInput.style.boxShadow = 'none';
+            nameInput.style.background = 'rgba(42, 42, 74, 0.95)';
+        });
+        
+        nameInput.addEventListener('input', () => {
+            if (nameInput.value.trim()) {
+                gameState.data.player.name = nameInput.value.trim();
             }
         });
         
-        // Start Game / Save Changes button
-        const startBtn = this.add.rectangle(width/2, height - 100, 400, 80, 0x00FF88);
-        startBtn.setStrokeStyle(4, 0xFFFFFF);
+        // Update position on window resize
+        const updateInputPosition = () => {
+            const newRect = gameContainer.getBoundingClientRect();
+            nameInputContainer.style.left = `${newRect.left + rightPanelX - 140}px`;
+            nameInputContainer.style.top = `${newRect.top + rightPanelY - 20}px`;
+        };
+        
+        window.addEventListener('resize', updateInputPosition);
+        this.inputPositionUpdater = updateInputPosition;
+        
+        nameInputContainer.appendChild(nameInput);
+        document.body.appendChild(nameInputContainer);
+        this.nameInputElement = nameInput;
+        
+        // Visual input box overlay (for styling)
+        const nameBoxOverlay = this.add.rectangle(rightPanelX, rightPanelY - 20, 280, 50, 0x2A2A4A, 0);
+        nameBoxOverlay.setStrokeStyle(3, 0x0A66C2);
+        nameBoxOverlay.setInteractive();
+        nameBoxOverlay.on('pointerdown', () => {
+            nameInput.focus();
+        });
+        
+        // ============================================
+        // BOTTOM: Start/Save Button
+        // ============================================
+        const startBtn = this.add.rectangle(width/2, height - 80, 450, 90, 0x00FF88);
+        startBtn.setStrokeStyle(5, 0xFFFFFF);
         startBtn.setInteractive();
+        startBtn.setDepth(100);
         
         const buttonText = this.fromWardrobe ? '💾 SAVE CHANGES' : '✅ START GAME';
-        const startText = this.add.text(width/2, height - 100, buttonText, {
-            fontSize: '32px',
+        const startText = this.add.text(width/2, height - 80, buttonText, {
+            fontSize: '36px',
             color: '#000000',
-            fontStyle: 'bold'
-        }).setOrigin(0.5);
+            fontStyle: 'bold',
+            stroke: '#FFFFFF',
+            strokeThickness: 3
+        }).setOrigin(0.5).setDepth(101);
+        
+        // Button animations
+        this.tweens.add({
+            targets: startBtn,
+            scale: 1.02,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
         
         startBtn.on('pointerover', () => {
             startBtn.setFillStyle(0x00CC66);
-            startBtn.setScale(1.05);
+            startBtn.setScale(1.08);
+            startText.setScale(1.05);
+            this.cameras.main.shake(100, 0.005);
         });
         
         startBtn.on('pointerout', () => {
             startBtn.setFillStyle(0x00FF88);
-            startBtn.setScale(1);
+            startBtn.setScale(1.02);
+            startText.setScale(1);
         });
         
         startBtn.on('pointerdown', () => {
             // Save customization
             gameState.data.player.customization = {...this.customization};
-            gameState.data.player.name = this.nameText.text;
+            gameState.data.player.name = this.nameInputElement.value.trim() || 'Alex Developer';
             
             // Regenerate player sprite with customization
             SpriteGenerator.createCustomPlayerSprite(this, this.customization);
             
             gameState.saveGame();
+            
+            // Remove HTML input
+            if (this.nameInputElement && this.nameInputElement.parentElement) {
+                this.nameInputElement.parentElement.remove();
+            }
             
             this.cameras.main.flash(300, 0, 255, 0);
             this.cameras.main.fadeOut(500);
@@ -2843,93 +3011,161 @@ class CharacterCustomizationScene extends Phaser.Scene {
     }
     
     createOptionSection(x, y, title, options, key) {
-        // Title
-        const titleText = this.add.text(x, y - 25, title + ':', {
-            fontSize: '20px',
+        // Section background
+        const sectionBg = this.add.rectangle(x, y + 25, 350, 70, 0x0D1B2A, 0.6);
+        sectionBg.setStrokeStyle(2, 0x0A66C2);
+        sectionBg.setDepth(5);
+        
+        // Title with icon
+        const titleText = this.add.text(x - 160, y - 25, title, {
+            fontSize: '18px',
             color: '#FFFFFF',
             fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 2
-        }).setOrigin(0, 0.5);
+            strokeThickness: 3
+        }).setOrigin(0, 0.5).setDepth(6);
         
         // Store buttons for this section
         if (!this.buttonGroups[key]) {
             this.buttonGroups[key] = [];
         }
         
-        // Create buttons in a clean grid (3 columns max)
-        const buttonWidth = 110;
-        const buttonHeight = 45;
-        const buttonSpacingX = 120;
-        const buttonSpacingY = 55;
+        // Create buttons in a clean grid (3 columns max) - FIXED SPACING
+        const buttonWidth = 100;
+        const buttonHeight = 40;
+        const buttonSpacingX = 110; // Increased spacing
+        const buttonSpacingY = 50;  // Increased vertical spacing
         const buttonsPerRow = 3;
         
         options.forEach((option, i) => {
             const col = i % buttonsPerRow;
             const row = Math.floor(i / buttonsPerRow);
-            const btnX = x + col * buttonSpacingX;
-            const btnY = y + row * buttonSpacingY;
+            const btnX = x - 150 + col * buttonSpacingX;
+            const btnY = y + 10 + row * buttonSpacingY;
             
             // Button background
             const isSelected = this.customization[key] === option.value;
             const btn = this.add.rectangle(btnX, btnY, buttonWidth, buttonHeight, isSelected ? 0x00FF88 : 0x0A66C2);
-            btn.setStrokeStyle(3, 0xFFFFFF);
-            btn.setInteractive();
+            btn.setStrokeStyle(3, isSelected ? 0xFFFFFF : 0x4A90E2);
+            btn.setInteractive({ useHandCursor: true });
             btn.setData('value', option.value);
             btn.setData('key', key);
+            btn.setDepth(6);
             
-            // Button text
-            const btnText = this.add.text(btnX, btnY, option.name, {
-                fontSize: '13px',
+            // Button text (truncate long names)
+            let displayName = option.name;
+            if (displayName.length > 10) {
+                displayName = displayName.substring(0, 8) + '...';
+            }
+            
+            const btnText = this.add.text(btnX, btnY, displayName, {
+                fontSize: '12px',
                 color: '#FFFFFF',
                 fontStyle: 'bold',
                 stroke: '#000000',
-                strokeThickness: 1,
-                wordWrap: { width: buttonWidth - 10 }
-            }).setOrigin(0.5);
+                strokeThickness: 2
+            }).setOrigin(0.5).setDepth(7);
             
             // Store button reference
             this.buttonGroups[key].push({ btn, btnText, value: option.value });
             
-            // Hover effects
+            // Enhanced hover effects
             btn.on('pointerover', () => {
                 if (!isSelected) {
                     btn.setFillStyle(0x0E7FE8);
+                    btn.setStrokeStyle(3, 0xFFFFFF);
                 }
-                btn.setScale(1.05);
+                btn.setScale(1.1);
+                btnText.setScale(1.1);
+                this.tweens.add({
+                    targets: btn,
+                    alpha: 0.9,
+                    duration: 100,
+                    ease: 'Power2'
+                });
             });
             
             btn.on('pointerout', () => {
                 const currentSelected = this.customization[key] === option.value;
                 btn.setFillStyle(currentSelected ? 0x00FF88 : 0x0A66C2);
+                btn.setStrokeStyle(3, currentSelected ? 0xFFFFFF : 0x4A90E2);
                 btn.setScale(1);
+                btnText.setScale(1);
+                btn.setAlpha(1);
             });
             
-            // Click handler
+            // Click handler with immediate preview update
             btn.on('pointerdown', () => {
-                // Update customization
+                // Update customization IMMEDIATELY
                 this.customization[key] = option.value;
                 
                 // Update ALL buttons in this section
                 this.buttonGroups[key].forEach(buttonData => {
                     const isNowSelected = buttonData.value === option.value;
                     buttonData.btn.setFillStyle(isNowSelected ? 0x00FF88 : 0x0A66C2);
+                    buttonData.btn.setStrokeStyle(3, isNowSelected ? 0xFFFFFF : 0x4A90E2);
                     buttonData.btn.setScale(1);
                 });
                 
-                // Update character preview
+                // IMMEDIATE character preview update
                 this.updateCharacterPreview();
                 
-                // Visual feedback
-                this.cameras.main.flash(100, 0, 255, 0, false, null, 0.2);
+                // Enhanced visual feedback
+                this.cameras.main.flash(150, 0, 255, 0, false, null, 0.3);
+                
+                // Button click animation
+                this.tweens.add({
+                    targets: btn,
+                    scale: 0.95,
+                    duration: 100,
+                    yoyo: true,
+                    ease: 'Power2'
+                });
             });
         });
     }
     
     updateCharacterPreview() {
-        // Regenerate sprite with current customization
-        SpriteGenerator.createCustomPlayerSprite(this, this.customization, 'player_preview');
-        this.characterPreview.setTexture('player_preview');
+        // Force regenerate sprite with current customization
+        const previewKey = 'player_preview_' + Date.now(); // Unique key to force refresh
+        
+        // Destroy old texture if exists
+        if (this.textures.exists('player_preview')) {
+            this.textures.remove('player_preview');
+        }
+        
+        // Create new sprite with current customization
+        SpriteGenerator.createCustomPlayerSprite(this, this.customization, previewKey);
+        
+        // Update preview sprite
+        if (this.characterPreview) {
+            this.characterPreview.setTexture(previewKey);
+            
+            // Add a subtle pulse animation on update
+            this.tweens.add({
+                targets: this.characterPreview,
+                scale: 8.2,
+                duration: 200,
+                yoyo: true,
+                ease: 'Power2'
+            });
+        }
+        
+        // Also update the main player texture for consistency
+        SpriteGenerator.createCustomPlayerSprite(this, this.customization, 'player');
+    }
+    
+    shutdown() {
+        // Clean up HTML input when scene closes
+        const inputContainer = document.getElementById('character-name-input-container');
+        if (inputContainer) {
+            inputContainer.remove();
+        }
+        
+        // Remove resize listener
+        if (this.inputPositionUpdater) {
+            window.removeEventListener('resize', this.inputPositionUpdater);
+        }
     }
     
     hideAllUI() {
