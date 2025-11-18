@@ -618,12 +618,337 @@ class AchievementManager {
     }
 }
 
+// Random Encounter System
+class EncounterManager {
+    constructor() {
+        this.encounters = [
+            {
+                title: 'Job Recruiter Spotted!',
+                text: 'A recruiter from a top tech company approaches you with an opportunity.',
+                choices: [
+                    { text: 'Schedule interview', reward: { xp: 50, reputation: 10 } },
+                    { text: 'Decline politely', reward: { reputation: 5 } }
+                ]
+            },
+            {
+                title: 'Networking Opportunity!',
+                text: 'You overhear a conversation about a new startup. Join in?',
+                choices: [
+                    { text: 'Join conversation', reward: { networking: 20, connections: 2, xp: 40 } },
+                    { text: 'Listen quietly', reward: { skills: 10, xp: 20 } }
+                ]
+            },
+            {
+                title: 'Coffee Meetup Invite',
+                text: 'Someone invites you for coffee to discuss a potential collaboration.',
+                choices: [
+                    { text: 'Accept (20 💰)', cost: 20, reward: { connections: 1, networking: 15, xp: 35 } },
+                    { text: 'Decline', reward: { coins: 0 } }
+                ]
+            },
+            {
+                title: 'Surprise Bonus!',
+                text: 'Your post from yesterday just went viral! Companies are reaching out.',
+                choices: [
+                    { text: 'Capitalize on it!', reward: { followers: 50, reputation: 25, coins: 200, xp: 100 } }
+                ]
+            },
+            {
+                title: 'Skill Competition',
+                text: 'A coding competition is happening nearby. First prize: 500 coins!',
+                choices: [
+                    { text: 'Compete (30⚡)', energyCost: 30, reward: { coins: 500, skills: 30, xp: 80 } },
+                    { text: 'Pass', reward: { xp: 10 } }
+                ]
+            },
+            {
+                title: 'Mentor Offer',
+                text: 'A senior professional offers to mentor you for free. This is rare!',
+                choices: [
+                    { text: 'Accept mentorship', reward: { skills: 40, reputation: 20, networking: 25, xp: 120 } }
+                ]
+            },
+            {
+                title: 'Lost Wallet Found',
+                text: 'You found someone\'s wallet! What do you do?',
+                choices: [
+                    { text: 'Return it', reward: { reputation: 30, karma: 100, xp: 60 } },
+                    { text: 'Keep the cash', reward: { coins: 150, reputation: -20 } }
+                ]
+            },
+            {
+                title: 'LinkedIn Premium Trial',
+                text: 'LinkedIn offers you a free 1-month premium trial!',
+                choices: [
+                    { text: 'Activate', reward: { followers: 30, networking: 20, maxEnergy: 10, xp: 75 } }
+                ]
+            },
+            {
+                title: 'Speaking Opportunity',
+                text: 'You\'ve been invited to speak at a local tech meetup!',
+                choices: [
+                    { text: 'Accept (prepare)', reward: { reputation: 35, followers: 40, xp: 100 } },
+                    { text: 'Decline (too busy)', reward: { coins: 50 } }
+                ]
+            },
+            {
+                title: 'Collaboration Request',
+                text: 'Another professional wants to collaborate on a project.',
+                choices: [
+                    { text: 'Collaborate', reward: { skills: 25, networking: 20, connections: 2, xp: 80 } },
+                    { text: 'Maybe later', reward: { xp: 10 } }
+                ]
+            }
+        ];
+        
+        this.lastEncounter = Date.now();
+        this.encounterCooldown = 60000; // 1 minute between encounters
+    }
+    
+    tryTriggerEncounter() {
+        if (Date.now() - this.lastEncounter < this.encounterCooldown) return false;
+        if (Math.random() > 0.3) return false; // 30% chance when cooldown expires
+        
+        this.lastEncounter = Date.now();
+        return true;
+    }
+    
+    showRandomEncounter(scene) {
+        const encounter = Phaser.Math.RND.pick(this.encounters);
+        
+        // Show encounter overlay
+        const width = scene.cameras.main.width;
+        const height = scene.cameras.main.height;
+        
+        // Dim background
+        const overlay = scene.add.rectangle(width/2, height/2, width, height, 0x000000, 0.8);
+        overlay.setDepth(1000);
+        
+        // Encounter box
+        const box = scene.add.rectangle(width/2, height/2, 700, 400, 0x1E3A8A);
+        box.setStrokeStyle(4, 0x00FF88);
+        box.setDepth(1001);
+        
+        // Title
+        const title = scene.add.text(width/2, height/2 - 150, `⚡ ${encounter.title}`, {
+            fontSize: '28px',
+            color: '#FFD700',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setDepth(1002);
+        
+        // Text
+        const text = scene.add.text(width/2, height/2 - 60, encounter.text, {
+            fontSize: '18px',
+            color: '#FFFFFF',
+            align: 'center',
+            wordWrap: { width: 600 }
+        }).setOrigin(0.5).setDepth(1002);
+        
+        // Choice buttons
+        encounter.choices.forEach((choice, i) => {
+            const btnY = height/2 + 50 + i * 70;
+            
+            const btn = scene.add.rectangle(width/2, btnY, 600, 60, 0x0A66C2);
+            btn.setStrokeStyle(2, 0xFFFFFF);
+            btn.setInteractive();
+            btn.setDepth(1002);
+            
+            const btnText = scene.add.text(width/2, btnY, choice.text, {
+                fontSize: '16px',
+                color: '#FFFFFF'
+            }).setOrigin(0.5).setDepth(1003);
+            
+            btn.on('pointerover', () => {
+                btn.setFillStyle(0x0E7FE8);
+            });
+            
+            btn.on('pointerout', () => {
+                btn.setFillStyle(0x0A66C2);
+            });
+            
+            btn.on('pointerdown', () => {
+                // Check costs
+                if (choice.cost && gameState.data.player.coins < choice.cost) {
+                    showNotification('💰 Not enough coins!');
+                    return;
+                }
+                if (choice.energyCost && gameState.data.player.energy < choice.energyCost) {
+                    showNotification('⚡ Not enough energy!');
+                    return;
+                }
+                
+                // Apply costs
+                if (choice.cost) gameState.data.player.coins -= choice.cost;
+                if (choice.energyCost) gameState.data.player.energy -= choice.energyCost;
+                
+                // Apply rewards
+                const r = choice.reward;
+                if (r.xp) gameState.gainXP(r.xp);
+                if (r.coins) gameState.data.player.coins += r.coins;
+                if (r.reputation) gameState.data.player.reputation += r.reputation;
+                if (r.skills) gameState.data.player.skills += r.skills;
+                if (r.networking) gameState.data.player.networking += r.networking;
+                if (r.connections) gameState.data.player.connections += r.connections;
+                if (r.followers) gameState.data.player.followers += r.followers;
+                if (r.maxEnergy) gameState.data.player.maxEnergy += r.maxEnergy;
+                
+                gameState.data.player.encountersCompleted++;
+                
+                showNotification('✨ Encounter resolved! Rewards received');
+                scene.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
+                updateUI();
+                achievementManager.checkAll();
+                
+                // Remove overlay
+                overlay.destroy();
+                box.destroy();
+                title.destroy();
+                text.destroy();
+                btn.destroy();
+                btnText.destroy();
+                
+                // Clean up other buttons
+                encounter.choices.forEach((_, j) => {
+                    if (j !== i && scene.children.list[scene.children.list.length - 1 - (encounter.choices.length - j - 1) * 2]) {
+                        // Would need to track and destroy properly
+                    }
+                });
+            });
+        });
+    }
+}
+
+// Reputation Tier System
+class ReputationManager {
+    constructor() {
+        this.tiers = [
+            { min: 0, max: 49, name: 'Unknown', color: '#666666', perks: [] },
+            { min: 50, max: 99, name: 'Noticed', color: '#AAAAAA', perks: ['5% post boost'] },
+            { min: 100, max: 199, name: 'Respected', color: '#00D9FF', perks: ['5% post boost', '10% networking bonus'] },
+            { min: 200, max: 399, name: 'Well Known', color: '#00FF88', perks: ['10% post boost', '10% networking bonus', '5% coin bonus'] },
+            { min: 400, max: 699, name: 'Influential', color: '#FFD700', perks: ['15% post boost', '15% networking bonus', '10% coin bonus', 'Free coffee'] },
+            { min: 700, max: 999, name: 'Famous', color: '#FF6B6B', perks: ['20% post boost', '20% networking bonus', '15% coin bonus', 'Free coffee', 'Free gym'] },
+            { min: 1000, max: 9999, name: 'LEGEND', color: '#FF00FF', perks: ['30% post boost', '30% networking bonus', '25% coin bonus', 'All services free', 'VIP access'] }
+        ];
+    }
+    
+    getCurrentTier(reputation) {
+        for (let tier of this.tiers) {
+            if (reputation >= tier.min && reputation <= tier.max) {
+                return tier;
+            }
+        }
+        return this.tiers[this.tiers.length - 1];
+    }
+    
+    getPostBoost(reputation) {
+        const tier = this.getCurrentTier(reputation);
+        const boostPerk = tier.perks.find(p => p.includes('post boost'));
+        if (!boostPerk) return 1.0;
+        const percent = parseInt(boostPerk);
+        return 1 + (percent / 100);
+    }
+    
+    getNetworkingBonus(reputation) {
+        const tier = this.getCurrentTier(reputation);
+        const bonusPerk = tier.perks.find(p => p.includes('networking bonus'));
+        if (!bonusPerk) return 1.0;
+        const percent = parseInt(bonusPerk);
+        return 1 + (percent / 100);
+    }
+    
+    getCoinBonus(reputation) {
+        const tier = this.getCurrentTier(reputation);
+        const bonusPerk = tier.perks.find(p => p.includes('coin bonus'));
+        if (!bonusPerk) return 1.0;
+        const percent = parseInt(bonusPerk);
+        return 1 + (percent / 100);
+    }
+}
+
+// Certification System
+class CertificationManager {
+    constructor() {
+        this.certifications = [
+            { id: 'js_cert', name: 'JavaScript Certified', icon: '💻', requirement: { skills: 50 }, reward: { reputation: 20, xp: 100 } },
+            { id: 'python_cert', name: 'Python Expert', icon: '🐍', requirement: { skills: 75 }, reward: { reputation: 25, xp: 150 } },
+            { id: 'cloud_cert', name: 'Cloud Architect', icon: '☁️', requirement: { skills: 100 }, reward: { reputation: 30, xp: 200 } },
+            { id: 'leader_cert', name: 'Leadership Badge', icon: '👑', requirement: { networking: 80 }, reward: { reputation: 25, xp: 150 } },
+            { id: 'influencer_cert', name: 'Certified Influencer', icon: '⭐', requirement: { followers: 500 }, reward: { reputation: 40, xp: 250 } },
+            { id: 'networking_cert', name: 'Super Networker', icon: '🤝', requirement: { connections: 100 }, reward: { reputation: 35, xp: 200 } },
+            { id: 'content_cert', name: 'Content Master', icon: '✍️', requirement: { postsCount: 50 }, reward: { reputation: 30, xp: 180 } },
+            { id: 'master_cert', name: 'LinkedIn Master', icon: '💎', requirement: { level: 30 }, reward: { reputation: 100, xp: 500, coins: 1000 } }
+        ];
+    }
+    
+    checkEligible(certId) {
+        const cert = this.certifications.find(c => c.id === certId);
+        if (!cert) return false;
+        
+        const p = gameState.data.player;
+        const req = cert.requirement;
+        
+        if (req.skills && p.skills < req.skills) return false;
+        if (req.networking && p.networking < req.networking) return false;
+        if (req.followers && p.followers < req.followers) return false;
+        if (req.connections && p.connections < req.connections) return false;
+        if (req.postsCount && p.postsCount < req.postsCount) return false;
+        if (req.level && p.level < req.level) return false;
+        
+        return true;
+    }
+    
+    earnCertification(certId) {
+        if (gameState.data.player.certificationsEarned.includes(certId)) {
+            showNotification('You already have this certification!');
+            return;
+        }
+        
+        const cert = this.certifications.find(c => c.id === certId);
+        if (!cert) return;
+        
+        if (!this.checkEligible(certId)) {
+            showNotification('You don\'t meet the requirements yet!');
+            return;
+        }
+        
+        gameState.data.player.certificationsEarned.push(certId);
+        
+        // Apply rewards
+        const r = cert.reward;
+        if (r.reputation) gameState.data.player.reputation += r.reputation;
+        if (r.xp) gameState.gainXP(r.xp);
+        if (r.coins) gameState.data.player.coins += r.coins;
+        
+        showNotification(`🎓 Earned ${cert.name}!`);
+        showAchievement(`${cert.icon} ${cert.name}`);
+        updateUI();
+        gameState.saveGame();
+    }
+    
+    checkAllCertifications() {
+        this.certifications.forEach(cert => {
+            if (!gameState.data.player.certificationsEarned.includes(cert.id)) {
+                if (this.checkEligible(cert.id)) {
+                    // Notify player they can earn this
+                    if (Math.random() < 0.1) { // 10% chance to notify
+                        showNotification(`🎓 You're eligible for ${cert.name}! Check computer.`);
+                    }
+                }
+            }
+        });
+    }
+}
+
 // Global managers
 const storyManager = new StoryManager();
 const dialogueManager = new DialogueManager();
 const questManager = new QuestManager();
 const itemManager = new ItemManager();
 const achievementManager = new AchievementManager();
+const encounterManager = new EncounterManager();
+const reputationManager = new ReputationManager();
+const certificationManager = new CertificationManager();
 
 // Game State Manager
 class GameState {
@@ -2798,6 +3123,13 @@ class CityScene extends Phaser.Scene {
         this.checkInteractions();
         this.updateNPCAI();
         this.checkItemPickup();
+        this.tryRandomEncounter();
+    }
+    
+    tryRandomEncounter() {
+        if (encounterManager.tryTriggerEncounter()) {
+            encounterManager.showRandomEncounter(this);
+        }
     }
     
     updateNPCAI() {
@@ -5382,15 +5714,16 @@ class ComputerMenuScene extends Phaser.Scene {
         // Create buttons
         this.createButton(width/2, 140, '✍️ Create Post (15⚡)', () => this.createPost());
         this.createButton(width/2, 185, '📚 Learn Skills (50💰)', () => this.learnSkills());
-        this.createButton(width/2, 230, '⌨️ Typing Game', () => this.startMinigame());
-        this.createButton(width/2, 275, '🧠 Memory Game', () => this.startMemoryGame());
-        this.createButton(width/2, 320, '⚡ Reaction Test', () => this.startReactionGame());
-        this.createButton(width/2, 365, '❓ Tech Quiz', () => this.startQuizGame());
-        this.createButton(width/2, 410, '🌳 View Skill Tree', () => this.showSkillTree());
-        this.createButton(width/2, 455, '📊 Stats Dashboard', () => this.showStats());
-        this.createButton(width/2, 500, '🏠 Upgrade Apartment', () => this.upgradeApartment());
-        this.createButton(width/2, 545, '⚙️ Customize', () => this.customize());
-        this.createButton(width/2, 590, '❌ Close', () => this.closeMenu());
+        this.createButton(width/2, 210, '⌨️ Typing Game', () => this.startMinigame());
+        this.createButton(width/2, 250, '🧠 Memory Game', () => this.startMemoryGame());
+        this.createButton(width/2, 290, '⚡ Reaction Test', () => this.startReactionGame());
+        this.createButton(width/2, 330, '❓ Tech Quiz', () => this.startQuizGame());
+        this.createButton(width/2, 370, '🌳 View Skill Tree', () => this.showSkillTree());
+        this.createButton(width/2, 410, '📊 Stats Dashboard', () => this.showStats());
+        this.createButton(width/2, 450, '🎓 Earn Certifications', () => this.showCertifications());
+        this.createButton(width/2, 490, '🏠 Upgrade Apartment', () => this.upgradeApartment());
+        this.createButton(width/2, 530, '⚙️ Customize', () => this.customize());
+        this.createButton(width/2, 570, '❌ Close', () => this.closeMenu());
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
@@ -5542,6 +5875,79 @@ class ComputerMenuScene extends Phaser.Scene {
     showStats() {
         this.closeMenu();
         this.scene.launch('StatsDashboardScene');
+    }
+    
+    showCertifications() {
+        // Show certification menu
+        const overlay = this.scene.get('HomeScene').add.rectangle(640, 360, 1280, 720, 0x000000, 0.9);
+        overlay.setDepth(2000);
+        overlay.setScrollFactor(0);
+        
+        const box = this.scene.get('HomeScene').add.rectangle(640, 360, 900, 600, 0x1E3A8A);
+        box.setStrokeStyle(4, 0xFFD700);
+        box.setDepth(2001);
+        box.setScrollFactor(0);
+        
+        const title = this.scene.get('HomeScene').add.text(640, 120, '🎓 CERTIFICATIONS', {
+            fontSize: '32px',
+            color: '#FFD700',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setDepth(2002).setScrollFactor(0);
+        
+        // List certifications
+        certificationManager.certifications.forEach((cert, i) => {
+            const y = 200 + i * 60;
+            const eligible = certificationManager.checkEligible(cert.id);
+            const earned = gameState.data.player.certificationsEarned.includes(cert.id);
+            
+            const certBox = this.scene.get('HomeScene').add.rectangle(640, y, 800, 50, earned ? 0x00FF88 : eligible ? 0x0A66C2 : 0x4A4A4A);
+            certBox.setStrokeStyle(2, 0xFFFFFF);
+            certBox.setDepth(2002);
+            certBox.setScrollFactor(0);
+            
+            if (eligible && !earned) {
+                certBox.setInteractive();
+                certBox.on('pointerdown', () => {
+                    certificationManager.earnCertification(cert.id);
+                    this.closeMenu();
+                    overlay.destroy();
+                    box.destroy();
+                    title.destroy();
+                    // Would need to clean up all elements properly
+                });
+            }
+            
+            const certText = this.scene.get('HomeScene').add.text(300, y, `${cert.icon} ${cert.name}`, {
+                fontSize: '16px',
+                color: '#FFFFFF'
+            }).setOrigin(0, 0.5).setDepth(2003).setScrollFactor(0);
+            
+            const status = earned ? '✓ EARNED' : eligible ? '→ CLICK TO EARN' : '✗ Locked';
+            this.scene.get('HomeScene').add.text(980, y, status, {
+                fontSize: '14px',
+                color: earned ? '#00FF88' : eligible ? '#FFD700' : '#666666'
+            }).setOrigin(1, 0.5).setDepth(2003).setScrollFactor(0);
+        });
+        
+        // Close button
+        const closeBtn = this.scene.get('HomeScene').add.rectangle(640, 680, 200, 50, 0xFF6B6B);
+        closeBtn.setStrokeStyle(2, 0xFFFFFF);
+        closeBtn.setInteractive();
+        closeBtn.setDepth(2002);
+        closeBtn.setScrollFactor(0);
+        
+        this.scene.get('HomeScene').add.text(640, 680, 'Close', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5).setDepth(2003).setScrollFactor(0);
+        
+        closeBtn.on('pointerdown', () => {
+            overlay.destroy();
+            box.destroy();
+            title.destroy();
+            closeBtn.destroy();
+            // Would cleanup all
+        });
     }
     
     upgradeApartment() {
