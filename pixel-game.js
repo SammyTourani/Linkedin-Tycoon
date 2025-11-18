@@ -1272,8 +1272,28 @@ class SpriteGenerator {
     
     static createCustomPlayerSprite(scene, customization = {}, textureKey = 'player') {
         const size = 32;
+        
+        // Remove existing texture if it exists
+        if (scene.textures.exists(textureKey)) {
+            scene.textures.remove(textureKey);
+        }
+        
+        // Create new texture
         const texture = scene.textures.createCanvas(textureKey, size, size);
+        
+        // Check if texture was created successfully
+        if (!texture) {
+            console.error(`Failed to create texture: ${textureKey}`);
+            return;
+        }
+        
         const ctx = texture.getContext();
+        
+        // Check if context is valid
+        if (!ctx) {
+            console.error(`Failed to get context for texture: ${textureKey}`);
+            return;
+        }
         
         // Color palettes
         const skinTones = [
@@ -3468,7 +3488,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         // Update preview sprite immediately
         if (this.characterPreview) {
             // Small delay to ensure texture is ready
-            this.time.delayedCall(10, () => {
+            this.time.delayedCall(50, () => {
                 if (this.characterPreview && this.textures.exists(previewKey)) {
                     this.characterPreview.setTexture(previewKey);
                     
@@ -3484,8 +3504,8 @@ class CharacterCustomizationScene extends Phaser.Scene {
             });
         }
         
-        // Also update the main player texture for consistency
-        SpriteGenerator.createCustomPlayerSprite(this, this.customization, 'player');
+        // Only update main player texture if not in preview mode (to avoid conflicts)
+        // The main player texture will be updated when starting the game
     }
     
     shutdown() {
