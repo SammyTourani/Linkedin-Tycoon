@@ -6944,6 +6944,515 @@ class CookingScene extends Phaser.Scene {
     }
 }
 
+// Networking Event Scene - Meet multiple professionals
+class NetworkingEventScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'NetworkingEventScene' });
+    }
+
+    create() {
+        const width = 800;
+        const height = 600;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Elegant venue
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                const tile = this.add.image(x, y, 'floor').setOrigin(0);
+                tile.setTint(0x4A4A6A);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(400, 40, '🎭 NETWORKING EVENT', {
+            fontSize: '28px',
+            color: '#FFD700',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(400, 75, '15+ Professionals Attending', {
+            fontSize: '14px',
+            color: '#00FF88',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(400, 500, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createEvent();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('🎭 Network with everyone! Massive opportunity!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createEvent() {
+        this.interactables = [];
+        this.networkedWith = new Set();
+        
+        // Spawn 15 professionals around the room
+        const names = [
+            'Alex Tech', 'Jordan Dev', 'Taylor PM', 'Morgan CEO', 'Casey Designer',
+            'Riley Engineer', 'Drew Marketer', 'Quinn Analyst', 'Jamie Founder', 'Avery CTO',
+            'Parker COO', 'Skyler VP', 'Blake Director', 'Sage Manager', 'River Lead'
+        ];
+        
+        const sprites = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'];
+        
+        for (let i = 0; i < 15; i++) {
+            const x = Phaser.Math.Between(100, 700);
+            const y = Phaser.Math.Between(120, 450);
+            
+            const sprite = Phaser.Math.RND.pick(sprites);
+            const npc = this.add.sprite(x, y, sprite);
+            npc.setScale(1.3);
+            
+            const label = this.add.text(x, y - 30, names[i].split(' ')[0], {
+                fontSize: '11px',
+                color: '#FFD700',
+                stroke: '#000000',
+                strokeThickness: 2
+            }).setOrigin(0.5);
+            
+            this.interactables.push({
+                sprite: npc,
+                label: label,
+                name: names[i],
+                x: x,
+                y: y
+            });
+        }
+        
+        // Exit
+        this.exitDoor = { x: 400, y: 570, type: 'exit' };
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check for nearby NPCs
+        let nearest = null;
+        let minDist = Infinity;
+        
+        this.interactables.forEach((npc, index) => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, npc.x, npc.y
+            );
+            
+            if (dist < 50 && dist < minDist) {
+                minDist = dist;
+                nearest = { npc, index };
+            }
+        });
+        
+        // Check exit
+        const exitDist = Phaser.Math.Distance.Between(
+            this.player.x, this.player.y, this.exitDoor.x, this.exitDoor.y
+        );
+        
+        if (exitDist < 60) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                // Leave event
+                const networked = this.networkedWith.size;
+                const bonus = networked * 20;
+                
+                showNotification(`🎭 Event complete! Networked with ${networked} people`);
+                gameState.data.player.coins += bonus * 2;
+                gameState.gainXP(bonus * 3);
+                
+                if (networked >= 10) {
+                    showAchievement('Networking Champion 🏆');
+                }
+                
+                updateUI();
+                this.cameras.main.fadeOut(1000);
+                this.time.delayedCall(1000, () => {
+                    this.scene.start('CityScene');
+                });
+            }
+        } else if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                if (!this.networkedWith.has(nearest.index)) {
+                    if (gameState.useEnergy(5)) {
+                        // Quick network
+                        gameState.data.player.connections++;
+                        gameState.data.player.networking += 8;
+                        gameState.gainXP(25);
+                        
+                        this.networkedWith.add(nearest.index);
+                        nearest.npc.sprite.setTint(0x00FF88);
+                        
+                        showNotification(`🤝 Connected with ${nearest.npc.name}!`);
+                        this.cameras.main.flash(100, 0, 200, 0, false, null, 0.2);
+                        updateUI();
+                    }
+                } else {
+                    showNotification('Already connected with this person!');
+                }
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
+// Vehicle Shop Scene - Buy transportation
+class VehicleShopScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'VehicleShopScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Showroom
+        this.add.rectangle(width/2, height/2, width, height, 0xF5F5F5);
+        
+        // Title
+        this.add.text(width/2, 100, '🚗 VEHICLE DEALERSHIP', {
+            fontSize: '40px',
+            color: '#FF6B6B',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 150, 'Upgrade your commute, save time!', {
+            fontSize: '18px',
+            color: '#666666'
+        }).setOrigin(0.5);
+        
+        // Vehicle options
+        const vehicles = [
+            { 
+                name: 'Electric Bike', 
+                emoji: '🚲', 
+                cost: 800, 
+                benefit: '15% faster city travel',
+                speedBoost: 1.15
+            },
+            { 
+                name: 'Hybrid Car', 
+                emoji: '🚗', 
+                cost: 2000, 
+                benefit: '30% faster city travel + style bonus',
+                speedBoost: 1.30,
+                repBonus: 25
+            },
+            { 
+                name: 'Tesla Model S', 
+                emoji: '🚘', 
+                cost: 5000, 
+                benefit: '50% faster travel + major reputation',
+                speedBoost: 1.50,
+                repBonus: 50
+            }
+        ];
+        
+        vehicles.forEach((vehicle, i) => {
+            const x = width/2 - 450 + i * 450;
+            const y = height/2 + 50;
+            
+            // Vehicle card
+            const card = this.add.rectangle(x, y, 400, 500, 0xFFFFFF);
+            card.setStrokeStyle(5, 0x0A66C2);
+            
+            // Vehicle
+            this.add.text(x, y - 150, vehicle.emoji, {
+                fontSize: '140px'
+            }).setOrigin(0.5);
+            
+            // Name
+            this.add.text(x, y + 40, vehicle.name, {
+                fontSize: '26px',
+                color: '#0A66C2',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            // Benefit
+            this.add.text(x, y + 90, vehicle.benefit, {
+                fontSize: '14px',
+                color: '#00AA00',
+                align: 'center',
+                wordWrap: { width: 350 }
+            }).setOrigin(0.5);
+            
+            // Buy button
+            const buyBtn = this.add.rectangle(x, y + 180, 300, 70, 0xFF6B6B);
+            buyBtn.setStrokeStyle(3, 0xFFFFFF);
+            buyBtn.setInteractive();
+            
+            this.add.text(x, y + 160, 'Purchase', {
+                fontSize: '22px',
+                color: '#FFFFFF',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            this.add.text(x, y + 195, `${vehicle.cost} 💰`, {
+                fontSize: '18px',
+                color: '#FFD700'
+            }).setOrigin(0.5);
+            
+            buyBtn.on('pointerover', () => {
+                buyBtn.setFillStyle(0xFF8A8A);
+                buyBtn.setScale(1.05);
+            });
+            
+            buyBtn.on('pointerout', () => {
+                buyBtn.setFillStyle(0xFF6B6B);
+                buyBtn.setScale(1);
+            });
+            
+            buyBtn.on('pointerdown', () => {
+                if (gameState.data.player.coins >= vehicle.cost) {
+                    gameState.data.player.coins -= vehicle.cost;
+                    gameState.data.player.vehicle = vehicle.name;
+                    
+                    if (vehicle.repBonus) {
+                        gameState.data.player.reputation += vehicle.repBonus;
+                    }
+                    
+                    gameState.gainXP(vehicle.cost / 2);
+                    
+                    showNotification(`🚗 Purchased ${vehicle.name}!`);
+                    showAchievement(`Vehicle Owner: ${vehicle.name}`);
+                    this.cameras.main.flash(500, 0, 200, 255, false, null, 0.4);
+                    updateUI();
+                    
+                    this.time.delayedCall(2000, () => {
+                        this.cameras.main.fadeOut(1000);
+                        this.time.delayedCall(1000, () => {
+                            this.scene.start('CityScene');
+                        });
+                    });
+                } else {
+                    showNotification(`💰 Need ${vehicle.cost} coins!`);
+                }
+            });
+        });
+        
+        // Back button
+        const backBtn = this.add.rectangle(width/2, height - 80, 250, 60, 0x4A4A4A);
+        backBtn.setStrokeStyle(3, 0xFFFFFF);
+        backBtn.setInteractive();
+        
+        this.add.text(width/2, height - 80, 'Back to City', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        backBtn.on('pointerdown', () => {
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
+// Prestige/Endgame Scene - Reset with bonuses
+class PrestigeScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'PrestigeScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Epic background
+        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        
+        // Stars/particles
+        for (let i = 0; i < 100; i++) {
+            const star = this.add.circle(
+                Phaser.Math.Between(0, width),
+                Phaser.Math.Between(0, height),
+                2,
+                0xFFFFFF,
+                Phaser.Math.FloatBetween(0.3, 1)
+            );
+            
+            this.tweens.add({
+                targets: star,
+                alpha: 0.2,
+                duration: 1000 + Math.random() * 2000,
+                yoyo: true,
+                repeat: -1
+            });
+        }
+        
+        // Title
+        this.add.text(width/2, 150, '✨ PRESTIGE MODE ✨', {
+            fontSize: '48px',
+            color: '#FFD700',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 220, 'Transcend to the next level', {
+            fontSize: '20px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        const p = gameState.data.player;
+        const canPrestige = p.level >= 50;
+        
+        if (canPrestige) {
+            // Show prestige benefits
+            const benefits = [
+                '• Keep all achievements',
+                '• +50% XP gain permanently',
+                '• +100 max energy',
+                '• Exclusive "Prestige" badge',
+                '• New game+ content unlocked',
+                '• Special golden character skin',
+                '• Prestige level counter',
+                '• Bragging rights!'
+            ];
+            
+            this.add.text(width/2, 300, 'PRESTIGE BENEFITS:', {
+                fontSize: '24px',
+                color: '#00FF88',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            benefits.forEach((benefit, i) => {
+                this.add.text(width/2, 350 + i * 35, benefit, {
+                    fontSize: '16px',
+                    color: '#FFFFFF'
+                }).setOrigin(0.5);
+            });
+            
+            // Prestige button
+            const prestigeBtn = this.add.rectangle(width/2, height - 180, 400, 80, 0xFFD700);
+            prestigeBtn.setStrokeStyle(5, 0xFFFFFF);
+            prestigeBtn.setInteractive();
+            
+            this.add.text(width/2, height - 180, '✨ PRESTIGE NOW ✨', {
+                fontSize: '28px',
+                color: '#000000',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            prestigeBtn.on('pointerover', () => {
+                prestigeBtn.setFillStyle(0xFFE44D);
+                prestigeBtn.setScale(1.05);
+                
+                // Glow effect
+                this.tweens.add({
+                    targets: prestigeBtn,
+                    alpha: 0.8,
+                    duration: 500,
+                    yoyo: true
+                });
+            });
+            
+            prestigeBtn.on('pointerout', () => {
+                prestigeBtn.setFillStyle(0xFFD700);
+                prestigeBtn.setScale(1);
+            });
+            
+            prestigeBtn.on('pointerdown', () => {
+                // Confirm prestige
+                const confirm = window.confirm('Are you sure you want to PRESTIGE? This will reset your level and stats but grant permanent bonuses!');
+                
+                if (confirm) {
+                    // Keep achievements and add prestige bonuses
+                    const achievements = achievementManager.unlocked;
+                    const prestigeLevel = (gameState.data.prestigeLevel || 0) + 1;
+                    
+                    // Reset but with bonuses
+                    gameState.data = gameState.createNewGame();
+                    gameState.data.prestigeLevel = prestigeLevel;
+                    gameState.data.xpMultiplier = 1 + (prestigeLevel * 0.5);
+                    gameState.data.player.maxEnergy += 100;
+                    gameState.data.player.badges.push('✨ Prestige ' + prestigeLevel);
+                    
+                    // Restore achievements
+                    achievementManager.unlocked = achievements;
+                    
+                    gameState.saveGame();
+                    
+                    showNotification(`✨ PRESTIGE ${prestigeLevel} ACTIVATED! You are reborn!`);
+                    showAchievement(`Prestige Level ${prestigeLevel}!`);
+                    
+                    // Epic animation
+                    this.cameras.main.flash(2000, 255, 215, 0);
+                    
+                    this.time.delayedCall(3000, () => {
+                        this.cameras.main.fadeOut(2000);
+                        this.time.delayedCall(2000, () => {
+                            location.reload(); // Fresh start
+                        });
+                    });
+                }
+            });
+        } else {
+            // Not eligible yet
+            this.add.text(width/2, 350, `You need to reach Level 50 to Prestige\n\nCurrent Level: ${p.level}\nLevels to go: ${50 - p.level}`, {
+                fontSize: '24px',
+                color: '#FF6B6B',
+                align: 'center',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+        }
+        
+        // Back button
+        const backBtn = this.add.rectangle(width/2, height - 80, 250, 60, 0xFF6B6B);
+        backBtn.setStrokeStyle(3, 0xFFFFFF);
+        backBtn.setInteractive();
+        
+        this.add.text(width/2, height - 80, 'Back', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        backBtn.on('pointerdown', () => {
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
 // Skill Minigame Scene - Typing challenge
 class SkillMinigameScene extends Phaser.Scene {
     constructor() {
@@ -7778,7 +8287,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
+    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
