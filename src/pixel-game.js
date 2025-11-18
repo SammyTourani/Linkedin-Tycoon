@@ -5,6 +5,225 @@
 
 import Phaser from 'phaser';
 
+// ============================================================================
+// SOUND MANAGER - Handles all audio in the game
+// ============================================================================
+class SoundManager {
+    constructor(scene) {
+        this.scene = scene;
+        this.sounds = {};
+        this.currentMusic = null;
+        this.isMusicEnabled = true;
+        this.isSfxEnabled = true;
+        this.musicVolume = 0.4;
+        this.sfxVolume = 0.6;
+        this.talkVolume = 0.5;
+        
+        // Load all sounds
+        this.loadSounds();
+    }
+    
+    loadSounds() {
+        const soundPath = '/Sounds for LinkedIn Tycoon/';
+        
+        // Background Music (themes)
+        this.sounds.menu_theme = { key: 'menu_theme', path: soundPath + 'menu_theme.mp3', type: 'music' };
+        this.sounds.home_ambient = { key: 'home_ambient', path: soundPath + 'home_ambient_theme.wav', type: 'music' };
+        this.sounds.city_daytime = { key: 'city_daytime', path: soundPath + 'city_daytime_theme.wav', type: 'music' };
+        this.sounds.office_work = { key: 'office_work', path: soundPath + 'office_work_theme.wav', type: 'music' };
+        this.sounds.customization_theme = { key: 'customization_theme', path: soundPath + 'Character_Customization_theme.mp3', type: 'music' };
+        this.sounds.special_event = { key: 'special_event', path: soundPath + 'special_event.mp3', type: 'music' };
+        
+        // UI Sounds
+        this.sounds.button_press = { key: 'button_press', path: soundPath + 'buttonpress:switchbutton.wav', type: 'sfx' };
+        this.sounds.interact = { key: 'interact', path: soundPath + 'Interact(E).wav', type: 'sfx' };
+        this.sounds.door = { key: 'door', path: soundPath + 'door open:close.wav', type: 'sfx' };
+        this.sounds.sleep = { key: 'sleep', path: soundPath + 'sleep_option.wav', type: 'sfx' };
+        
+        // Game Events
+        this.sounds.coin = { key: 'coin', path: soundPath + 'coin.mp3', type: 'sfx' };
+        this.sounds.level_up = { key: 'level_up', path: soundPath + 'level_up.wav', type: 'sfx' };
+        this.sounds.achievement = { key: 'achievement', path: soundPath + 'epic_achievment.wav', type: 'sfx' };
+        this.sounds.success = { key: 'success', path: soundPath + 'success.wav', type: 'sfx' };
+        this.sounds.wrong = { key: 'wrong', path: soundPath + 'wrong.wav', type: 'sfx' };
+        this.sounds.purchase = { key: 'purchase', path: soundPath + 'purchase.wav', type: 'sfx' };
+        this.sounds.new_connection = { key: 'new_connection', path: soundPath + 'New Connection.wav', type: 'sfx' };
+        
+        // Talk Sounds (for dialogue typing effect)
+        this.sounds.talk1 = { key: 'talk1', path: soundPath + 'talk1.mp3', type: 'talk' };
+        this.sounds.talk2 = { key: 'talk2', path: soundPath + 'talk2.mp3', type: 'talk' };
+        this.sounds.talk3 = { key: 'talk3', path: soundPath + 'talk3.mp3', type: 'talk' };
+        this.sounds.talk4 = { key: 'talk4', path: soundPath + 'talk4.mp3', type: 'talk' };
+    }
+    
+    preloadAll(scene) {
+        // Preload all sounds in a Phaser scene
+        Object.values(this.sounds).forEach(sound => {
+            scene.load.audio(sound.key, sound.path);
+        });
+    }
+    
+    playMusic(key, fadeIn = true) {
+        if (!this.isMusicEnabled) return;
+        
+        // Stop current music
+        if (this.currentMusic) {
+            if (fadeIn) {
+                this.scene.tweens.add({
+                    targets: this.currentMusic,
+                    volume: 0,
+                    duration: 1000,
+                    onComplete: () => {
+                        if (this.currentMusic) this.currentMusic.stop();
+                        this.startNewMusic(key, fadeIn);
+                    }
+                });
+            } else {
+                this.currentMusic.stop();
+                this.startNewMusic(key, fadeIn);
+            }
+        } else {
+            this.startNewMusic(key, fadeIn);
+        }
+    }
+    
+    startNewMusic(key, fadeIn = true) {
+        if (!this.scene.sound) {
+            console.error('Sound system not ready');
+            return;
+        }
+        
+        try {
+            this.currentMusic = this.scene.sound.add(key, {
+                loop: true,
+                volume: fadeIn ? 0 : this.musicVolume
+            });
+            
+            if (!this.currentMusic) {
+                console.error(`Failed to create sound: ${key}`);
+                return;
+            }
+            
+            this.currentMusic.play();
+            
+            if (fadeIn && this.scene.tweens) {
+                this.scene.tweens.add({
+                    targets: this.currentMusic,
+                    volume: this.musicVolume,
+                    duration: 1500,
+                    ease: 'Linear'
+                });
+            }
+        } catch (error) {
+            console.error('Error starting music:', error);
+        }
+    }
+    
+    playSfx(key, volume = null) {
+        if (!this.isSfxEnabled || !this.scene.sound) return;
+        
+        const sound = this.scene.sound.add(key, {
+            volume: volume !== null ? volume : this.sfxVolume
+        });
+        sound.play();
+        return sound;
+    }
+    
+    playTalk(characterName) {
+        if (!this.isSfxEnabled || !this.scene.sound) return null;
+        
+        // Assign different talk sounds to different NPCs
+        const talkMap = {
+            'Sarah Chen': 'talk1',
+            'Marcus Johnson': 'talk2',
+            'Emily Rodriguez': 'talk3',
+            'David Park': 'talk4',
+            'Dr. Jennifer Liu': 'talk1',
+            'default': 'talk2'
+        };
+        
+        const talkKey = talkMap[characterName] || talkMap.default;
+        
+        const sound = this.scene.sound.add(talkKey, {
+            volume: this.talkVolume,
+            loop: true
+        });
+        sound.play();
+        return sound;
+    }
+    
+    stopTalk(sound) {
+        if (sound) {
+            this.scene.tweens.add({
+                targets: sound,
+                volume: 0,
+                duration: 200,
+                onComplete: () => {
+                    sound.stop();
+                    sound.destroy();
+                }
+            });
+        }
+    }
+    
+    stopMusic() {
+        if (this.currentMusic) {
+            this.currentMusic.stop();
+            this.currentMusic = null;
+        }
+    }
+    
+    stopAllSounds() {
+        // Stop all sounds including music and SFX
+        if (this.scene && this.scene.sound) {
+            this.scene.sound.stopAll();
+        }
+        this.currentMusic = null;
+    }
+    
+    pauseAllSounds() {
+        // Pause all sounds
+        if (this.scene && this.scene.sound) {
+            this.scene.sound.pauseAll();
+        }
+    }
+    
+    resumeAllSounds() {
+        // Resume all sounds
+        if (this.scene && this.scene.sound) {
+            this.scene.sound.resumeAll();
+        }
+    }
+    
+    setMusicVolume(volume) {
+        this.musicVolume = Math.max(0, Math.min(1, volume));
+        if (this.currentMusic) {
+            this.currentMusic.setVolume(this.musicVolume);
+        }
+    }
+    
+    setSfxVolume(volume) {
+        this.sfxVolume = Math.max(0, Math.min(1, volume));
+    }
+    
+    toggleMusic() {
+        this.isMusicEnabled = !this.isMusicEnabled;
+        if (!this.isMusicEnabled && this.currentMusic) {
+            this.currentMusic.stop();
+            this.currentMusic = null;
+        }
+        return this.isMusicEnabled;
+    }
+    
+    toggleSfx() {
+        this.isSfxEnabled = !this.isSfxEnabled;
+        return this.isSfxEnabled;
+    }
+}
+
+// Global sound manager instance
+let globalSoundManager = null;
+
 // Story & Dialogue System
 class StoryManager {
     constructor() {
@@ -67,6 +286,10 @@ class DialogueManager {
     constructor() {
         this.currentDialogue = null;
         this.conversationDepth = {}; // Track conversation progress
+        this.typingSpeed = 12; // milliseconds per character - faster for better UX
+        this.currentTalkSound = null;
+        this.isTyping = false;
+        this.typingInterval = null;
         this.npcs = {
             'Sarah Chen': {
                 intro: "Hey! I'm Sarah, a product manager at a startup. Always looking to connect with talented engineers! How's your LinkedIn journey going?",
@@ -138,10 +361,133 @@ class DialogueManager {
         const speaker = document.getElementById('dialogue-speaker');
         const text = document.getElementById('dialogue-text');
         const choices = document.getElementById('dialogue-choices');
+        const skipHint = document.getElementById('dialogue-skip-hint');
 
         speaker.textContent = npcName;
-        text.textContent = npc.intro;
         
+        // Clear previous text and start typing effect
+        text.textContent = '';
+        choices.innerHTML = '';
+        if (skipHint) skipHint.style.display = 'block';
+        
+        // Play talk sound
+        if (globalSoundManager) {
+            this.currentTalkSound = globalSoundManager.playTalk(npcName);
+        }
+        
+        // Type out the intro text
+        this.typeText(npc.intro, text, () => {
+            // Stop talk sound when done
+            if (globalSoundManager && this.currentTalkSound) {
+                globalSoundManager.stopTalk(this.currentTalkSound);
+                this.currentTalkSound = null;
+            }
+            
+            // Hide skip hint when done typing
+            if (skipHint) skipHint.style.display = 'none';
+            
+            // Show choices after typing is done
+            this.showDialogueChoices(npcName, npc, text, choices, scene);
+        });
+        
+        box.style.display = 'block';
+        this.currentDialogue = npcName;
+    }
+    
+    typeText(fullText, element, onComplete) {
+        this.isTyping = true;
+        this.currentFullText = fullText;
+        this.currentElement = element;
+        this.currentOnComplete = onComplete;
+        let currentIndex = 0;
+        
+        // Clear any existing interval
+        if (this.typingInterval) {
+            clearInterval(this.typingInterval);
+        }
+        
+        this.typingInterval = setInterval(() => {
+            if (currentIndex < fullText.length) {
+                element.textContent += fullText[currentIndex];
+                currentIndex++;
+            } else {
+                clearInterval(this.typingInterval);
+                this.typingInterval = null;
+                this.isTyping = false;
+                this.currentFullText = null;
+                this.currentElement = null;
+                this.currentOnComplete = null;
+                if (onComplete) onComplete();
+            }
+        }, this.typingSpeed);
+    }
+    
+    skipTyping(fullText, element, onComplete) {
+        // Skip to end of typing
+        if (this.typingInterval) {
+            clearInterval(this.typingInterval);
+            this.typingInterval = null;
+        }
+        element.textContent = fullText;
+        this.isTyping = false;
+        
+        // Stop talk sound
+        if (globalSoundManager && this.currentTalkSound) {
+            globalSoundManager.stopTalk(this.currentTalkSound);
+            this.currentTalkSound = null;
+        }
+        
+        // Hide skip hint
+        const skipHint = document.getElementById('dialogue-skip-hint');
+        if (skipHint) skipHint.style.display = 'none';
+        
+        // Clear stored values
+        this.currentFullText = null;
+        this.currentElement = null;
+        this.currentOnComplete = null;
+        
+        if (onComplete) onComplete();
+    }
+    
+    handleEscapeKey() {
+        // If currently typing, skip to the end
+        if (this.isTyping && this.currentFullText && this.currentElement && this.currentOnComplete) {
+            this.skipTyping(this.currentFullText, this.currentElement, this.currentOnComplete);
+            return true;
+        }
+        
+        // If dialogue is open but not typing, close it
+        if (this.currentDialogue) {
+            this.hideDialogue();
+            return true;
+        }
+        
+        return false;
+    }
+    
+    hideDialogue() {
+        const box = document.getElementById('dialogue-box');
+        box.style.display = 'none';
+        
+        // Stop any typing and talk sounds
+        if (this.typingInterval) {
+            clearInterval(this.typingInterval);
+            this.typingInterval = null;
+        }
+        
+        if (globalSoundManager && this.currentTalkSound) {
+            globalSoundManager.stopTalk(this.currentTalkSound);
+            this.currentTalkSound = null;
+        }
+        
+        this.isTyping = false;
+        this.currentDialogue = null;
+        this.currentFullText = null;
+        this.currentElement = null;
+        this.currentOnComplete = null;
+    }
+    
+    showDialogueChoices(npcName, npc, text, choices, scene) {
         choices.innerHTML = '';
         
         // More dialogue options based on NPC
@@ -184,25 +530,67 @@ class DialogueManager {
             btn.className = 'dialogue-choice';
             btn.textContent = option.text;
             btn.onclick = () => {
+                // Play button sound
+                if (globalSoundManager) {
+                    globalSoundManager.playSfx('button_press', 0.3);
+                }
+                
                 if (option.key === 'goodbye') {
                     this.closeDialogue(scene);
                     if (scene && scene.networkWithPerson) {
                         scene.networkWithPerson(npcName, true);
                     }
                 } else {
-                    text.textContent = npc.responses[option.key];
+                    const responseText = npc.responses[option.key];
+                    text.textContent = '';
+                    
+                    // Play talk sound
+                    if (globalSoundManager) {
+                        this.currentTalkSound = globalSoundManager.playTalk(npcName);
+                    }
+                    
+                    // Type out response
+                    this.typeText(responseText, text, () => {
+                        // Stop talk sound when done
+                        if (globalSoundManager && this.currentTalkSound) {
+                            globalSoundManager.stopTalk(this.currentTalkSound);
+                            this.currentTalkSound = null;
+                        }
+                    });
                 }
             };
             choices.appendChild(btn);
         });
-
-        box.style.display = 'block';
-        this.currentDialogue = npcName;
+        
+        // Add click-to-skip functionality on dialogue text
+        text.style.cursor = 'pointer';
+        text.onclick = () => {
+            if (this.isTyping) {
+                // Skip current typing
+                const fullText = text.getAttribute('data-full-text') || '';
+                if (fullText) {
+                    this.skipTyping(fullText, text, null);
+                }
+            }
+        };
     }
 
     closeDialogue(scene) {
+        // Stop any ongoing typing
+        if (this.typingInterval) {
+            clearInterval(this.typingInterval);
+            this.typingInterval = null;
+        }
+        
+        // Stop talk sound
+        if (globalSoundManager && this.currentTalkSound) {
+            globalSoundManager.stopTalk(this.currentTalkSound);
+            this.currentTalkSound = null;
+        }
+        
         document.getElementById('dialogue-box').style.display = 'none';
         this.currentDialogue = null;
+        this.isTyping = false;
     }
 }
 
@@ -1016,12 +1404,16 @@ class CertificationManager {
 // Global managers
 const storyManager = new StoryManager();
 const dialogueManager = new DialogueManager();
+window.dialogueManager = dialogueManager; // Expose globally for ESC key handler
 const questManager = new QuestManager();
 const itemManager = new ItemManager();
 const achievementManager = new AchievementManager();
 const encounterManager = new EncounterManager();
 const reputationManager = new ReputationManager();
 const certificationManager = new CertificationManager();
+
+// Expose dialogue manager globally for ESC key handling
+window.dialogueManager = dialogueManager;
 
 // Game State Manager
 class GameState {
@@ -1122,6 +1514,12 @@ class GameState {
         this.data.player.energy = this.data.player.maxEnergy;
         this.data.player.coins += 50;
         this.updateTitle();
+        
+        // Play level up sound
+        if (globalSoundManager) {
+            globalSoundManager.playSfx('level_up', 0.8);
+        }
+        
         showNotification(`🎉 Level Up! You're now level ${this.data.player.level}!`);
         showAchievement(`Level ${this.data.player.level} Reached!`);
         
@@ -1251,6 +1649,22 @@ function showNotification(message) {
     const notif = document.getElementById('notification');
     notif.textContent = message;
     notif.style.display = 'block';
+    
+    // Play appropriate sound based on message content
+    if (globalSoundManager) {
+        if (message.includes('💰') || message.includes('coins') || message.includes('Earned')) {
+            globalSoundManager.playSfx('coin', 0.4);
+        } else if (message.includes('⚡') || message.includes('energy') || message.includes('Energy')) {
+            globalSoundManager.playSfx('success', 0.3);
+        } else if (message.includes('❌') || message.includes('Not enough') || message.includes('full')) {
+            globalSoundManager.playSfx('wrong', 0.4);
+        } else if (message.includes('Quest') || message.includes('Complete')) {
+            globalSoundManager.playSfx('success', 0.5);
+        } else {
+            globalSoundManager.playSfx('button_press', 0.2);
+        }
+    }
+    
     setTimeout(() => {
         notif.style.display = 'none';
     }, 3000);
@@ -1262,6 +1676,11 @@ function showAchievement(title) {
     text.textContent = title;
     popup.classList.add('show');
     popup.style.display = 'block';
+    
+    // Play epic achievement sound
+    if (globalSoundManager) {
+        globalSoundManager.playSfx('achievement', 0.7);
+    }
     
     setTimeout(() => {
         popup.classList.remove('show');
@@ -2139,8 +2558,50 @@ class LoadingScene extends Phaser.Scene {
     constructor() {
         super({ key: 'LoadingScene' });
     }
+    
+    preload() {
+        // Preload all sounds
+        const soundPath = '/Sounds for LinkedIn Tycoon/';
+        
+        // Background Music (themes)
+        this.load.audio('menu_theme', soundPath + 'menu_theme.mp3');
+        this.load.audio('home_ambient', soundPath + 'home_ambient_theme.wav');
+        this.load.audio('city_daytime', soundPath + 'city_daytime_theme.wav');
+        this.load.audio('office_work', soundPath + 'office_work_theme.wav');
+        this.load.audio('customization_theme', soundPath + 'Character_Customization_theme.mp3');
+        this.load.audio('special_event', soundPath + 'special_event.mp3');
+        
+        // UI Sounds
+        this.load.audio('button_press', soundPath + 'buttonpress:switchbutton.wav');
+        this.load.audio('interact', soundPath + 'Interact(E).wav');
+        this.load.audio('door', soundPath + 'door open:close.wav');
+        this.load.audio('sleep', soundPath + 'sleep_option.wav');
+        
+        // Game Events
+        this.load.audio('coin', soundPath + 'coin.mp3');
+        this.load.audio('level_up', soundPath + 'level_up.wav');
+        this.load.audio('achievement', soundPath + 'epic_achievment.wav');
+        this.load.audio('success', soundPath + 'success.wav');
+        this.load.audio('wrong', soundPath + 'wrong.wav');
+        this.load.audio('purchase', soundPath + 'purchase.wav');
+        this.load.audio('new_connection', soundPath + 'New Connection.wav');
+        
+        // Talk Sounds
+        this.load.audio('talk1', soundPath + 'talk1.mp3');
+        this.load.audio('talk2', soundPath + 'talk2.mp3');
+        this.load.audio('talk3', soundPath + 'talk3.mp3');
+        this.load.audio('talk4', soundPath + 'talk4.mp3');
+        
+        console.log('All sounds loaded');
+    }
 
     create() {
+        // Initialize global sound manager AFTER sounds are loaded
+        if (!globalSoundManager) {
+            globalSoundManager = new SoundManager(this);
+            console.log('Sound manager initialized');
+        }
+        
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         
@@ -2281,6 +2742,13 @@ class IntroScene extends Phaser.Scene {
         
         // HIDE ALL UI ELEMENTS
         this.hideAllUI();
+        
+        // Update sound manager scene reference
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            console.log('Playing menu theme');
+            globalSoundManager.playMusic('menu_theme', true);
+        }
         
         // Animated gradient background
         const bg = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
@@ -2490,6 +2958,11 @@ class IntroScene extends Phaser.Scene {
         
         // Click handler
         const startGame = () => {
+            // Play button sound
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('button_press', 0.5);
+            }
+            
             // Explosion effect
             for (let i = 0; i < 30; i++) {
                 const particle = this.add.circle(
@@ -2585,6 +3058,14 @@ class MainMenuScene extends Phaser.Scene {
         // HIDE ALL UI ELEMENTS
         this.hideAllUI();
         
+        // Update sound manager scene reference and play music
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            if (!globalSoundManager.currentMusic || !globalSoundManager.currentMusic.isPlaying) {
+                globalSoundManager.playMusic('menu_theme', true);
+            }
+        }
+        
         // Dark background
         this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
         
@@ -2664,6 +3145,11 @@ class MainMenuScene extends Phaser.Scene {
         
         // New Game button (always available)
         const newGameBtn = this.createMenuButton(width/2, buttonY, '🆕 NEW GAME', () => {
+            // Play button sound
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('button_press', 0.5);
+            }
+            
             // Reset game state
             gameState.data = gameState.createNewGame();
             gameState.saveGame();
@@ -2676,6 +3162,11 @@ class MainMenuScene extends Phaser.Scene {
         // Continue button (only if save exists)
         if (hasSave) {
             const continueBtn = this.createMenuButton(width/2, buttonY + buttonSpacing, '▶️ CONTINUE', () => {
+                // Play button sound
+                if (globalSoundManager) {
+                    globalSoundManager.playSfx('button_press', 0.5);
+                }
+                
                 // Load existing game
                 gameState.data = gameState.loadGame();
                 this.cameras.main.fadeOut(500);
@@ -2691,6 +3182,10 @@ class MainMenuScene extends Phaser.Scene {
         
         // Options button
         const optionsBtn = this.createMenuButton(width/2, buttonY + buttonSpacing * (hasSave ? 2 : 1), '⚙️ OPTIONS', () => {
+            // Play button sound
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('button_press', 0.5);
+            }
             this.showOptions();
         });
         
@@ -2713,6 +3208,11 @@ class MainMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         btn.on('pointerover', () => {
+            // Play hover sound
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('button_press', 0.1);
+            }
+            
             btn.setFillStyle(0x0E7FE8);
             btn.setScale(1.05);
             this.tweens.add({
@@ -3246,6 +3746,12 @@ class CharacterCustomizationScene extends Phaser.Scene {
         
         // Fade in from black (in case we're transitioning from another scene)
         this.cameras.main.fadeIn(500);
+        
+        // Update sound manager and play customization theme music
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            globalSoundManager.playMusic('customization_theme', true);
+        }
         
         // Enhanced gradient background
         const bgGradient = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
@@ -3984,6 +4490,12 @@ class HomeScene extends Phaser.Scene {
         // SHOW UI - Game has started!
         showAllUI();
         updateUI();
+        
+        // Update sound manager and play home ambient music
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            globalSoundManager.playMusic('home_ambient', true);
+        }
 
         // Initialize input IMMEDIATELY (before update() runs)
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -4368,6 +4880,11 @@ class HomeScene extends Phaser.Scene {
     interact(object) {
         const type = object.getData('type');
         
+        // Play interact sound
+        if (globalSoundManager) {
+            globalSoundManager.playSfx('interact', 0.4);
+        }
+        
         switch (type) {
             case 'computer':
                 this.openComputerMenu();
@@ -4399,6 +4916,11 @@ class HomeScene extends Phaser.Scene {
     }
 
     sleep() {
+        // Play sleep sound
+        if (globalSoundManager) {
+            globalSoundManager.playSfx('sleep', 0.5);
+        }
+        
         if (gameState.data.player.energy < gameState.data.player.maxEnergy) {
             gameState.data.player.energy = Math.min(
                 gameState.data.player.maxEnergy,
@@ -4422,6 +4944,11 @@ class HomeScene extends Phaser.Scene {
     }
 
     changeScene(targetScene) {
+        // Play door sound
+        if (globalSoundManager) {
+            globalSoundManager.playSfx('door', 0.5);
+        }
+        
         this.cameras.main.fadeOut(500);
         this.time.delayedCall(500, () => {
             this.scene.start(targetScene);
@@ -4476,6 +5003,12 @@ class CityScene extends Phaser.Scene {
 
     create() {
         gameState.data.location = 'city';
+        
+        // Update sound manager and play city daytime music
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            globalSoundManager.playMusic('city_daytime', true);
+        }
         
         // Create outdoor environment
         this.createOutdoorArea();
@@ -5077,6 +5610,11 @@ class CityScene extends Phaser.Scene {
                 dialogueManager.showDialogue(name, this);
                 break;
             case 'location':
+                // Play door sound for entering buildings
+                if (globalSoundManager) {
+                    globalSoundManager.playSfx('door', 0.5);
+                }
+                
                 // Handle location-specific interactions
                 const target = object.getData('target');
                 if (name === 'Coffee Shop') {
@@ -5104,6 +5642,10 @@ class CityScene extends Phaser.Scene {
                 }
                 break;
             case 'door':
+                // Play door sound for using doors
+                if (globalSoundManager) {
+                    globalSoundManager.playSfx('door', 0.5);
+                }
                 this.changeScene(object.getData('target'));
                 break;
         }
@@ -5118,6 +5660,11 @@ class CityScene extends Phaser.Scene {
                 gameState.data.player.networking += 5;
                 gameState.gainXP(15);
                 showNotification(`🤝 Connected with ${name}!`);
+                
+                // Play new connection sound
+                if (globalSoundManager) {
+                    globalSoundManager.playSfx('new_connection', 0.6);
+                }
                 
                 // Camera shake
                 this.cameras.main.shake(200, 0.002);
@@ -5809,6 +6356,12 @@ class CoworkingScene extends Phaser.Scene {
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
         
+        // Update sound manager and play office work music
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            globalSoundManager.playMusic('office_work', true);
+        }
+        
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
@@ -6471,6 +7024,12 @@ class ShopScene extends Phaser.Scene {
                         itemManager.addItemToInventory(itemId);
                         const item = itemManager.getItem(itemId);
                         showNotification(`Purchased ${item.name}! Check inventory (I)`);
+                        
+                        // Play purchase sound
+                        if (globalSoundManager) {
+                            globalSoundManager.playSfx('purchase', 0.5);
+                        }
+                        
                         this.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
                         updateUI();
                     } else {
@@ -7613,6 +8172,10 @@ class ComputerMenuScene extends Phaser.Scene {
         }).setOrigin(0.5).setScrollFactor(0);
 
         button.on('pointerover', () => {
+            // Play hover sound
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('button_press', 0.1);
+            }
             button.setFillStyle(0x0066CC);
             button.setScale(1.02);
         });
@@ -7622,7 +8185,13 @@ class ComputerMenuScene extends Phaser.Scene {
             button.setScale(1);
         });
 
-        button.on('pointerdown', callback);
+        button.on('pointerdown', () => {
+            // Play click sound
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('button_press', 0.4);
+            }
+            callback();
+        });
     }
 
     createPost() {
@@ -7635,6 +8204,11 @@ class ComputerMenuScene extends Phaser.Scene {
             gameState.data.player.followers += Math.floor(likes / 10);
             gameState.data.player.coins += likes;
             gameState.gainXP(viral ? 100 : 20);
+            
+            // Play coin sound for earnings
+            if (globalSoundManager) {
+                globalSoundManager.playSfx('coin', 0.4);
+            }
             
             if (viral) {
                 showNotification(`🔥 Your post went VIRAL! ${likes} likes!`);
@@ -10281,6 +10855,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (storyOverlay) {
         storyOverlay.style.display = 'none';
     }
+    
+    // Add global ESC key handler for dialogue system
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' || event.keyCode === 27) {
+            if (window.dialogueManager && window.dialogueManager.handleEscapeKey()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }
+    });
 });
 
 window.game = game; // Expose globally for fullscreen toggle
