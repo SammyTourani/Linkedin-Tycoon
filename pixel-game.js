@@ -3222,7 +3222,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         }).setOrigin(0.5);
         
         // ============================================
-        // RIGHT PANEL: Name Input (PROPER HTML INPUT)
+        // RIGHT PANEL: Character Name Display (READ-ONLY)
         // ============================================
         const rightPanelX = width * 0.8;
         const rightPanelY = height/2;
@@ -3232,7 +3232,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
         rightPanelBg.setStrokeStyle(3, 0x0A66C2);
         
         // Name label
-        this.add.text(rightPanelX, rightPanelY - 60, '✏️ Your Name', {
+        this.add.text(rightPanelX, rightPanelY - 60, '👤 Your Name', {
             fontSize: '24px',
             color: '#FFFFFF',
             fontStyle: 'bold',
@@ -3240,85 +3240,27 @@ class CharacterCustomizationScene extends Phaser.Scene {
             strokeThickness: 2
         }).setOrigin(0.5);
         
-        // Create HTML input field (proper input) - positioned relative to game container
-        const gameContainer = document.getElementById('game-container');
-        const containerRect = gameContainer.getBoundingClientRect();
+        // Display name (read-only, already set in NameInputScene)
+        const nameDisplay = this.add.text(rightPanelX, rightPanelY - 20, gameState.data.player.name || 'Alex Developer', {
+            fontSize: '28px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
         
-        const nameInputContainer = document.createElement('div');
-        nameInputContainer.id = 'character-name-input-container';
-        nameInputContainer.style.cssText = `
-            position: fixed;
-            left: ${containerRect.left + rightPanelX - 140}px;
-            top: ${containerRect.top + rightPanelY - 20}px;
-            width: 280px;
-            height: 50px;
-            z-index: 2000;
-            pointer-events: auto;
-        `;
+        // Info text
+        this.add.text(rightPanelX, rightPanelY + 30, 'Name set! Focus on', {
+            fontSize: '16px',
+            color: '#888888',
+            fontStyle: 'italic'
+        }).setOrigin(0.5);
         
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.id = 'character-name-input';
-        nameInput.value = gameState.data.player.name || 'Alex Developer';
-        nameInput.maxLength = 20;
-        nameInput.placeholder = 'Enter your name...';
-        nameInput.style.cssText = `
-            width: 100%;
-            height: 100%;
-            background: rgba(42, 42, 74, 0.95);
-            border: 3px solid #0A66C2;
-            border-radius: 8px;
-            color: #FFFFFF;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            padding: 0 10px;
-            box-sizing: border-box;
-            outline: none;
-            transition: all 0.3s;
-            cursor: text;
-        `;
-        
-        nameInput.addEventListener('focus', () => {
-            nameInput.style.borderColor = '#00FF88';
-            nameInput.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.5)';
-            nameInput.style.background = 'rgba(42, 42, 74, 1)';
-        });
-        
-        nameInput.addEventListener('blur', () => {
-            nameInput.style.borderColor = '#0A66C2';
-            nameInput.style.boxShadow = 'none';
-            nameInput.style.background = 'rgba(42, 42, 74, 0.95)';
-        });
-        
-        nameInput.addEventListener('input', () => {
-            if (nameInput.value.trim()) {
-                gameState.data.player.name = nameInput.value.trim();
-            }
-        });
-        
-        // Update position on window resize
-        const updateInputPosition = () => {
-            const newRect = gameContainer.getBoundingClientRect();
-            nameInputContainer.style.left = `${newRect.left + rightPanelX - 140}px`;
-            nameInputContainer.style.top = `${newRect.top + rightPanelY - 20}px`;
-        };
-        
-        window.addEventListener('resize', updateInputPosition);
-        this.inputPositionUpdater = updateInputPosition;
-        
-        nameInputContainer.appendChild(nameInput);
-        document.body.appendChild(nameInputContainer);
-        this.nameInputElement = nameInput;
-        
-        // Visual input box overlay (for styling)
-        const nameBoxOverlay = this.add.rectangle(rightPanelX, rightPanelY - 20, 280, 50, 0x2A2A4A, 0);
-        nameBoxOverlay.setStrokeStyle(3, 0x0A66C2);
-        nameBoxOverlay.setInteractive();
-        nameBoxOverlay.on('pointerdown', () => {
-            nameInput.focus();
-        });
+        this.add.text(rightPanelX, rightPanelY + 50, 'customizing your character', {
+            fontSize: '16px',
+            color: '#888888',
+            fontStyle: 'italic'
+        }).setOrigin(0.5);
         
         // ============================================
         // BOTTOM: Start/Save Button
@@ -3361,19 +3303,13 @@ class CharacterCustomizationScene extends Phaser.Scene {
         });
         
         startBtn.on('pointerdown', () => {
-            // Save customization
+            // Save customization (name already set in NameInputScene)
             gameState.data.player.customization = {...this.customization};
-            gameState.data.player.name = this.nameInputElement.value.trim() || 'Alex Developer';
             
             // Regenerate player sprite with customization
             SpriteGenerator.createCustomPlayerSprite(this, this.customization);
             
             gameState.saveGame();
-            
-            // Remove HTML input
-            if (this.nameInputElement && this.nameInputElement.parentElement) {
-                this.nameInputElement.parentElement.remove();
-            }
             
             this.cameras.main.flash(300, 0, 255, 0);
             this.cameras.main.fadeOut(500);
@@ -3549,16 +3485,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
     }
     
     shutdown() {
-        // Clean up HTML input when scene closes
-        const inputContainer = document.getElementById('character-name-input-container');
-        if (inputContainer) {
-            inputContainer.remove();
-        }
-        
-        // Remove resize listener
-        if (this.inputPositionUpdater) {
-            window.removeEventListener('resize', this.inputPositionUpdater);
-        }
+        // No cleanup needed - name input was removed from this scene
     }
     
     hideAllUI() {
