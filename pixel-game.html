@@ -518,7 +518,40 @@
         <div id="controls-hint">
             WASD/Arrows: Move | E: Interact | ESC: Close Menus
         </div>
+        <div id="customization-menu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 102, 194, 0.95); padding: 40px; border-radius: 16px; border: 4px solid #00ff88; z-index: 2500;">
+            <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px;">⚙️ Customize Character</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <button class="dialogue-choice" onclick="customizeCharacter('shirt', '#0A66C2')">Blue Shirt</button>
+                <button class="dialogue-choice" onclick="customizeCharacter('shirt', '#E63946')">Red Shirt</button>
+                <button class="dialogue-choice" onclick="customizeCharacter('shirt', '#2A9D8F')">Teal Shirt</button>
+                <button class="dialogue-choice" onclick="customizeCharacter('shirt', '#9D4EDD')">Purple Shirt</button>
+                <button class="dialogue-choice" onclick="customizeCharacter('hair', '#3D2817')">Brown Hair</button>
+                <button class="dialogue-choice" onclick="customizeCharacter('hair', '#1A1A1A')">Black Hair</button>
+                <button class="dialogue-choice" onclick="customizeCharacter('hair', '#8B7355')">Blonde Hair</button>
+            </div>
+            <button style="margin-top: 20px; width: 100%; background: #00ff88; color: #000; border: none; padding: 10px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="document.getElementById('customization-menu').style.display='none'">Done</button>
+        </div>
     </div>
+
+    <script>
+        function customizeCharacter(part, color) {
+            if (window.gameState) {
+                if (!window.gameState.data.customization) {
+                    window.gameState.data.customization = { shirt: '#0A66C2', hair: '#3D2817' };
+                }
+                window.gameState.data.customization[part] = color;
+                showNotification(`Changed ${part} color!`);
+                // Trigger character re-render
+                if (window.game && window.game.scene.scenes) {
+                    window.game.scene.scenes.forEach(scene => {
+                        if (scene.player && scene.scene.key === scene.scene.settings.key) {
+                            // Will reload on next scene change
+                        }
+                    });
+                }
+            }
+        }
+    </script>
 
     <script>
         // Fullscreen toggle

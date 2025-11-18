@@ -2647,11 +2647,12 @@ class ComputerMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Create buttons
-        this.createButton(width/2, 220, '✍️ Create Post (15⚡)', () => this.createPost());
-        this.createButton(width/2, 280, '📚 Learn Skills (50💰)', () => this.learnSkills());
-        this.createButton(width/2, 340, '🎮 Skill Minigame (Free)', () => this.startMinigame());
-        this.createButton(width/2, 400, '👁️ View Profile', () => this.viewProfile());
-        this.createButton(width/2, 460, '❌ Close', () => this.closeMenu());
+        this.createButton(width/2, 200, '✍️ Create Post (15⚡)', () => this.createPost());
+        this.createButton(width/2, 260, '📚 Learn Skills (50💰)', () => this.learnSkills());
+        this.createButton(width/2, 320, '🎮 Skill Minigame (Free)', () => this.startMinigame());
+        this.createButton(width/2, 380, '⚙️ Customize Character', () => this.customize());
+        this.createButton(width/2, 440, '👁️ View Profile', () => this.viewProfile());
+        this.createButton(width/2, 500, '❌ Close', () => this.closeMenu());
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
@@ -2757,6 +2758,10 @@ class ComputerMenuScene extends Phaser.Scene {
     startMinigame() {
         this.closeMenu();
         this.scene.launch('SkillMinigameScene');
+    }
+    
+    customize() {
+        document.getElementById('customization-menu').style.display = 'block';
     }
 
     closeMenu() {
@@ -2924,6 +2929,7 @@ const config = {
 // Initialize the game
 const game = new Phaser.Game(config);
 window.game = game; // Expose globally for fullscreen toggle
+window.gameState = gameState; // Expose for customization
 
 // Update UI periodically
 setInterval(updateUI, 1000);
