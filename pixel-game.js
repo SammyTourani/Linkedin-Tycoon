@@ -1069,21 +1069,6 @@ class HomeScene extends Phaser.Scene {
             },
             loop: true
         });
-    }
-    
-    cycleTimeOfDay() {
-        const times = ['morning', 'afternoon', 'evening', 'night'];
-        const currentIndex = times.indexOf(gameState.data.time);
-        gameState.data.time = times[(currentIndex + 1) % times.length];
-        updateUI();
-        
-        // Chance to change weather
-        if (Math.random() < 0.3) {
-            const weathers = ['sunny', 'cloudy', 'rain'];
-            gameState.data.weather = Phaser.Math.RND.pick(weathers);
-            updateUI();
-        }
-    }
 
         // Auto-save
         this.time.addEvent({
@@ -1104,6 +1089,20 @@ class HomeScene extends Phaser.Scene {
             setTimeout(() => {
                 hint.style.display = 'none';
             }, 8000);
+        }
+    }
+    
+    cycleTimeOfDay() {
+        const times = ['morning', 'afternoon', 'evening', 'night'];
+        const currentIndex = times.indexOf(gameState.data.time);
+        gameState.data.time = times[(currentIndex + 1) % times.length];
+        updateUI();
+        
+        // Chance to change weather
+        if (Math.random() < 0.3) {
+            const weathers = ['sunny', 'cloudy', 'rain'];
+            gameState.data.weather = Phaser.Math.RND.pick(weathers);
+            updateUI();
         }
     }
 
