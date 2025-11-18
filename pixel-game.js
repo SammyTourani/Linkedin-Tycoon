@@ -502,20 +502,44 @@ class SpriteGenerator {
         wallCtx.fillRect(14, 4, 1, 1);
         wallTexture.refresh();
 
-        // Enhanced Grass tile with varied grass blades
+        // PROFESSIONAL grass tile with depth and detail
         const grassTexture = scene.textures.createCanvas('grass', 16, 16);
         const grassCtx = grassTexture.getContext();
-        grassCtx.fillStyle = '#4CAF50';
+        // Base layers - multiple green tones for depth
+        grassCtx.fillStyle = '#3A8F3E';
         grassCtx.fillRect(0, 0, 16, 16);
+        grassCtx.fillStyle = '#4CAF50';
+        grassCtx.fillRect(0, 0, 8, 8);
+        grassCtx.fillRect(8, 8, 8, 8);
         grassCtx.fillStyle = '#45A049';
-        grassCtx.fillRect(2, 2, 2, 3);
-        grassCtx.fillRect(8, 8, 2, 3);
-        grassCtx.fillRect(12, 4, 2, 3);
-        grassCtx.fillRect(5, 11, 2, 3);
-        grassCtx.fillStyle = '#56B060';
-        grassCtx.fillRect(3, 3, 1, 1);
-        grassCtx.fillRect(9, 9, 1, 1);
-        grassCtx.fillRect(13, 5, 1, 1);
+        grassCtx.fillRect(4, 4, 4, 4);
+        grassCtx.fillRect(12, 12, 4, 4);
+        // Dark grass blades for depth
+        grassCtx.fillStyle = '#2E7D32';
+        grassCtx.fillRect(1, 1, 1, 2);
+        grassCtx.fillRect(4, 6, 1, 2);
+        grassCtx.fillRect(10, 3, 1, 2);
+        grassCtx.fillRect(14, 9, 1, 2);
+        grassCtx.fillRect(7, 13, 1, 2);
+        // Medium grass blades
+        grassCtx.fillStyle = '#45A049';
+        grassCtx.fillRect(2, 3, 1, 2);
+        grassCtx.fillRect(6, 8, 1, 2);
+        grassCtx.fillRect(11, 5, 1, 2);
+        grassCtx.fillRect(8, 11, 1, 2);
+        grassCtx.fillRect(13, 1, 1, 2);
+        // Light grass highlights
+        grassCtx.fillStyle = '#66BB6A';
+        grassCtx.fillRect(3, 2, 1, 1);
+        grassCtx.fillRect(7, 7, 1, 1);
+        grassCtx.fillRect(12, 4, 1, 1);
+        grassCtx.fillRect(9, 12, 1, 1);
+        grassCtx.fillRect(14, 10, 1, 1);
+        // Small flowers occasionally
+        grassCtx.fillStyle = '#FFEB3B';
+        grassCtx.fillRect(5, 5, 1, 1);
+        grassCtx.fillStyle = '#FF9800';
+        grassCtx.fillRect(11, 11, 1, 1);
         grassTexture.refresh();
 
         // Computer
@@ -563,94 +587,291 @@ class SpriteGenerator {
         bedCtx.fillRect(2, 10, 44, 10);
         bedTexture.refresh();
 
-        // Professional NPC sprites (32x32, detailed like player)
-        const npcColors = [
-            { name: 'npc1', shirt: '#E63946', hair: '#2C1810' }, // Sarah - red shirt
-            { name: 'npc2', shirt: '#457B9D', hair: '#1A1A1A' }, // Marcus - blue shirt
-            { name: 'npc3', shirt: '#2A9D8F', hair: '#4A2C2A' }, // Emily - teal shirt
-            { name: 'npc4', shirt: '#F4A261', hair: '#3D2817' }, // David - orange shirt
-            { name: 'npc5', shirt: '#9D4EDD', hair: '#5C4033' }  // Dr. Liu - purple shirt
-        ];
-
-        npcColors.forEach(npc => {
-            const texture = scene.textures.createCanvas(npc.name, 32, 32);
-            const ctx = texture.getContext();
-            
-            // Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.fillRect(6, 28, 20, 3);
-            
-            // Shoes
-            ctx.fillStyle = '#2C2C2C';
-            ctx.fillRect(9, 24, 5, 4);
-            ctx.fillRect(18, 24, 5, 4);
-            
-            // Pants
-            ctx.fillStyle = '#1E3A8A';
-            ctx.fillRect(8, 16, 7, 8);
-            ctx.fillRect(17, 16, 7, 8);
-            ctx.fillStyle = '#2563EB';
-            ctx.fillRect(9, 17, 5, 6);
-            ctx.fillRect(18, 17, 5, 6);
-            
-            // Belt
-            ctx.fillStyle = '#4A4A4A';
-            ctx.fillRect(8, 15, 16, 1);
-            
-            // Shirt (unique color per NPC)
-            ctx.fillStyle = npc.shirt;
-            ctx.fillRect(7, 9, 18, 7);
-            const lighter = npc.shirt + '44';
-            ctx.fillStyle = lighter;
-            ctx.fillRect(8, 10, 16, 5);
-            
-            // Collar
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(14, 9, 4, 2);
-            
-            // Arms
-            ctx.fillStyle = npc.shirt;
-            ctx.fillRect(5, 10, 2, 6);
-            ctx.fillRect(25, 10, 2, 6);
-            ctx.fillStyle = '#FFD1B3';
-            ctx.fillRect(5, 16, 2, 4);
-            ctx.fillRect(25, 16, 2, 4);
-            
-            // Neck
-            ctx.fillStyle = '#FFD1B3';
-            ctx.fillRect(13, 7, 6, 3);
-            
-            // Head
-            ctx.fillStyle = '#FFD1B3';
-            ctx.fillRect(11, 1, 10, 8);
-            ctx.fillStyle = '#FFB380';
-            ctx.fillRect(12, 2, 8, 6);
-            
-            // Hair (unique per NPC)
-            ctx.fillStyle = npc.hair;
-            ctx.fillRect(10, 0, 12, 3);
-            ctx.fillRect(9, 1, 2, 4);
-            ctx.fillRect(21, 1, 2, 4);
-            const hairHighlight = npc.hair + '88';
-            ctx.fillStyle = hairHighlight;
-            ctx.fillRect(11, 1, 10, 2);
-            
-            // Eyes
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(13, 4, 2, 2);
-            ctx.fillRect(17, 4, 2, 2);
-            ctx.fillStyle = '#2C2C2C';
-            ctx.fillRect(14, 4, 1, 2);
-            ctx.fillRect(18, 4, 1, 2);
-            
-            // Smile
-            ctx.fillStyle = '#E87E7E';
-            ctx.fillRect(14, 6, 4, 1);
-            ctx.fillRect(13, 7, 1, 1);
-            ctx.fillRect(18, 7, 1, 1);
-            
-            texture.refresh();
-        });
+        // UNIQUE CHARACTER SPRITES - Different bodies, hairstyles, outfits
+        
+        // Sarah Chen - Female, long hair, professional dress
+        const sarah = scene.textures.createCanvas('npc1', 32, 32);
+        const sCtx = sarah.getContext();
+        sCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        sCtx.fillRect(6, 28, 20, 3);
+        // Heels
+        sCtx.fillStyle = '#C41E3A';
+        sCtx.fillRect(9, 25, 4, 3);
+        sCtx.fillRect(19, 25, 4, 3);
+        // Dress (red)
+        sCtx.fillStyle = '#E63946';
+        sCtx.fillRect(7, 10, 18, 15);
+        sCtx.fillStyle = '#FF6B6B';
+        sCtx.fillRect(8, 11, 16, 13);
+        // Arms (slim)
+        sCtx.fillStyle = '#FFD1B3';
+        sCtx.fillRect(5, 12, 2, 8);
+        sCtx.fillRect(25, 12, 2, 8);
+        // Neck
+        sCtx.fillStyle = '#FFD1B3';
+        sCtx.fillRect(13, 8, 6, 3);
+        // Head (slightly smaller)
+        sCtx.fillStyle = '#FFD1B3';
+        sCtx.fillRect(11, 2, 10, 7);
+        sCtx.fillStyle = '#FFB380';
+        sCtx.fillRect(12, 3, 8, 5);
+        // Long hair (dark brown)
+        sCtx.fillStyle = '#2C1810';
+        sCtx.fillRect(9, 1, 14, 3);
+        sCtx.fillRect(9, 3, 3, 8);
+        sCtx.fillRect(20, 3, 3, 8);
+        sCtx.fillRect(10, 9, 2, 3);
+        sCtx.fillRect(20, 9, 2, 3);
+        // Eyes
+        sCtx.fillStyle = '#FFFFFF';
+        sCtx.fillRect(13, 5, 2, 2);
+        sCtx.fillRect(17, 5, 2, 2);
+        sCtx.fillStyle = '#4A2C2A';
+        sCtx.fillRect(14, 5, 1, 2);
+        sCtx.fillRect(18, 5, 1, 2);
+        // Lipstick
+        sCtx.fillStyle = '#C41E3A';
+        sCtx.fillRect(14, 7, 4, 1);
+        sarah.refresh();
+        
+        // Marcus Johnson - Male, bald/short hair, athletic build
+        const marcus = scene.textures.createCanvas('npc2', 32, 32);
+        const mCtx = marcus.getContext();
+        mCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        mCtx.fillRect(6, 28, 20, 3);
+        // Sneakers
+        mCtx.fillStyle = '#FFFFFF';
+        mCtx.fillRect(9, 24, 5, 4);
+        mCtx.fillRect(18, 24, 5, 4);
+        mCtx.fillStyle = '#000000';
+        mCtx.fillRect(9, 24, 5, 2);
+        mCtx.fillRect(18, 24, 5, 2);
+        // Athletic pants
+        mCtx.fillStyle = '#2C2C2C';
+        mCtx.fillRect(8, 16, 7, 8);
+        mCtx.fillRect(17, 16, 7, 8);
+        // Belt
+        mCtx.fillStyle = '#654321';
+        mCtx.fillRect(8, 15, 16, 1);
+        // Polo shirt (blue)
+        mCtx.fillStyle = '#457B9D';
+        mCtx.fillRect(6, 9, 20, 7);
+        mCtx.fillStyle = '#5B9ABD';
+        mCtx.fillRect(7, 10, 18, 5);
+        // Collar
+        mCtx.fillStyle = '#FFFFFF';
+        mCtx.fillRect(13, 9, 6, 2);
+        // Muscular arms (thicker)
+        mCtx.fillStyle = '#A0826D';
+        mCtx.fillRect(4, 11, 3, 8);
+        mCtx.fillRect(25, 11, 3, 8);
+        // Neck (broader)
+        mCtx.fillStyle = '#A0826D';
+        mCtx.fillRect(12, 7, 8, 3);
+        // Head (darker skin)
+        mCtx.fillStyle = '#A0826D';
+        mCtx.fillRect(10, 1, 12, 8);
+        mCtx.fillStyle = '#8B6F47';
+        mCtx.fillRect(11, 2, 10, 6);
+        // Very short hair/bald
+        mCtx.fillStyle = '#1A1A1A';
+        mCtx.fillRect(10, 0, 12, 2);
+        // Eyes
+        mCtx.fillStyle = '#FFFFFF';
+        mCtx.fillRect(13, 4, 2, 2);
+        mCtx.fillRect(17, 4, 2, 2);
+        mCtx.fillStyle = '#2C2C2C';
+        mCtx.fillRect(14, 4, 1, 2);
+        mCtx.fillRect(18, 4, 1, 2);
+        // Beard
+        mCtx.fillStyle = '#1A1A1A';
+        mCtx.fillRect(12, 7, 8, 2);
+        marcus.refresh();
+        
+        // Emily Rodriguez - Female, medium build, business casual
+        const emily = scene.textures.createCanvas('npc3', 32, 32);
+        const eCtx = emily.getContext();
+        eCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        eCtx.fillRect(6, 28, 20, 3);
+        // Flats
+        eCtx.fillStyle = '#2A2A2A';
+        eCtx.fillRect(9, 25, 5, 3);
+        eCtx.fillRect(18, 25, 5, 3);
+        // Pants
+        eCtx.fillStyle = '#2C2C2C';
+        eCtx.fillRect(8, 16, 7, 9);
+        eCtx.fillRect(17, 16, 7, 9);
+        eCtx.fillStyle = '#3A3A3A';
+        eCtx.fillRect(9, 17, 5, 7);
+        eCtx.fillRect(18, 17, 5, 7);
+        // Blazer (teal)
+        eCtx.fillStyle = '#2A9D8F';
+        eCtx.fillRect(6, 9, 20, 7);
+        eCtx.fillStyle = '#3ABDA9';
+        eCtx.fillRect(7, 10, 18, 5);
+        // Lapels
+        eCtx.fillStyle = '#1A7D6F';
+        eCtx.fillRect(7, 10, 3, 5);
+        eCtx.fillRect(22, 10, 3, 5);
+        // Arms
+        eCtx.fillStyle = '#FFD1B3';
+        eCtx.fillRect(5, 12, 2, 7);
+        eCtx.fillRect(25, 12, 2, 7);
+        // Neck
+        eCtx.fillStyle = '#FFD1B3';
+        eCtx.fillRect(13, 7, 6, 3);
+        // Head
+        eCtx.fillStyle = '#FFD1B3';
+        eCtx.fillRect(11, 1, 10, 8);
+        eCtx.fillStyle = '#FFB380';
+        eCtx.fillRect(12, 2, 8, 6);
+        // Medium wavy hair
+        eCtx.fillStyle = '#4A2C2A';
+        eCtx.fillRect(9, 0, 14, 4);
+        eCtx.fillRect(8, 2, 3, 5);
+        eCtx.fillRect(21, 2, 3, 5);
+        eCtx.fillStyle = '#6A4C4A';
+        eCtx.fillRect(10, 1, 12, 2);
+        // Eyes
+        eCtx.fillStyle = '#FFFFFF';
+        eCtx.fillRect(13, 4, 2, 2);
+        eCtx.fillRect(17, 4, 2, 2);
+        eCtx.fillStyle = '#2C2C2C';
+        eCtx.fillRect(14, 4, 1, 2);
+        eCtx.fillRect(18, 4, 1, 2);
+        // Smile
+        eCtx.fillStyle = '#E87E7E';
+        eCtx.fillRect(14, 6, 4, 1);
+        emily.refresh();
+        
+        // David Park - Male, casual style, hoodie
+        const david = scene.textures.createCanvas('npc4', 32, 32);
+        const dCtx = david.getContext();
+        dCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        dCtx.fillRect(6, 28, 20, 3);
+        // Sneakers (colorful)
+        dCtx.fillStyle = '#F4A261';
+        dCtx.fillRect(8, 24, 6, 4);
+        dCtx.fillRect(18, 24, 6, 4);
+        dCtx.fillStyle = '#FFFFFF';
+        dCtx.fillRect(8, 24, 6, 2);
+        dCtx.fillRect(18, 24, 6, 2);
+        // Jeans
+        dCtx.fillStyle = '#4169E1';
+        dCtx.fillRect(8, 16, 7, 8);
+        dCtx.fillRect(17, 16, 7, 8);
+        dCtx.fillStyle = '#6495ED';
+        dCtx.fillRect(9, 17, 5, 6);
+        dCtx.fillRect(18, 17, 5, 6);
+        // Hoodie (orange)
+        dCtx.fillStyle = '#F4A261';
+        dCtx.fillRect(6, 9, 20, 8);
+        dCtx.fillStyle = '#F6B98A';
+        dCtx.fillRect(7, 10, 18, 6);
+        // Hood strings
+        dCtx.fillStyle = '#FFFFFF';
+        dCtx.fillRect(13, 10, 1, 3);
+        dCtx.fillRect(18, 10, 1, 3);
+        // Arms in hoodie
+        dCtx.fillStyle = '#F4A261';
+        dCtx.fillRect(4, 10, 3, 7);
+        dCtx.fillRect(25, 10, 3, 7);
+        // Hands
+        dCtx.fillStyle = '#FFD1B3';
+        dCtx.fillRect(4, 17, 2, 3);
+        dCtx.fillRect(26, 17, 2, 3);
+        // Neck
+        dCtx.fillStyle = '#FFD1B3';
+        dCtx.fillRect(13, 7, 6, 3);
+        // Head
+        dCtx.fillStyle = '#FFD1B3';
+        dCtx.fillRect(11, 1, 10, 8);
+        dCtx.fillStyle = '#FFB380';
+        dCtx.fillRect(12, 2, 8, 6);
+        // Messy/spiky hair
+        dCtx.fillStyle = '#3D2817';
+        dCtx.fillRect(10, 0, 3, 3);
+        dCtx.fillRect(13, 0, 3, 2);
+        dCtx.fillRect(16, 0, 3, 3);
+        dCtx.fillRect(19, 0, 3, 2);
+        dCtx.fillRect(9, 1, 2, 3);
+        dCtx.fillRect(21, 1, 2, 3);
+        // Eyes
+        dCtx.fillStyle = '#FFFFFF';
+        dCtx.fillRect(13, 4, 2, 2);
+        dCtx.fillRect(17, 4, 2, 2);
+        dCtx.fillStyle = '#2C2C2C';
+        dCtx.fillRect(14, 4, 1, 2);
+        dCtx.fillRect(18, 4, 1, 2);
+        // Grin
+        dCtx.fillStyle = '#E87E7E';
+        dCtx.fillRect(13, 7, 6, 1);
+        dCtx.fillRect(12, 6, 1, 1);
+        dCtx.fillRect(19, 6, 1, 1);
+        david.refresh();
+        
+        // Dr. Jennifer Liu - Female, glasses, formal attire
+        const liu = scene.textures.createCanvas('npc5', 32, 32);
+        const lCtx = liu.getContext();
+        lCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        lCtx.fillRect(6, 28, 20, 3);
+        // Professional shoes
+        lCtx.fillStyle = '#1A1A1A';
+        lCtx.fillRect(9, 25, 5, 3);
+        lCtx.fillRect(18, 25, 5, 3);
+        // Dress pants
+        lCtx.fillStyle = '#2C2C2C';
+        lCtx.fillRect(8, 16, 7, 9);
+        lCtx.fillRect(17, 16, 7, 9);
+        lCtx.fillStyle = '#3A3A3A';
+        lCtx.fillRect(9, 17, 5, 7);
+        lCtx.fillRect(18, 17, 5, 7);
+        // Suit jacket (purple)
+        lCtx.fillStyle = '#9D4EDD';
+        lCtx.fillRect(6, 9, 20, 7);
+        lCtx.fillStyle = '#B57FED';
+        lCtx.fillRect(7, 10, 18, 5);
+        // White blouse underneath
+        lCtx.fillStyle = '#FFFFFF';
+        lCtx.fillRect(12, 9, 8, 2);
+        // Arms
+        lCtx.fillStyle = '#FFD1B3';
+        lCtx.fillRect(5, 11, 2, 7);
+        lCtx.fillRect(25, 11, 2, 7);
+        // Neck
+        lCtx.fillStyle = '#FFD1B3';
+        lCtx.fillRect(13, 7, 6, 3);
+        // Head
+        lCtx.fillStyle = '#FFD1B3';
+        lCtx.fillRect(11, 1, 10, 8);
+        lCtx.fillStyle = '#FFB380';
+        lCtx.fillRect(12, 2, 8, 6);
+        // Hair in bun
+        lCtx.fillStyle = '#5C4033';
+        lCtx.fillRect(10, 0, 12, 3);
+        lCtx.fillRect(9, 1, 2, 3);
+        lCtx.fillRect(21, 1, 2, 3);
+        // Bun at back
+        lCtx.fillRect(20, 0, 4, 4);
+        // Glasses (important!)
+        lCtx.fillStyle = '#000000';
+        lCtx.fillRect(12, 4, 4, 1);
+        lCtx.fillRect(18, 4, 4, 1);
+        lCtx.fillRect(12, 4, 1, 3);
+        lCtx.fillRect(15, 4, 1, 3);
+        lCtx.fillRect(18, 4, 1, 3);
+        lCtx.fillRect(21, 4, 1, 3);
+        // Eyes behind glasses
+        lCtx.fillStyle = '#FFFFFF';
+        lCtx.fillRect(13, 5, 2, 2);
+        lCtx.fillRect(19, 5, 2, 2);
+        lCtx.fillStyle = '#2C2C2C';
+        lCtx.fillRect(14, 5, 1, 1);
+        lCtx.fillRect(20, 5, 1, 1);
+        // Slight smile
+        lCtx.fillStyle = '#E87E7E';
+        lCtx.fillRect(14, 7, 4, 1);
+        liu.refresh();
 
         // Plant
         const plantTexture = scene.textures.createCanvas('plant', 24, 32);
@@ -1004,8 +1225,10 @@ class BootScene extends Phaser.Scene {
         // Hide loading screen
         document.getElementById('loading').style.display = 'none';
         
-        // Show intro story for new players
-        if (gameState.data.player.postsCount === 0 && gameState.data.player.connections <= 5) {
+        // Check if player has completed tutorial
+        if (!gameState.data.tutorialComplete) {
+            this.scene.start('TutorialScene');
+        } else if (gameState.data.player.postsCount === 0 && gameState.data.player.connections <= 5) {
             storyManager.showStory(0);
             document.getElementById('story-continue').onclick = () => {
                 storyManager.closeStory();
@@ -1014,6 +1237,203 @@ class BootScene extends Phaser.Scene {
         } else {
             this.scene.start('HomeScene');
         }
+    }
+}
+
+// Tutorial Scene - Comprehensive guided introduction
+class TutorialScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'TutorialScene' });
+    }
+
+    create() {
+        const width = 640;
+        const height = 480;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Tutorial stage
+        this.tutorialStep = 0;
+        this.hasMovedLeft = false;
+        this.hasMovedRight = false;
+        this.hasMovedUp = false;
+        this.hasMovedDown = false;
+        
+        // Simple room
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        // Walls
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+        
+        // Tutorial helper NPC
+        this.helper = this.add.sprite(320, 200, 'npc3');
+        this.helper.setScale(2);
+        
+        // Helper name
+        this.add.text(320, 155, 'Tutorial Guide', {
+            fontSize: '14px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(320, 350, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        // Computer for final step
+        this.computer = this.add.image(500, 150, 'computer');
+        this.computer.setScale(2);
+        this.computer.setAlpha(0);
+        
+        // Input
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        this.physics.add.collider(this.player, this.walls);
+        
+        // Start tutorial
+        this.showTutorialStep(0);
+    }
+    
+    showTutorialStep(step) {
+        this.tutorialStep = step;
+        
+        const steps = [
+            {
+                text: "Welcome to LinkedIn Tycoon! I'm your guide. Let me show you how to build your professional empire. First, let's learn movement. Try pressing the W, A, S, D keys or Arrow keys to move around!",
+                requirement: "Move in all 4 directions"
+            },
+            {
+                text: "Great job! You can move! Now, in this game, your goal is to grow your LinkedIn presence. You'll create posts, network with professionals, attend events, and level up your career. Let's learn about interactions...",
+                requirement: "Listen and continue"
+            },
+            {
+                text: "See that computer? Walk up to it and press E to interact. The E key is how you interact with objects, talk to people, and enter buildings. Give it a try!",
+                requirement: "Interact with the computer"
+            },
+            {
+                text: "Perfect! You've mastered the basics! Now you're ready for the real world. In your apartment, you can: Use your computer to create posts, Sleep in bed to restore energy, and Exit to explore the city. In the city, you'll find NPCs to network with and buildings to explore. Ready to begin your journey?",
+                requirement: "Press E to start game"
+            }
+        ];
+        
+        if (step < steps.length) {
+            const currentStep = steps[step];
+            dialogueManager.currentDialogue = 'tutorial';
+            const box = document.getElementById('dialogue-box');
+            const speaker = document.getElementById('dialogue-speaker');
+            const text = document.getElementById('dialogue-text');
+            const choices = document.getElementById('dialogue-choices');
+            
+            speaker.textContent = '📚 Tutorial Guide';
+            text.textContent = currentStep.text;
+            choices.innerHTML = '';
+            
+            if (step === 1 || step === 3) {
+                const btn = document.createElement('button');
+                btn.className = 'dialogue-choice';
+                btn.textContent = step === 1 ? '➡️ Continue' : '🚀 Start Game!';
+                btn.onclick = () => {
+                    if (step === 3) {
+                        this.completeTutorial();
+                    } else {
+                        document.getElementById('dialogue-box').style.display = 'none';
+                        this.showTutorialStep(step + 1);
+                    }
+                };
+                choices.appendChild(btn);
+            }
+            
+            box.style.display = 'block';
+        }
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        
+        if (this.cursors.left.isDown || this.wasd.A.isDown) {
+            vX = -speed;
+            this.hasMovedLeft = true;
+        } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
+            vX = speed;
+            this.hasMovedRight = true;
+        }
+        if (this.cursors.up.isDown || this.wasd.W.isDown) {
+            vY = -speed;
+            this.hasMovedUp = true;
+        } else if (this.cursors.down.isDown || this.wasd.S.isDown) {
+            vY = speed;
+            this.hasMovedDown = true;
+        }
+        
+        this.player.setVelocity(vX, vY);
+        
+        // Check if player moved in all directions
+        if (this.tutorialStep === 0 && this.hasMovedLeft && this.hasMovedRight && 
+            this.hasMovedUp && this.hasMovedDown) {
+            document.getElementById('dialogue-box').style.display = 'none';
+            setTimeout(() => {
+                this.showTutorialStep(1);
+            }, 500);
+        }
+        
+        // Show computer for step 2
+        if (this.tutorialStep === 2) {
+            this.computer.setAlpha(1);
+            
+            // Check proximity to computer
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, 500, 150
+            );
+            
+            if (dist < 60) {
+                showInteractionPrompt(true);
+                if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                    document.getElementById('dialogue-box').style.display = 'none';
+                    showInteractionPrompt(false);
+                    setTimeout(() => {
+                        this.showTutorialStep(3);
+                    }, 500);
+                }
+            } else {
+                showInteractionPrompt(false);
+            }
+        }
+    }
+    
+    completeTutorial() {
+        gameState.data.tutorialComplete = true;
+        gameState.saveGame();
+        document.getElementById('dialogue-box').style.display = 'none';
+        showNotification('Tutorial complete! Welcome to LinkedIn Tycoon!');
+        
+        this.cameras.main.fadeOut(1000);
+        this.time.delayedCall(1000, () => {
+            storyManager.showStory(0);
+            document.getElementById('story-continue').onclick = () => {
+                storyManager.closeStory();
+                this.scene.start('HomeScene');
+            };
+        });
     }
 }
 
@@ -1453,42 +1873,35 @@ class CityScene extends Phaser.Scene {
         this.eKey = this.input.keyboard.addKey('E');
         
         showNotification('Welcome to the city! Find people to network with');
-        
-        // Add moving cars
-        this.createTraffic();
     }
     
-    createTraffic() {
-        this.cars = [];
-        const carColors = [0xFF0000, 0x0000FF, 0xFFFF00, 0x00FF00, 0xFFA500];
+    createDetailedTree(x, y) {
+        // Detailed tree with depth and shading
+        // Trunk with texture
+        const trunk = this.add.rectangle(x, y, 16, 35, 0x654321);
+        trunk.setStrokeStyle(2, 0x4A3010);
+        this.add.rectangle(x - 3, y - 5, 3, 10, 0x8B4513); // Branch left
+        this.add.rectangle(x + 3, y + 5, 3, 10, 0x8B4513); // Branch right
         
-        for (let i = 0; i < 5; i++) {
-            const car = this.add.rectangle(
-                Phaser.Math.Between(0, 1400),
-                450,
-                50, 30,
-                Phaser.Math.RND.pick(carColors)
-            );
-            car.setStrokeStyle(2, 0x000000);
-            
-            this.cars.push({
-                sprite: car,
-                speed: 50 + Math.random() * 50,
-                direction: Math.random() > 0.5 ? 1 : -1
-            });
-        }
-    }
-    
-    updateTraffic() {
-        if (!this.cars) return;
+        // Canopy - multiple layers for depth
+        // Dark layer (back)
+        this.add.circle(x, y - 30, 35, 0x1B5E20);
+        // Medium layer
+        this.add.circle(x - 18, y - 25, 30, 0x2E7D32);
+        this.add.circle(x + 18, y - 25, 30, 0x2E7D32);
+        // Light layer (front)
+        this.add.circle(x, y - 35, 32, 0x4CAF50);
+        this.add.circle(x - 12, y - 32, 28, 0x66BB6A);
+        this.add.circle(x + 12, y - 32, 28, 0x66BB6A);
+        // Highlights
+        this.add.circle(x - 8, y - 38, 12, 0x81C784);
+        this.add.circle(x + 10, y - 40, 10, 0x81C784);
         
-        this.cars.forEach(car => {
-            car.sprite.x += car.speed * car.direction * 0.016;
-            
-            // Wrap around
-            if (car.sprite.x > 1500) car.sprite.x = -100;
-            if (car.sprite.x < -100) car.sprite.x = 1500;
-        });
+        // Collision
+        const treeCollision = this.obstacles.create(x, y, null);
+        treeCollision.setSize(45, 50);
+        treeCollision.setAlpha(0);
+        treeCollision.refreshBody();
     }
     
     createBuilding(x, y, width, height, color, label) {
@@ -1530,8 +1943,8 @@ class CityScene extends Phaser.Scene {
     }
 
     createOutdoorArea() {
-        const width = 1400;
-        const height = 1000;
+        const width = 1600;
+        const height = 1200;
         
         this.physics.world.setBounds(0, 0, width, height);
         this.obstacles = this.physics.add.staticGroup();
@@ -1550,63 +1963,91 @@ class CityScene extends Phaser.Scene {
         // Sky background
         this.add.rectangle(width/2, height/2, width, height, colors.bg).setDepth(-1);
         
-        // Grass ground
+        // Grass ground with variation
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 const grassTile = this.add.image(x, y, 'grass').setOrigin(0);
                 grassTile.setTint(colors.grass);
+                // Add slight random tint variation for organic look
+                if (Math.random() > 0.7) {
+                    grassTile.setAlpha(0.9);
+                }
             }
         }
         
         // Weather effects
         this.createWeatherEffects();
         
-        // Sidewalks/paths (gray)
-        for (let x = 300; x < width - 300; x += 16) {
-            for (let y = 400; y < 500; y += 16) {
-                const path = this.add.rectangle(x, y, 16, 16, 0x808080).setOrigin(0);
+        // PLANNED CITY LAYOUT - Main Boulevard
+        for (let y = 450; y < 550; y += 16) {
+            for (let x = 0; x < width; x += 16) {
+                const path = this.add.rectangle(x, y, 16, 16, 0x696969).setOrigin(0);
             }
         }
         
-        // Vertical path
+        // Boulevard divider line
+        for (let x = 0; x < width; x += 32) {
+            this.add.rectangle(x, 498, 16, 4, 0xFFFF00).setOrigin(0);
+        }
+        
+        // North-South Avenue  
         for (let y = 0; y < height; y += 16) {
-            for (let x = 640; x < 720; x += 16) {
-                const path = this.add.rectangle(x, y, 16, 16, 0x808080).setOrigin(0);
+            for (let x = 350; x < 450; x += 16) {
+                const path = this.add.rectangle(x, y, 16, 16, 0x696969).setOrigin(0);
+            }
+        }
+        
+        // Second North-South Avenue
+        for (let y = 0; y < height; y += 16) {
+            for (let x = 1100; x < 1200; x += 16) {
+                const path = this.add.rectangle(x, y, 16, 16, 0x696969).setOrigin(0);
             }
         }
 
-        // City sign
+        // City sign with enhanced styling
         this.add.text(width/2, 50, '🏙️ LINKEDIN CITY', {
-            fontSize: '32px',
+            fontSize: '36px',
             color: '#FFD700',
             stroke: '#000000',
-            strokeThickness: 4,
+            strokeThickness: 5,
             fontStyle: 'bold'
         }).setOrigin(0.5);
+        this.add.text(width/2, 85, 'Your Professional World Awaits', {
+            fontSize: '16px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
         
-        // Add trees along paths
-        const treePositions = [
-            {x: 280, y: 420}, {x: 280, y: 460},
-            {x: width - 280, y: 420}, {x: width - 280, y: 460},
-            {x: 620, y: 100}, {x: 740, y: 100},
-            {x: 620, y: 300}, {x: 740, y: 300},
-            {x: 620, y: 700}, {x: 740, y: 700}
+        // BETTER TREES - Professional, detailed, planned placement
+        // Trees lining Main Boulevard (north side)
+        for (let x = 250; x < width - 250; x += 120) {
+            this.createDetailedTree(x, 420);
+        }
+        // Trees lining Main Boulevard (south side)
+        for (let x = 280; x < width - 250; x += 120) {
+            this.createDetailedTree(x, 580);
+        }
+        // Trees lining North-South Avenue (west side)
+        for (let y = 150; y < height - 150; y += 100) {
+            if (y < 420 || y > 580) { // Don't overlap with boulevard
+                this.createDetailedTree(330, y);
+            }
+        }
+        // Trees lining East Avenue
+        for (let y = 150; y < height - 150; y += 100) {
+            if (y < 420 || y > 580) {
+                this.createDetailedTree(1220, y);
+            }
+        }
+        // Park area trees (random organic placement)
+        const parkTreeSpots = [
+            {x: 150, y: 200}, {x: 200, y: 250}, {x: 180, y: 150},
+            {x: width - 150, y: 200}, {x: width - 200, y: 250},
+            {x: 600, y: 150}, {x: 900, y: 150},
+            {x: 600, y: 750}, {x: 900, y: 750}
         ];
-        
-        treePositions.forEach(pos => {
-            // Tree trunk
-            const trunk = this.add.rectangle(pos.x, pos.y, 20, 30, 0x8B4513);
-            // Tree top
-            this.add.circle(pos.x, pos.y - 25, 30, 0x228B22);
-            this.add.circle(pos.x - 15, pos.y - 20, 25, 0x32CD32);
-            this.add.circle(pos.x + 15, pos.y - 20, 25, 0x32CD32);
-            
-            // Collision for tree
-            const treeCollision = this.obstacles.create(pos.x, pos.y, null);
-            treeCollision.setSize(40, 40);
-            treeCollision.setAlpha(0);
-            treeCollision.refreshBody();
-        });
+        parkTreeSpots.forEach(pos => this.createDetailedTree(pos.x, pos.y));
         
         // Benches
         const benchPositions = [
@@ -1694,63 +2135,88 @@ class CityScene extends Phaser.Scene {
     createLocations() {
         this.interactables = this.physics.add.staticGroup();
         
-        // HOME BUILDING (Your apartment)
-        this.createBuilding(200, 150, 120, 150, 0x8B7355, '🏠 Your Home');
-        const homeDoor = this.interactables.create(200, 220, 'door');
+        // PLANNED CITY LAYOUT - Logical zoning
+        
+        // RESIDENTIAL DISTRICT (Northwest)
+        this.createBuilding(200, 250, 120, 160, 0x8B7355, '🏠 Your Apartment');
+        const homeDoor = this.interactables.create(200, 325, 'door');
         homeDoor.setData('type', 'door');
         homeDoor.setData('name', 'Your Home');
         homeDoor.setData('target', 'HomeScene');
         homeDoor.refreshBody();
 
-        // COFFEE SHOP
-        this.createBuilding(450, 150, 110, 130, 0x8B4513, '☕ Coffee Shop');
-        const coffeeShopDoor = this.interactables.create(450, 210, 'door');
+        // FOOD & RETAIL DISTRICT (North Center)
+        this.createBuilding(550, 250, 110, 140, 0x8B4513, '☕ Coffee Shop');
+        const coffeeShopDoor = this.interactables.create(550, 315, 'door');
         coffeeShopDoor.setData('type', 'location');
         coffeeShopDoor.setData('name', 'Coffee Shop');
         coffeeShopDoor.refreshBody();
 
-        // OFFICE BUILDING (tall!)
-        this.createBuilding(1000, 200, 140, 250, 0x4A4A4A, '🏢 Tech Corp');
-        const officeDoor = this.interactables.create(1000, 320, 'door');
+        this.createBuilding(750, 250, 120, 130, 0xFFD700, '🍽️ Restaurant');
+        const restaurantDoor = this.interactables.create(750, 310, 'door');
+        restaurantDoor.setData('type', 'location');
+        restaurantDoor.setData('name', 'Restaurant');
+        restaurantDoor.refreshBody();
+
+        // BUSINESS DISTRICT (Northeast - Tall buildings!)
+        this.createBuilding(1300, 200, 160, 300, 0x4A4A4A, '🏢 Tech Corp Tower');
+        const officeDoor = this.interactables.create(1300, 345, 'door');
         officeDoor.setData('type', 'location');
         officeDoor.setData('name', 'Office Building');
         officeDoor.refreshBody();
+        
+        this.createBuilding(1300, 650, 150, 220, 0x1E3A8A, '🏦 LinkedIn HQ');
+        const hqDoor = this.interactables.create(1300, 755, 'door');
+        hqDoor.setData('type', 'location');
+        hqDoor.setData('name', 'LinkedIn Headquarters');
+        hqDoor.refreshBody();
 
-        // GYM
-        this.createBuilding(250, 650, 120, 120, 0xFF6B6B, '💪 Fitness Center');
-        const gymDoor = this.interactables.create(250, 705, 'door');
+        // FITNESS & WELLNESS DISTRICT (Southwest)
+        this.createBuilding(200, 700, 130, 140, 0xFF6B6B, '💪 Fitness Center');
+        const gymDoor = this.interactables.create(200, 765, 'door');
         gymDoor.setData('type', 'location');
         gymDoor.setData('name', 'Gym');
         gymDoor.refreshBody();
         
-        // CONFERENCE CENTER
-        this.createBuilding(900, 650, 150, 140, 0x0A66C2, '🎯 Event Center');
-        const conferenceDoor = this.interactables.create(900, 715, 'door');
+        this.createBuilding(200, 950, 110, 100, 0x9C27B0, '🧘 Yoga Studio');
+        const yogaDoor = this.interactables.create(200, 995, 'door');
+        yogaDoor.setData('type', 'location');
+        yogaDoor.setData('name', 'Yoga Studio');
+        yogaDoor.refreshBody();
+        
+        // EVENT & NETWORKING DISTRICT (South Center)
+        this.createBuilding(550, 700, 160, 150, 0x0A66C2, '🎯 Event Center');
+        const conferenceDoor = this.interactables.create(550, 770, 'door');
         conferenceDoor.setData('type', 'location');
         conferenceDoor.setData('name', 'Conference Center');
         conferenceDoor.refreshBody();
         
-        // CO-WORKING SPACE
-        this.createBuilding(1100, 700, 130, 120, 0x2A9D8F, '💼 Co-Work Hub');
-        const coworkDoor = this.interactables.create(1100, 755, 'door');
+        this.createBuilding(750, 700, 140, 130, 0x2A9D8F, '💼 Co-Work Hub');
+        const coworkDoor = this.interactables.create(750, 760, 'door');
         coworkDoor.setData('type', 'location');
         coworkDoor.setData('name', 'Co-working Space');
         coworkDoor.refreshBody();
         
-        // PARK ENTRANCE
-        this.createBuilding(150, 850, 100, 80, 0x228B22, '🌳 City Park');
-        const parkDoor = this.interactables.create(150, 885, 'door');
+        // EDUCATION & CULTURE DISTRICT (Southeast)
+        this.createBuilding(950, 850, 150, 180, 0x7B1FA2, '📚 Public Library');
+        const libraryDoor = this.interactables.create(950, 935, 'door');
+        libraryDoor.setData('type', 'location');
+        libraryDoor.setData('name', 'Library');
+        libraryDoor.refreshBody();
+        
+        this.createBuilding(950, 1050, 140, 120, 0xE91E63, '🎓 Tech University');
+        const uniDoor = this.interactables.create(950, 1105, 'door');
+        uniDoor.setData('type', 'location');
+        uniDoor.setData('name', 'University');
+        uniDoor.refreshBody();
+        
+        // RECREATION (West)
+        this.createBuilding(550, 1000, 130, 110, 0x228B22, '🌳 City Park');
+        const parkDoor = this.interactables.create(550, 1050, 'door');
         parkDoor.setData('type', 'door');
         parkDoor.setData('name', 'Park');
         parkDoor.setData('target', 'ParkScene');
         parkDoor.refreshBody();
-        
-        // RESTAURANT
-        this.createBuilding(650, 850, 120, 100, 0xFFD700, '🍽️ Restaurant');
-        const restaurantDoor = this.interactables.create(650, 895, 'door');
-        restaurantDoor.setData('type', 'location');
-        restaurantDoor.setData('name', 'Restaurant');
-        restaurantDoor.refreshBody();
 
         // Named NPCs to network with (using new detailed sprites)
         const npcData = [
@@ -1803,7 +2269,6 @@ class CityScene extends Phaser.Scene {
         this.handleMovement();
         this.checkInteractions();
         this.updateNPCAI();
-        this.updateTraffic();
     }
     
     updateNPCAI() {
@@ -1915,6 +2380,10 @@ class CityScene extends Phaser.Scene {
                     this.changeScene('CoworkingScene'); // Use coworking for now
                 } else if (name === 'Restaurant') {
                     this.changeScene('RestaurantScene');
+                } else if (name === 'Library') {
+                    this.changeScene('LibraryScene');
+                } else if (name === 'University') {
+                    this.changeScene('UniversityScene');
                 } else {
                     this.visitLocation(name);
                 }
@@ -2760,6 +3229,357 @@ class CoworkingScene extends Phaser.Scene {
     }
 }
 
+// Library Scene - Learn and research
+class LibraryScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'LibraryScene' });
+    }
+
+    create() {
+        const width = 800;
+        const height = 600;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Background
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(400, 40, '📚 PUBLIC LIBRARY', {
+            fontSize: '28px',
+            color: '#7B1FA2',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        this.add.text(400, 70, '"Knowledge is Power"', {
+            fontSize: '14px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 2,
+            fontStyle: 'italic'
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(400, 500, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createLibrary();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('📚 Read books to gain skills and wisdom!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createLibrary() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Rows of bookshelves
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 5; col++) {
+                const x = 140 + col * 120;
+                const y = 150 + row * 120;
+                
+                const bookshelf = this.obstacles.create(x, y, 'bookshelf');
+                bookshelf.refreshBody();
+                
+                // Make some shelves interactive (reading spots)
+                if (col % 2 === 0) {
+                    const readSpot = this.interactables.create(x, y + 40, null);
+                    readSpot.setSize(40, 40);
+                    readSpot.setData('type', 'book');
+                    readSpot.setData('name', `Bookshelf ${row * 5 + col + 1}`);
+                    readSpot.refreshBody();
+                }
+            }
+        }
+        
+        // Reading tables
+        const tablePositions = [
+            {x: 200, y: 480}, {x: 400, y: 480}, {x: 600, y: 480}
+        ];
+        
+        tablePositions.forEach(pos => {
+            const table = this.add.rectangle(pos.x, pos.y, 80, 50, 0x8B4513);
+            table.setStrokeStyle(2, 0x654321);
+            
+            const tableCol = this.obstacles.create(pos.x, pos.y, null);
+            tableCol.setSize(80, 50);
+            tableCol.setAlpha(0);
+            tableCol.refreshBody();
+            
+            // Books on table
+            this.add.rectangle(pos.x - 15, pos.y, 20, 15, 0x8B0000);
+            this.add.rectangle(pos.x + 15, pos.y, 20, 15, 0x0000CD);
+        });
+        
+        // Librarian NPC
+        const librarian = this.add.sprite(400, 120, 'npc5');
+        librarian.setScale(1.5);
+        this.add.text(400, 85, 'Librarian', {
+            fontSize: '12px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+        
+        // Plants
+        this.add.image(60, 100, 'plant');
+        this.add.image(740, 100, 'plant');
+        
+        // Exit
+        const door = this.interactables.create(400, 570, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check interactions
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                const type = nearest.getData('type');
+                if (type === 'door') {
+                    this.cameras.main.fadeOut(500);
+                    this.time.delayedCall(500, () => {
+                        this.scene.start(nearest.getData('target'));
+                    });
+                } else if (type === 'book') {
+                    // Read book
+                    if (gameState.data.player.coins >= 30) {
+                        gameState.data.player.coins -= 30;
+                        gameState.data.player.skills += 15;
+                        gameState.data.player.reputation += 5;
+                        gameState.gainXP(40);
+                        showNotification('📖 Finished reading! +15 skills, +5 reputation');
+                        updateUI();
+                    } else {
+                        showNotification('💰 Need 30 coins to check out this book');
+                    }
+                }
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
+// University Scene - Advanced learning
+class UniversityScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'UniversityScene' });
+    }
+
+    create() {
+        const width = 800;
+        const height = 600;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Background
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                this.add.image(x, y, 'floor').setOrigin(0);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title
+        this.add.text(400, 40, '🎓 TECH UNIVERSITY', {
+            fontSize: '28px',
+            color: '#E91E63',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Player
+        this.player = this.physics.add.sprite(400, 500, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createUniversity();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('🎓 Enroll in courses to master new skills!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createUniversity() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Lecture hall desks
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 6; col++) {
+                const x = 120 + col * 100;
+                const y = 150 + row * 100;
+                
+                const desk = this.obstacles.create(x, y, 'desk');
+                desk.setScale(0.8);
+                desk.refreshBody();
+                
+                // Some seats have students
+                if (Math.random() > 0.4) {
+                    const sprites = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'];
+                    this.add.sprite(x, y - 10, Phaser.Math.RND.pick(sprites)).setScale(1.2);
+                }
+            }
+        }
+        
+        // Professor at front
+        const professor = this.add.sprite(400, 110, 'npc5');
+        professor.setScale(1.8);
+        this.add.text(400, 70, 'Professor Chen', {
+            fontSize: '14px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3,
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Enrollment desk (interactive)
+        const enrollDesk = this.interactables.create(400, 480, null);
+        enrollDesk.setSize(100, 60);
+        enrollDesk.setData('type', 'enroll');
+        enrollDesk.setData('name', 'Course Enrollment');
+        enrollDesk.refreshBody();
+        
+        this.add.rectangle(400, 480, 100, 60, 0x8B4513);
+        this.add.text(400, 480, 'ENROLL\nHERE', {
+            fontSize: '12px',
+            color: '#FFFFFF',
+            align: 'center'
+        }).setOrigin(0.5);
+        
+        // Exit
+        const door = this.interactables.create(400, 570, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check interactions
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                const type = nearest.getData('type');
+                if (type === 'door') {
+                    this.cameras.main.fadeOut(500);
+                    this.time.delayedCall(500, () => {
+                        this.scene.start(nearest.getData('target'));
+                    });
+                } else if (type === 'enroll') {
+                    // Enroll in course
+                    if (gameState.data.player.coins >= 100) {
+                        gameState.data.player.coins -= 100;
+                        gameState.data.player.skills += 30;
+                        gameState.data.player.reputation += 15;
+                        gameState.gainXP(100);
+                        showNotification('🎓 Course completed! +30 skills, +15 reputation, +100 XP');
+                        showAchievement('Lifelong Learner 📚');
+                        updateUI();
+                    } else {
+                        showNotification('💰 Need 100 coins for university course');
+                    }
+                }
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
 // Coffee Shop Scene
 class CoffeeShopScene extends Phaser.Scene {
     constructor() {
@@ -3242,7 +4062,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, ComputerMenuScene, SkillMinigameScene],
+    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ComputerMenuScene, SkillMinigameScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
