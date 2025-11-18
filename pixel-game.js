@@ -3750,6 +3750,14 @@ class HomeScene extends Phaser.Scene {
         showAllUI();
         updateUI();
         
+        // Initialize input IMMEDIATELY (before update() runs)
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        // Flag to prevent update from running before player is ready
+        this.playerReady = false;
+        
         // Ensure player texture exists - create it if it doesn't
         if (!this.textures.exists('player')) {
             if (gameState.data.player.customization) {
@@ -3802,10 +3810,8 @@ class HomeScene extends Phaser.Scene {
             this.createInteractiveObjects();
         }
         
-        // Input
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
-        this.eKey = this.input.keyboard.addKey('E');
+        // Mark player as ready - now update() can run safely
+        this.playerReady = true;
         
         // Update UI
         updateUI();
@@ -4067,25 +4073,31 @@ class HomeScene extends Phaser.Scene {
     }
 
     update() {
+        // Don't run update until player is ready
+        if (!this.playerReady || !this.player) return;
+        
         this.handleMovement();
         this.checkInteractions();
     }
 
     handleMovement() {
+        // Safety checks - ensure input exists
+        if (!this.cursors || !this.wasd || !this.player) return;
+        
         const speed = 120;
         let velocityX = 0;
         let velocityY = 0;
 
-        // Check input
-        if (this.cursors.left.isDown || this.wasd.A.isDown) {
+        // Check input with safety checks
+        if ((this.cursors.left && this.cursors.left.isDown) || (this.wasd.A && this.wasd.A.isDown)) {
             velocityX = -speed;
-        } else if (this.cursors.right.isDown || this.wasd.D.isDown) {
+        } else if ((this.cursors.right && this.cursors.right.isDown) || (this.wasd.D && this.wasd.D.isDown)) {
             velocityX = speed;
         }
 
-        if (this.cursors.up.isDown || this.wasd.W.isDown) {
+        if ((this.cursors.up && this.cursors.up.isDown) || (this.wasd.W && this.wasd.W.isDown)) {
             velocityY = -speed;
-        } else if (this.cursors.down.isDown || this.wasd.S.isDown) {
+        } else if ((this.cursors.down && this.cursors.down.isDown) || (this.wasd.S && this.wasd.S.isDown)) {
             velocityY = speed;
         }
 
