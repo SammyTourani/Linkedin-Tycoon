@@ -9321,10 +9321,11 @@ const config = {
     },
     scene: [IntroScene, BootScene, MainMenuScene, CharacterCustomizationScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
+        resizeInterval: 100
     }
 };
 
@@ -9333,23 +9334,115 @@ const game = new Phaser.Game(config);
 window.game = game; // Expose globally for fullscreen toggle
 window.gameState = gameState; // Expose for customization
 
-// Auto-resize on window resize
-window.addEventListener('resize', () => {
-    if (game && game.scale) {
-        game.scale.resize(window.innerWidth, window.innerHeight);
-    }
-});
+// Comprehensive resize handler
+let resizeTimeout;
+function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (game && game.scale) {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            
+            // Update Phaser game size
+            game.scale.resize(newWidth, newHeight);
+            
+            // Update all active scenes
+            game.scene.scenes.forEach(scene => {
+                if (scene.scene.isActive() || scene.scene.isPaused()) {
+                    // Update camera viewport
+                    if (scene.cameras && scene.cameras.main) {
+                        scene.cameras.main.setViewport(0, 0, newWidth, newHeight);
+                        // Maintain camera zoom and bounds
+                        if (scene.cameras.main.zoom) {
+                            // Keep zoom consistent
+                        }
+                    }
+                    
+                    // Call scene's resize handler if it exists
+                    if (typeof scene.resize === 'function') {
+                        scene.resize(newWidth, newHeight);
+                    }
+                }
+            });
+            
+            // Update fullscreen button visibility
+            updateFullscreenButton();
+        }
+    }, 100); // Debounce resize events
+}
 
-// Try to enter fullscreen automatically (requires user interaction)
-document.addEventListener('click', () => {
-    if (game && game.scale && !game.scale.isFullscreen) {
-        // Only try once
-        game.scale.startFullscreen().catch(() => {
-            // User denied or browser doesn't support
-            console.log('Fullscreen not available');
-        });
+// Listen to all resize scenarios
+window.addEventListener('resize', handleResize);
+window.addEventListener('orientationchange', handleResize);
+window.addEventListener('focus', handleResize);
+
+// Fullscreen change handler
+function handleFullscreenChange() {
+    updateFullscreenButton();
+    
+    // Resize game when fullscreen changes
+    setTimeout(() => {
+        if (game && game.scale) {
+            game.scale.resize(window.innerWidth, window.innerHeight);
+        }
+    }, 100);
+}
+
+// Listen to fullscreen changes
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+// Update fullscreen button visibility
+function updateFullscreenButton() {
+    const btn = document.getElementById('fullscreen-toggle');
+    if (!btn) return;
+    
+    const isFullscreen = !!(document.fullscreenElement || 
+                           document.webkitFullscreenElement || 
+                           document.mozFullScreenElement || 
+                           document.msFullscreenElement ||
+                           (game && game.scale && game.scale.isFullscreen));
+    
+    if (isFullscreen) {
+        btn.style.display = 'none';
+    } else {
+        btn.style.display = 'block';
     }
-}, { once: true });
+}
+
+// Fullscreen toggle function
+function toggleFullscreen() {
+    if (!game || !game.scale) return;
+    
+    try {
+        if (game.scale.isFullscreen) {
+            game.scale.stopFullscreen();
+        } else {
+            game.scale.startFullscreen();
+        }
+    } catch (error) {
+        console.log('Fullscreen error:', error);
+        // Fallback to manual fullscreen
+        const container = document.getElementById('game-container');
+        if (container.requestFullscreen) {
+            container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+            container.webkitRequestFullscreen();
+        } else if (container.mozRequestFullScreen) {
+            container.mozRequestFullScreen();
+        } else if (container.msRequestFullscreen) {
+            container.msRequestFullscreen();
+        }
+    }
+}
+
+// Expose globally
+window.toggleFullscreen = toggleFullscreen;
+
+// Initial fullscreen button state
+updateFullscreenButton();
 
 // Update UI periodically
 setInterval(updateUI, 1000);

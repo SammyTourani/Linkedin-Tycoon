@@ -444,7 +444,7 @@
     </style>
 </head>
 <body>
-    <div id="game-container" class="windowed">
+    <div id="game-container">
         <button id="fullscreen-toggle">🖥️ Fullscreen</button>
         <div id="ui-overlay">
             <div class="player-info">
@@ -831,29 +831,27 @@
     </script>
 
     <script>
-        // Fullscreen toggle
-        document.getElementById('fullscreen-toggle').addEventListener('click', () => {
-            const container = document.getElementById('game-container');
-            const body = document.body;
-            
-            if (container.classList.contains('windowed')) {
-                container.classList.remove('windowed');
-                body.classList.remove('windowed');
-                document.getElementById('fullscreen-toggle').textContent = '🖼️ Windowed';
-                
-                // Notify game to resize
-                if (window.game && window.game.scale) {
-                    window.game.scale.resize(window.innerWidth, window.innerHeight);
-                }
-            } else {
-                container.classList.add('windowed');
-                body.classList.add('windowed');
-                document.getElementById('fullscreen-toggle').textContent = '🖥️ Fullscreen';
-                
-                // Notify game to resize
-                if (window.game && window.game.scale) {
-                    window.game.scale.resize(1280, 720);
-                }
+        // Fullscreen toggle - wait for game to load
+        document.addEventListener('DOMContentLoaded', () => {
+            const fullscreenBtn = document.getElementById('fullscreen-toggle');
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', () => {
+                    if (window.toggleFullscreen) {
+                        window.toggleFullscreen();
+                    } else {
+                        // Fallback if game hasn't loaded yet
+                        const container = document.getElementById('game-container');
+                        if (container.requestFullscreen) {
+                            container.requestFullscreen();
+                        } else if (container.webkitRequestFullscreen) {
+                            container.webkitRequestFullscreen();
+                        } else if (container.mozRequestFullScreen) {
+                            container.mozRequestFullScreen();
+                        } else if (container.msRequestFullscreen) {
+                            container.msRequestFullscreen();
+                        }
+                    }
+                });
             }
         });
     </script>
