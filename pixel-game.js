@@ -658,7 +658,13 @@ class GameState {
                 },
                 job: null, // Current job
                 salary: 0, // Income per day
-                apartmentLevel: 1 // Apartment upgrade level
+                apartmentLevel: 1, // Apartment upgrade level
+                pet: null, // Pet companion
+                petStats: { happiness: 100, hunger: 100 }, // Pet needs
+                visitCounts: {}, // Track location visits
+                encountersCompleted: 0,
+                certificationsEarned: [],
+                relationshipLevel: 0 // For dating system
             },
             location: 'home',
             lastEnergyUpdate: Date.now(),
@@ -5843,6 +5849,695 @@ class LeaderboardScene extends Phaser.Scene {
     }
 }
 
+// Pet Shop Scene - Adopt a companion
+class PetShopScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'PetShopScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Background
+        this.add.rectangle(width/2, height/2, width, height, 0xFFE4B5);
+        
+        // Title
+        this.add.text(width/2, 100, '🐾 PET ADOPTION CENTER', {
+            fontSize: '36px',
+            color: '#FF6B6B',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 150, 'Choose your professional companion!', {
+            fontSize: '18px',
+            color: '#654321',
+            stroke: '#FFFFFF',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Pet options
+        const pets = [
+            { name: 'Office Cat', emoji: '🐱', cost: 500, bonus: { networking: 10, happiness: 'Daily motivation boost' } },
+            { name: 'Business Dog', emoji: '🐶', cost: 500, bonus: { skills: 15, happiness: 'Loyal companion' } },
+            { name: 'Coding Parrot', emoji: '🦜', cost: 750, bonus: { reputation: 20, happiness: 'Tech wisdom' } }
+        ];
+        
+        pets.forEach((pet, i) => {
+            const x = width/2 - 400 + i * 400;
+            const y = height/2;
+            
+            // Pet card
+            const card = this.add.rectangle(x, y, 350, 450, 0xFFFFFF);
+            card.setStrokeStyle(4, 0xFF6B6B);
+            
+            // Pet image
+            this.add.text(x, y - 120, pet.emoji, {
+                fontSize: '120px'
+            }).setOrigin(0.5);
+            
+            // Name
+            this.add.text(x, y + 20, pet.name, {
+                fontSize: '24px',
+                color: '#FF6B6B',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            // Bonus text
+            const bonusKey = Object.keys(pet.bonus)[0];
+            const bonusValue = pet.bonus[bonusKey];
+            this.add.text(x, y + 60, `+${bonusValue} ${bonusKey}`, {
+                fontSize: '16px',
+                color: '#00AA00',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            this.add.text(x, y + 90, pet.bonus.happiness, {
+                fontSize: '14px',
+                color: '#666666',
+                align: 'center',
+                wordWrap: { width: 300 }
+            }).setOrigin(0.5);
+            
+            // Adopt button
+            const adoptBtn = this.add.rectangle(x, y + 160, 200, 60, 0xFF6B6B);
+            adoptBtn.setStrokeStyle(3, 0xFFFFFF);
+            adoptBtn.setInteractive();
+            
+            this.add.text(x, y + 140, `Adopt`, {
+                fontSize: '20px',
+                color: '#FFFFFF',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            this.add.text(x, y + 170, `${pet.cost} 💰`, {
+                fontSize: '16px',
+                color: '#FFD700'
+            }).setOrigin(0.5);
+            
+            adoptBtn.on('pointerover', () => {
+                adoptBtn.setFillStyle(0xFF8A8A);
+                adoptBtn.setScale(1.05);
+            });
+            
+            adoptBtn.on('pointerout', () => {
+                adoptBtn.setFillStyle(0xFF6B6B);
+                adoptBtn.setScale(1);
+            });
+            
+            adoptBtn.on('pointerdown', () => {
+                if (gameState.data.player.pet) {
+                    showNotification('You already have a pet!');
+                    return;
+                }
+                
+                if (gameState.data.player.coins >= pet.cost) {
+                    gameState.data.player.coins -= pet.cost;
+                    gameState.data.player.pet = pet.name;
+                    gameState.data.player.petStats = { happiness: 100, hunger: 100 };
+                    
+                    // Apply bonus
+                    if (pet.bonus.networking) gameState.data.player.networking += pet.bonus.networking;
+                    if (pet.bonus.skills) gameState.data.player.skills += pet.bonus.skills;
+                    if (pet.bonus.reputation) gameState.data.player.reputation += pet.bonus.reputation;
+                    
+                    showNotification(`🐾 Adopted ${pet.name}! Welcome to your new companion!`);
+                    showAchievement('Pet Owner 🐾');
+                    this.cameras.main.flash(500, 255, 182, 193, false, null, 0.5);
+                    updateUI();
+                    
+                    // Hearts
+                    for (let j = 0; j < 20; j++) {
+                        const heart = this.add.text(x, y - 120, '💕', { fontSize: '24px' });
+                        this.tweens.add({
+                            targets: heart,
+                            y: y - 220,
+                            x: x + Phaser.Math.Between(-80, 80),
+                            alpha: 0,
+                            rotation: Phaser.Math.Between(-2, 2),
+                            duration: 2000,
+                            onComplete: () => heart.destroy()
+                        });
+                    }
+                    
+                    this.time.delayedCall(2000, () => {
+                        this.cameras.main.fadeOut(1000);
+                        this.time.delayedCall(1000, () => {
+                            this.scene.start('CityScene');
+                        });
+                    });
+                } else {
+                    showNotification(`💰 Need ${pet.cost} coins to adopt!`);
+                }
+            });
+        });
+        
+        // Back button
+        const backBtn = this.add.rectangle(width/2, height - 100, 250, 60, 0x654321);
+        backBtn.setStrokeStyle(3, 0xFFFFFF);
+        backBtn.setInteractive();
+        
+        this.add.text(width/2, height - 100, 'Back to City', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        backBtn.on('pointerdown', () => {
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
+// Music Venue Scene - Entertainment and networking
+class MusicVenueScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'MusicVenueScene' });
+    }
+
+    create() {
+        const width = 640;
+        const height = 480;
+        this.physics.world.setBounds(0, 0, width, height);
+        
+        // Dark club atmosphere
+        for (let x = 0; x < width; x += 16) {
+            for (let y = 0; y < height; y += 16) {
+                const tile = this.add.image(x, y, 'floor').setOrigin(0);
+                tile.setTint(0x2C1B47);
+            }
+        }
+        
+        this.createWalls(width, height);
+        
+        // Title with lights
+        this.add.text(320, 40, '🎵 MUSIC VENUE', {
+            fontSize: '26px',
+            color: '#FF00FF',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        // Pulsing lights
+        for (let i = 0; i < 8; i++) {
+            const light = this.add.circle(
+                80 + i * 70,
+                100,
+                15,
+                Phaser.Math.RND.pick([0xFF00FF, 0x00FFFF, 0xFFFF00, 0xFF0000])
+            );
+            
+            this.tweens.add({
+                targets: light,
+                alpha: 0.3,
+                scale: 0.8,
+                duration: 500 + Math.random() * 500,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+        }
+        
+        // Player
+        this.player = this.physics.add.sprite(320, 400, 'player');
+        this.player.setScale(1.5);
+        this.player.setCollideWorldBounds(true);
+        
+        this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+        this.cameras.main.setZoom(2);
+        
+        this.createVenue();
+        
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+        this.eKey = this.input.keyboard.addKey('E');
+        
+        showNotification('🎵 Enjoy music and network!');
+    }
+    
+    createWalls(width, height) {
+        this.walls = this.physics.add.staticGroup();
+        for (let x = 0; x < width; x += 16) {
+            this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
+        }
+        for (let y = 16; y < height - 16; y += 16) {
+            this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
+            this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
+        }
+    }
+    
+    createVenue() {
+        this.interactables = this.physics.add.staticGroup();
+        this.obstacles = this.physics.add.staticGroup();
+        
+        // Stage
+        const stage = this.add.rectangle(320, 150, 200, 80, 0x654321);
+        stage.setStrokeStyle(3, 0xFFD700);
+        const stageCol = this.obstacles.create(320, 150, null);
+        stageCol.setSize(200, 80);
+        stageCol.setAlpha(0);
+        stageCol.refreshBody();
+        
+        // Performers
+        this.add.text(280, 140, '🎤', { fontSize: '32px' });
+        this.add.text(360, 140, '🎸', { fontSize: '32px' });
+        
+        // Dancing NPCs
+        for (let i = 0; i < 6; i++) {
+            const x = 150 + Math.random() * 340;
+            const y = 260 + Math.random() * 100;
+            const npcSprite = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'][Math.floor(Math.random() * 5)];
+            const npc = this.add.sprite(x, y, npcSprite);
+            npc.setScale(1.2);
+            
+            // Make them bounce
+            this.tweens.add({
+                targets: npc,
+                y: y - 10,
+                duration: 400,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+        }
+        
+        // Bar
+        const bar = this.add.rectangle(100, 300, 120, 60, 0x8B4513);
+        bar.setStrokeStyle(2, 0x654321);
+        const barCol = this.obstacles.create(100, 300, null);
+        barCol.setSize(120, 60);
+        barCol.setAlpha(0);
+        barCol.refreshBody();
+        
+        // Bartender
+        const bartender = this.add.sprite(100, 280, 'npc4');
+        bartender.setScale(1.4);
+        
+        // Dance floor (interactive)
+        const danceFloor = this.interactables.create(400, 320, null);
+        danceFloor.setSize(180, 120);
+        danceFloor.setData('type', 'dance');
+        danceFloor.setData('name', 'Dance Floor');
+        danceFloor.refreshBody();
+        
+        this.add.text(400, 280, '💃 DANCE FLOOR 🕺', {
+            fontSize: '16px',
+            color: '#FF00FF',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Exit
+        const door = this.interactables.create(320, 450, 'door');
+        door.setData('type', 'door');
+        door.setData('target', 'CityScene');
+        door.refreshBody();
+        
+        this.physics.add.collider(this.player, this.walls);
+        this.physics.add.collider(this.player, this.obstacles);
+    }
+    
+    update() {
+        const speed = 120;
+        let vX = 0, vY = 0;
+        if (this.cursors.left.isDown || this.wasd.A.isDown) vX = -speed;
+        else if (this.cursors.right.isDown || this.wasd.D.isDown) vX = speed;
+        if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
+        else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
+        this.player.setVelocity(vX, vY);
+        
+        // Check interactions
+        let nearest = null;
+        let minDist = Infinity;
+        this.interactables.children.entries.forEach(obj => {
+            const dist = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, obj.x, obj.y
+            );
+            if (dist < 60 && dist < minDist) {
+                minDist = dist;
+                nearest = obj;
+            }
+        });
+        
+        if (nearest) {
+            showInteractionPrompt(true);
+            if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
+                const type = nearest.getData('type');
+                if (type === 'door') {
+                    this.cameras.main.fadeOut(500);
+                    this.time.delayedCall(500, () => {
+                        this.scene.start(nearest.getData('target'));
+                    });
+                } else if (type === 'dance') {
+                    if (gameState.useEnergy(15)) {
+                        // Dance and network!
+                        gameState.data.player.networking += 15;
+                        gameState.data.player.reputation += 10;
+                        gameState.data.player.connections += 2;
+                        gameState.gainXP(60);
+                        
+                        showNotification('💃 Danced and made 2 new connections!');
+                        this.cameras.main.flash(300, 255, 0, 255, false, null, 0.5);
+                        
+                        // Dancing emojis
+                        for (let i = 0; i < 15; i++) {
+                            const emoji = Phaser.Math.RND.pick(['💃', '🕺', '🎵', '🎶', '⭐']);
+                            const text = this.add.text(
+                                400 + Phaser.Math.Between(-80, 80),
+                                320,
+                                emoji,
+                                { fontSize: '24px' }
+                            );
+                            
+                            this.tweens.add({
+                                targets: text,
+                                y: 220,
+                                alpha: 0,
+                                scale: 1.5,
+                                rotation: Phaser.Math.Between(-2, 2),
+                                duration: 1500,
+                                onComplete: () => text.destroy()
+                            });
+                        }
+                        
+                        updateUI();
+                    }
+                }
+            }
+        } else {
+            showInteractionPrompt(false);
+        }
+    }
+}
+
+// Fitness Tracking Minigame
+class FitnessMinigameScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'FitnessMinigameScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
+        
+        // Title
+        this.add.text(width/2, 100, '💪 FITNESS CHALLENGE', {
+            fontSize: '36px',
+            color: '#FF6B6B',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 150, 'Tap SPACE as fast as you can for 10 seconds!', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        this.taps = 0;
+        this.startTime = Date.now();
+        this.timeLimit = 10000;
+        this.gameActive = true;
+        
+        // Counter
+        this.tapCounter = this.add.text(width/2, height/2, '0 REPS', {
+            fontSize: '80px',
+            color: '#00FF88',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        // Timer
+        this.timer = this.add.text(width/2, height/2 + 100, '10s', {
+            fontSize: '40px',
+            color: '#FFD700'
+        }).setOrigin(0.5);
+        
+        // Instructions
+        this.add.text(width/2, height/2 + 180, 'Press SPACE repeatedly!', {
+            fontSize: '20px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        // Spacebar listener
+        this.spaceKey = this.input.keyboard.addKey('SPACE');
+    }
+    
+    update() {
+        if (!this.gameActive) return;
+        
+        const elapsed = Date.now() - this.startTime;
+        const remaining = Math.max(0, Math.ceil((this.timeLimit - elapsed) / 1000));
+        
+        this.timer.setText(`${remaining}s`);
+        
+        if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+            this.taps++;
+            this.tapCounter.setText(`${this.taps} REPS`);
+            
+            // Flash effect
+            this.cameras.main.flash(50, 255, 100, 100, false, null, 0.2);
+            
+            // Scale animation
+            this.tweens.add({
+                targets: this.tapCounter,
+                scale: 1.2,
+                duration: 100,
+                yoyo: true,
+                ease: 'Power2'
+            });
+        }
+        
+        if (elapsed >= this.timeLimit) {
+            this.gameActive = false;
+            this.endGame();
+        }
+    }
+    
+    endGame() {
+        // Calculate performance
+        let performance = 'Average';
+        let bonus = 0;
+        
+        if (this.taps >= 80) {
+            performance = 'LEGENDARY!';
+            bonus = 200;
+        } else if (this.taps >= 60) {
+            performance = 'Excellent!';
+            bonus = 150;
+        } else if (this.taps >= 40) {
+            performance = 'Great!';
+            bonus = 100;
+        } else if (this.taps >= 20) {
+            performance = 'Good!';
+            bonus = 50;
+        }
+        
+        gameState.data.player.maxEnergy += Math.floor(this.taps / 20);
+        gameState.data.player.skills += 10 + bonus;
+        gameState.data.player.coins += 50 + bonus;
+        gameState.gainXP(40 + bonus);
+        
+        this.add.text(this.cameras.main.width/2, this.cameras.main.height/2 - 100, `${performance}\n\n${this.taps} reps completed!\n+${Math.floor(this.taps / 20)} max energy`, {
+            fontSize: '28px',
+            color: '#00FF88',
+            align: 'center',
+            fontStyle: 'bold'
+        }).setOrigin(0.5);
+        
+        showNotification(`💪 Workout complete! Stamina increased!`);
+        showAchievement('Fitness Enthusiast 💪');
+        updateUI();
+        
+        this.time.delayedCall(3000, () => {
+            this.scene.stop();
+            this.scene.start('CityScene');
+        });
+    }
+}
+
+// Cooking Scene - Prepare meals for buffs
+class CookingScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'CookingScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Kitchen background
+        this.add.rectangle(width/2, height/2, width, height, 0xFFE4B5);
+        
+        // Title
+        this.add.text(width/2, 100, '🍳 HOME COOKING', {
+            fontSize: '36px',
+            color: '#FF6B6B',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setOrigin(0.5);
+        
+        this.add.text(width/2, 150, 'Cook meals for powerful buffs!', {
+            fontSize: '18px',
+            color: '#654321'
+        }).setOrigin(0.5);
+        
+        // Recipe options
+        const recipes = [
+            { 
+                name: 'Power Breakfast', 
+                emoji: '🍳', 
+                cost: 50, 
+                effect: { energy: 40, skills: 10 },
+                desc: '+40 Energy, +10 Skills'
+            },
+            { 
+                name: 'Brain Food Salad', 
+                emoji: '🥗', 
+                cost: 75, 
+                effect: { skills: 20, reputation: 5 },
+                desc: '+20 Skills, +5 Reputation'
+            },
+            { 
+                name: 'Victory Steak', 
+                emoji: '🥩', 
+                cost: 150, 
+                effect: { energy: 60, networking: 15, reputation: 10 },
+                desc: '+60 Energy, +15 Networking, +10 Reputation'
+            },
+            { 
+                name: 'Success Smoothie', 
+                emoji: '🥤', 
+                cost: 40, 
+                effect: { energy: 30, followers: 5 },
+                desc: '+30 Energy, +5 Followers'
+            }
+        ];
+        
+        recipes.forEach((recipe, i) => {
+            const x = width/2 - 450 + i * 300;
+            const y = height/2 + 50;
+            
+            // Recipe card
+            const card = this.add.rectangle(x, y, 250, 350, 0xFFFFFF);
+            card.setStrokeStyle(4, 0xFF6B6B);
+            
+            // Food emoji
+            this.add.text(x, y - 100, recipe.emoji, {
+                fontSize: '80px'
+            }).setOrigin(0.5);
+            
+            // Name
+            this.add.text(x, y, recipe.name, {
+                fontSize: '18px',
+                color: '#FF6B6B',
+                fontStyle: 'bold',
+                align: 'center',
+                wordWrap: { width: 220 }
+            }).setOrigin(0.5);
+            
+            // Effect
+            this.add.text(x, y + 50, recipe.desc, {
+                fontSize: '12px',
+                color: '#00AA00',
+                align: 'center',
+                wordWrap: { width: 220 }
+            }).setOrigin(0.5);
+            
+            // Cook button
+            const cookBtn = this.add.rectangle(x, y + 120, 180, 50, 0xFF6B6B);
+            cookBtn.setStrokeStyle(2, 0xFFFFFF);
+            cookBtn.setInteractive();
+            
+            this.add.text(x, y + 105, 'Cook', {
+                fontSize: '18px',
+                color: '#FFFFFF',
+                fontStyle: 'bold'
+            }).setOrigin(0.5);
+            
+            this.add.text(x, y + 130, `${recipe.cost} 💰`, {
+                fontSize: '14px',
+                color: '#FFD700'
+            }).setOrigin(0.5);
+            
+            cookBtn.on('pointerover', () => {
+                cookBtn.setFillStyle(0xFF8A8A);
+                cookBtn.setScale(1.05);
+            });
+            
+            cookBtn.on('pointerout', () => {
+                cookBtn.setFillStyle(0xFF6B6B);
+                cookBtn.setScale(1);
+            });
+            
+            cookBtn.on('pointerdown', () => {
+                if (gameState.data.player.coins >= recipe.cost) {
+                    gameState.data.player.coins -= recipe.cost;
+                    
+                    // Apply effects
+                    const e = recipe.effect;
+                    if (e.energy) {
+                        gameState.data.player.energy = Math.min(
+                            gameState.data.player.maxEnergy,
+                            gameState.data.player.energy + e.energy
+                        );
+                    }
+                    if (e.skills) gameState.data.player.skills += e.skills;
+                    if (e.networking) gameState.data.player.networking += e.networking;
+                    if (e.reputation) gameState.data.player.reputation += e.reputation;
+                    if (e.followers) gameState.data.player.followers += e.followers;
+                    
+                    gameState.gainXP(30);
+                    
+                    showNotification(`🍳 Cooked ${recipe.name}! Buffs applied!`);
+                    this.cameras.main.flash(300, 255, 215, 0, false, null, 0.3);
+                    
+                    // Cooking effects
+                    for (let j = 0; j < 10; j++) {
+                        const spark = this.add.text(x, y - 100, '✨', { fontSize: '20px' });
+                        this.tweens.add({
+                            targets: spark,
+                            y: y - 150,
+                            x: x + Phaser.Math.Between(-40, 40),
+                            alpha: 0,
+                            duration: 1000,
+                            onComplete: () => spark.destroy()
+                        });
+                    }
+                    
+                    updateUI();
+                } else {
+                    showNotification(`💰 Need ${recipe.cost} coins!`);
+                }
+            });
+        });
+        
+        // Back button
+        const backBtn = this.add.rectangle(width/2, height - 80, 200, 50, 0x654321);
+        backBtn.setStrokeStyle(2, 0xFFFFFF);
+        backBtn.setInteractive();
+        
+        this.add.text(width/2, height - 80, 'Back', {
+            fontSize: '18px',
+            color: '#FFFFFF'
+        }).setOrigin(0.5);
+        
+        backBtn.on('pointerdown', () => {
+            this.cameras.main.fadeOut(500);
+            this.time.delayedCall(500, () => {
+                this.scene.start('CityScene');
+            });
+        });
+    }
+}
+
 // Skill Minigame Scene - Typing challenge
 class SkillMinigameScene extends Phaser.Scene {
     constructor() {
@@ -6677,7 +7372,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
+    scene: [IntroScene, BootScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
