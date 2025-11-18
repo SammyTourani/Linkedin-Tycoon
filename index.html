@@ -4,268 +4,661 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkedIn Tycoon - Build Your Professional Empire</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a2e;
+            color: #00ff88;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* UI Overlays */
+        #ui-overlay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #0a66c2;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 14px;
+            color: #fff;
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        #player-name {
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        #player-title {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        #level-display {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        #energy-display {
+            color: #ff6b6b;
+        }
+
+        #coins-display {
+            color: #ffd700;
+        }
+
+        #network-display {
+            color: #00d9ff;
+        }
+
+        #quest-tracker {
+            position: fixed;
+            top: 10px;
+            left: 250px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 10px;
+            min-width: 200px;
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        .quest-item {
+            margin-bottom: 5px;
+            font-size: 11px;
+            color: #00ff88;
+        }
+
+        #time-weather {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #4169e1;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #game-time, #game-weather {
+            display: block;
+            font-size: 12px;
+        }
+
+        /* UI Buttons */
+        .ui-button {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #0a66c2;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .ui-button:hover {
+            background: rgba(26, 26, 46, 1);
+            border-color: #0e7fe8;
+            transform: scale(1.1);
+        }
+
+        #inventory-button {
+            bottom: 70px;
+            right: 70px;
+        }
+
+        #email-button {
+            bottom: 70px;
+            right: 130px;
+        }
+
+        #phone-button {
+            bottom: 70px;
+            right: 190px;
+        }
+
+        #leaderboard-button {
+            bottom: 130px;
+            right: 70px;
+        }
+
+        /* Interaction Prompt */
+        #interaction-prompt {
+            position: fixed;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 255, 136, 0.9);
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            animation: pulse 1s infinite;
+            z-index: 1000;
+        }
+
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.05); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+        /* Notification */
+        #notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 26, 46, 0.95);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 16px;
+            color: #fff;
+            text-align: center;
+            max-width: 400px;
+            z-index: 2000;
+            display: none;
+        }
+
+        /* Achievement Popup */
+        #achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            border: 3px solid #fff;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            font-size: 24px;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            z-index: 3000;
+            display: none;
+            animation: achievement 0.5s ease-in-out;
+        }
+
+        @keyframes achievement {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .show {
+            animation: achievementDie 1s ease-in-out;
+        }
+
+        @keyframes achievementDie {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+
+        #achievement-text {
+            font-size: 28px;
+        }
+
+        /* Dialogue Box */
+        #dialogue-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 3px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 1500;
+            display: none;
+        }
+
+        #dialogue-speaker {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        #dialogue-text {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        #dialogue-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dialogue-choice {
+            background: #0a66c2;
+            border: 2px solid #ffffff;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #ffffff;
+        }
+
+        .dialogue-choice:hover {
+            background: #0e7fe8;
+            transform: translateY(-2px);
+        }
+
+        /* Story Overlay */
+        #story-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500;
+        }
+
+        #story-content {
+            background: rgba(26, 26, 46, 0.95);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        #story-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+
+        #story-text {
+            font-size: 18px;
+            color: #ffffff;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        #story-continue {
+            background: #00ff88;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #000;
+        }
+
+        #story-continue:hover {
+            background: #00cc66;
+        }
+
+        /* Customization Menu */
+        #customization-menu, #skill-tree-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 900px;
+            height: 80%;
+            max-height: 700px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 3px solid #0a66c2;
+            border-radius: 20px;
+            padding: 30px;
+            z-index: 2000;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .customization-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .customization-label {
+            width: 120px;
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .customization-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .customization-btn {
+            padding: 8px 15px;
+            border: 2px solid #0a66c2;
+            border-radius: 8px;
+            background: rgba(42, 42, 74, 0.8);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .customization-btn:hover {
+            border-color: #0e7fe8;
+            background: rgba(42, 42, 74, 1);
+        }
+
+        .customization-btn.selected {
+            border-color: #00ff88;
+            background: rgba(26, 26, 46, 0.9);
+            color: #00ff88;
+        }
+
+        .preview-section {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .character-preview {
+            font-size: 120px;
+            text-align: center;
+        }
+
+        .save-customization {
+            background: #00ff88;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #000;
+            margin-top: 30px;
+        }
+
+        .save-customization:hover {
+            background: #00cc66;
+        }
+
+        /* Controls Hint */
+        #controls-hint {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            max-width: 400px;
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #ui-overlay {
+                top: 5px;
+                left: 5px;
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            #quest-tracker {
+                left: 200px;
+                top: 5px;
+                min-width: 150px;
+            }
+
+            #time-weather {
+                top: 5px;
+                right: 5px;
+                padding: 8px;
+                font-size: 11px;
+            }
+
+            .ui-button {
+                width: 45px;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            #interaction-prompt {
+                bottom: 120px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            #achievement-popup {
+                padding: 20px;
+                font-size: 20px;
+            }
+
+            #dialogue-box {
+                width: 95%;
+                bottom: 10px;
+            }
+        }
+
+        /* Fullscreen Toggle Button */
+        #fullscreen-toggle {
+            position: fixed;
+            top: 10px;
+            right: 170px;
+            background: rgba(26, 26, 46, 0.9);
+            border: 2px solid #4169e1;
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+            display: block;
+        }
+
+        #fullscreen-toggle:hover {
+            background: rgba(26, 26, 46, 1);
+            border-color: #6495ed;
+        }
+    </style>
 </head>
 <body>
+    <!-- Game Container -->
     <div id="game-container">
-        <!-- Header -->
-        <header class="game-header">
-            <div class="logo">
-                <h1>🔷 LinkedIn Tycoon</h1>
+        <div id="loading">
+            Loading LinkedIn Tycoon...<br>
+            <small>Build Your Professional Empire</small>
+        </div>
+
+        <!-- UI Overlay -->
+        <div id="ui-overlay">
+            <div id="player-name">Alex Developer</div>
+            <div id="player-title">Junior Software Engineer</div>
+            <div class="stat">Lv. <span id="level-display">1</span> | ⚡ <span id="energy-display">100</span> | 💰 <span id="coins-display">0</span> | 🤝 <span id="network-display">5</span></div>
+        </div>
+
+        <!-- Quest Tracker -->
+        <div id="quest-tracker">
+            <div style="font-size: 12px; color: #00ff88; margin-bottom: 5px;">🎯 Active Quests:</div>
+            <div id="quest-list">
+                <div class="quest-item">Complete tutorials</div>
+                <div class="quest-item">Make first connection</div>
             </div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Level:</span>
-                    <span id="player-level">1</span>
+        </div>
+
+        <!-- Time Weather Display -->
+        <div id="time-weather">
+            <div id="game-time">☀️ Morning</div>
+            <div id="game-weather">☀️ Sunny</div>
+        </div>
+
+        <!-- UI Buttons -->
+        <div id="inventory-button" class="ui-button" title="Inventory">📦</div>
+        <div id="email-button" class="ui-button" title="Emails">📧</div>
+        <div id="phone-button" class="ui-button" title="Phone/Dial">📱</div>
+        <div id="leaderboard-button" class="ui-button" title="Leaderboard">🏆</div>
+
+        <!-- Fullscreen Toggle -->
+        <button id="fullscreen-toggle" onclick="toggleFullscreen()">🖥️ Fullscreen</button>
+
+        <!-- Interaction Prompt -->
+        <div id="interaction-prompt">Press E to interact</div>
+
+        <!-- Notification -->
+        <div id="notification">Welcome to LinkedIn Tycoon!</div>
+
+        <!-- Achievement Popup -->
+        <div id="achievement-popup">
+            <div id="achievement-text">🎉 Achievement Unlocked!</div>
+        </div>
+
+        <!-- Dialogue Box -->
+        <div id="dialogue-box">
+            <div id="dialogue-speaker">Character</div>
+            <div id="dialogue-text">Hello! Welcome to LinkedIn Tycoon. This is your story-driven RPG where you build your professional empire through networking, learning, and growing your career.</div>
+            <div id="dialogue-choices">
+                <button class="dialogue-choice">Yes! Let me build my empire</button>
+            </div>
+        </div>
+
+        <!-- Story Overlay -->
+        <div id="story-overlay">
+            <div id="story-content">
+                <div id="story-title">📖 Your Story</div>
+                <div id="story-text">Every journey begins with a single step. Your LinkedIn journey starts now. Build connections, share your story, and grow your influence.</div>
+                <button id="story-continue">Begin Your Journey</button>
+            </div>
+        </div>
+
+        <!-- Customization Menu -->
+        <div id="customization-menu">
+            <h2 style="color: #0a66c2; text-align: center; margin-bottom: 30px;">👤 Character Customization</h2>
+            <div id="customization-options">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Skill Tree Menu -->
+        <div id="skill-tree-menu">
+            <h2 style="color: #00ff88; text-align: center; margin-bottom: 30px;">🌳 Skill Tree</h2>
+            <div class="skill-tree">
+                <div class="skill-section">
+                    <h3>JavaScript</h3>
+                    <div class="skill-bar">
+                        <div class="skill-progress" id="skill-js-bar"></div>
+                    </div>
+                    <span class="skill-level" id="skill-js">Lvl 0</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">⚡ Energy:</span>
-                    <span id="player-energy">100/100</span>
+                <div class="skill-section">
+                    <h3>Python</h3>
+                    <div class="skill-bar">
+                        <div class="skill-progress" id="skill-python-bar"></div>
+                    </div>
+                    <span class="skill-level" id="skill-python">Lvl 0</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">💰 Coins:</span>
-                    <span id="player-coins">0</span>
+                <div class="skill-section">
+                    <h3>Leadership</h3>
+                    <div class="skill-bar">
+                        <div class="skill-progress" id="skill-leadership-bar"></div>
+                    </div>
+                    <span class="skill-level" id="skill-leadership">Lvl 0</span>
+                </div>
+                <div class="skill-section">
+                    <h3>Communication</h3>
+                    <div class="skill-bar">
+                        <div class="skill-progress" id="skill-comm-bar"></div>
+                    </div>
+                    <span class="skill-level" id="skill-comm">Lvl 0</span>
+                </div>
+                <div class="skill-section">
+                    <h3>Content Creation</h3>
+                    <div class="skill-bar">
+                        <div class="skill-progress" id="skill-content-bar"></div>
+                    </div>
+                    <span class="skill-level" id="skill-content">Lvl 0</span>
+                </div>
+                <div class="skill-section">
+                    <h3>SEO & Marketing</h3>
+                    <div class="skill-bar">
+                        <div class="skill-progress" id="skill-seo-bar"></div>
+                    </div>
+                    <span class="skill-level" id="skill-seo">Lvl 0</span>
                 </div>
             </div>
-        </header>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="save-customization" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close</button>
+            </div>
+        </div>
 
-        <!-- Main Content -->
-        <div class="game-main">
-            <!-- Left Sidebar - Profile -->
-            <aside class="sidebar-left">
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="profile-picture" id="profile-picture">👤</div>
-                        <div class="profile-info">
-                            <h2 id="player-name">Alex Developer</h2>
-                            <p id="player-headline">Junior Software Engineer</p>
-                        </div>
-                    </div>
-                    
-                    <div class="profile-stats">
-                        <div class="stat-bar">
-                            <label>🤝 Networking</label>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="networking-bar" style="width: 20%"></div>
-                            </div>
-                            <span id="networking-value">20/100</span>
-                        </div>
-                        
-                        <div class="stat-bar">
-                            <label>💡 Skills</label>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="skills-bar" style="width: 15%"></div>
-                            </div>
-                            <span id="skills-value">15/100</span>
-                        </div>
-                        
-                        <div class="stat-bar">
-                            <label>⭐ Reputation</label>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="reputation-bar" style="width: 10%"></div>
-                            </div>
-                            <span id="reputation-value">10/100</span>
-                        </div>
-                    </div>
-
-                    <div class="profile-metrics">
-                        <div class="metric">
-                            <span class="metric-value" id="connections-count">5</span>
-                            <span class="metric-label">Connections</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-value" id="followers-count">12</span>
-                            <span class="metric-label">Followers</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-value" id="posts-count">0</span>
-                            <span class="metric-label">Posts</span>
-                        </div>
-                    </div>
-
-                    <div class="badges" id="badges-container">
-                        <h3>Badges</h3>
-                        <div class="badge-list" id="badge-list">
-                            <span class="badge">🎓 Student</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="achievements-card">
-                    <h3>Recent Achievements</h3>
-                    <div id="recent-achievements"></div>
-                </div>
-            </aside>
-
-            <!-- Center Content -->
-            <main class="main-content">
-                <!-- Navigation Tabs -->
-                <nav class="content-tabs">
-                    <button class="tab-btn active" data-tab="feed">📰 Feed</button>
-                    <button class="tab-btn" data-tab="network">🤝 Network</button>
-                    <button class="tab-btn" data-tab="create">✍️ Create Post</button>
-                    <button class="tab-btn" data-tab="events">🎯 Events</button>
-                    <button class="tab-btn" data-tab="skills">📚 Skills</button>
-                </nav>
-
-                <!-- Tab Content -->
-                <div class="tab-content active" id="feed-tab">
-                    <div class="create-post-prompt">
-                        <button class="btn btn-primary" onclick="game.switchTab('create')">
-                            Start a post
-                        </button>
-                    </div>
-                    <div id="feed-posts"></div>
-                </div>
-
-                <div class="tab-content" id="network-tab">
-                    <div class="network-actions">
-                        <button class="btn btn-primary" onclick="game.findNewConnections()">
-                            🔍 Find New Connections (10 ⚡)
-                        </button>
-                        <button class="btn btn-secondary" onclick="game.autoConnect()">
-                            🤖 Auto-Connect (50 💰)
-                        </button>
-                    </div>
-
-                    <div class="pending-requests" id="pending-requests">
-                        <h3>Pending Connection Requests</h3>
-                        <div id="requests-list"></div>
-                    </div>
-
-                    <div class="connection-suggestions" id="connection-suggestions">
-                        <h3>People You May Know</h3>
-                        <div id="suggestions-list"></div>
-                    </div>
-
-                    <div class="my-connections">
-                        <h3>Your Connections (<span id="connection-total">5</span>)</h3>
-                        <div id="connections-list"></div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="create-tab">
-                    <div class="post-creator">
-                        <h2>Create a Post</h2>
-                        
-                        <div class="post-type-selector">
-                            <label>Post Type:</label>
-                            <select id="post-type">
-                                <option value="update">Status Update</option>
-                                <option value="article">Article</option>
-                                <option value="video">Video</option>
-                                <option value="poll">Poll</option>
-                            </select>
-                        </div>
-
-                        <textarea id="post-content" placeholder="What do you want to talk about?" rows="6"></textarea>
-                        
-                        <div class="post-options">
-                            <button class="btn btn-secondary" onclick="game.generatePostIdea()">
-                                💡 Generate Idea
-                            </button>
-                            <button class="btn btn-secondary" onclick="game.suggestHashtags()">
-                                # Add Hashtags
-                            </button>
-                        </div>
-
-                        <div class="post-cost">
-                            <span>Energy Cost: 15 ⚡</span>
-                        </div>
-
-                        <button class="btn btn-primary btn-large" onclick="game.publishPost()">
-                            📤 Publish Post
-                        </button>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="events-tab">
-                    <div class="events-header">
-                        <h2>Virtual Events & Challenges</h2>
-                        <button class="btn btn-primary" onclick="game.refreshEvents()">
-                            🔄 Refresh Events
-                        </button>
-                    </div>
-
-                    <div id="active-events"></div>
-                    <div id="completed-challenges">
-                        <h3>Completed Challenges</h3>
-                        <div id="challenges-list"></div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="skills-tab">
-                    <div class="skills-header">
-                        <h2>Skill Development</h2>
-                        <p>Invest in your professional growth</p>
-                    </div>
-
-                    <div class="skill-categories">
-                        <div class="skill-category">
-                            <h3>💻 Technical Skills</h3>
-                            <div id="technical-skills"></div>
-                        </div>
-
-                        <div class="skill-category">
-                            <h3>🗣️ Soft Skills</h3>
-                            <div id="soft-skills"></div>
-                        </div>
-
-                        <div class="skill-category">
-                            <h3>📈 Marketing Skills</h3>
-                            <div id="marketing-skills"></div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            <!-- Right Sidebar -->
-            <aside class="sidebar-right">
-                <div class="leaderboard-card">
-                    <h3>🏆 Top Networkers</h3>
-                    <div id="leaderboard"></div>
-                </div>
-
-                <div class="notifications-card">
-                    <h3>🔔 Notifications</h3>
-                    <div id="notifications"></div>
-                </div>
-
-                <div class="shop-card">
-                    <h3>💼 Career Shop</h3>
-                    <div class="shop-items" id="shop-items"></div>
-                </div>
-            </aside>
+        <!-- Controls Hint -->
+        <div id="controls-hint">
+            <strong>🎮 Controls:</strong><br>
+            WASD or Arrow Keys = Move<br>
+            E = Interact<br>
+            ESC = Close menus
         </div>
     </div>
 
-    <!-- Modals -->
-    <div id="modal-overlay" class="modal-overlay" onclick="game.closeModal()"></div>
-    
-    <div id="connection-modal" class="modal">
-        <div class="modal-content">
-            <h2>Send Connection Request</h2>
-            <div id="connection-person-info"></div>
-            <textarea id="connection-message" rows="4" placeholder="Add a personal note..."></textarea>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="game.closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="game.sendConnectionRequest()">Send Request (10 ⚡)</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="event-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="event-modal-title"></h2>
-            <div id="event-modal-body"></div>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="game.closeModal()">Close</button>
-                <button class="btn btn-primary" id="event-action-btn"></button>
-            </div>
-        </div>
-    </div>
-
-    <script src="game.js"></script>
+    <!-- Main JavaScript - ES Module -->
+    <script type="module" src="/src/pixel-game.js"></script>
 </body>
 </html>
-

@@ -192,7 +192,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.95);
-            display: none;
+            display: flex;
             z-index: 2000;
             justify-content: center;
             align-items: center;
@@ -492,7 +492,7 @@
             <div class="spinner"></div>
             <div>Loading LinkedIn Tycoon...</div>
         </div>
-        <div id="story-overlay">
+        <div id="story-overlay" style="display: none;">
             <div id="story-content">
                 <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
                 <p id="story-text">Your journey begins here...</p>
@@ -873,9 +873,7 @@
         });
     </script>
 
-    <!-- Phaser 3 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
-    <script src="pixel-game.js"></script>
+    <!-- Load game as ES6 module -->
+    <script type="module" src="/src/pixel-game.js"></script>
 </body>
 </html>
-
