@@ -422,6 +422,17 @@ class ItemManager {
     }
     
     addItemToInventory(itemId) {
+        // Ensure inventory array exists
+        if (!gameState.data.player.inventory) {
+            gameState.data.player.inventory = [];
+        }
+        
+        // Check inventory capacity (20 items max)
+        if (gameState.data.player.inventory.length >= 20) {
+            showNotification('Inventory full! Remove items first.');
+            return false;
+        }
+        
         const item = this.getItem(itemId);
         if (item) {
             gameState.data.player.inventory.push(item);
