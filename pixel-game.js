@@ -949,6 +949,11 @@ class CertificationManager {
     }
     
     earnCertification(certId) {
+        // Ensure array exists
+        if (!gameState.data.player.certificationsEarned) {
+            gameState.data.player.certificationsEarned = [];
+        }
+        
         if (gameState.data.player.certificationsEarned.includes(certId)) {
             showNotification('You already have this certification!');
             return;
@@ -977,6 +982,11 @@ class CertificationManager {
     }
     
     checkAllCertifications() {
+        // Ensure array exists
+        if (!gameState.data.player.certificationsEarned) {
+            gameState.data.player.certificationsEarned = [];
+        }
+        
         this.certifications.forEach(cert => {
             if (!gameState.data.player.certificationsEarned.includes(cert.id)) {
                 if (this.checkEligible(cert.id)) {
@@ -5047,7 +5057,7 @@ class EmailScene extends Phaser.Scene {
             }).setOrigin(0.5);
             
             actionBtn.on('pointerdown', () => {
-                this.handleEmail Action(email);
+                this.handleEmailAction(email);
             });
             
             emailBg.on('pointerover', () => {
@@ -5928,75 +5938,91 @@ class ComputerMenuScene extends Phaser.Scene {
     }
     
     showCertifications() {
-        // Show certification menu
-        const overlay = this.scene.get('HomeScene').add.rectangle(640, 360, 1280, 720, 0x000000, 0.9);
+        // Close menu first
+        this.closeMenu();
+        
+        // Create a new scene overlay for certifications
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // Dim background
+        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
         overlay.setDepth(2000);
         overlay.setScrollFactor(0);
         
-        const box = this.scene.get('HomeScene').add.rectangle(640, 360, 900, 600, 0x1E3A8A);
+        // Menu box
+        const box = this.add.rectangle(width/2, height/2, 900, 600, 0x1E3A8A);
         box.setStrokeStyle(4, 0xFFD700);
         box.setDepth(2001);
         box.setScrollFactor(0);
         
-        const title = this.scene.get('HomeScene').add.text(640, 120, '🎓 CERTIFICATIONS', {
+        // Title
+        const title = this.add.text(width/2, height/2 - 240, '🎓 CERTIFICATIONS', {
             fontSize: '32px',
             color: '#FFD700',
             fontStyle: 'bold'
         }).setOrigin(0.5).setDepth(2002).setScrollFactor(0);
         
+        // Store elements for cleanup
+        const elements = [overlay, box, title];
+        
         // List certifications
         certificationManager.certifications.forEach((cert, i) => {
-            const y = 200 + i * 60;
+            const y = height/2 - 160 + i * 60;
             const eligible = certificationManager.checkEligible(cert.id);
-            const earned = gameState.data.player.certificationsEarned.includes(cert.id);
+            const earned = (gameState.data.player.certificationsEarned || []).includes(cert.id);
             
-            const certBox = this.scene.get('HomeScene').add.rectangle(640, y, 800, 50, earned ? 0x00FF88 : eligible ? 0x0A66C2 : 0x4A4A4A);
+            const certBox = this.add.rectangle(width/2, y, 800, 50, earned ? 0x00FF88 : eligible ? 0x0A66C2 : 0x4A4A4A);
             certBox.setStrokeStyle(2, 0xFFFFFF);
             certBox.setDepth(2002);
             certBox.setScrollFactor(0);
+            elements.push(certBox);
             
             if (eligible && !earned) {
                 certBox.setInteractive();
                 certBox.on('pointerdown', () => {
                     certificationManager.earnCertification(cert.id);
-                    this.closeMenu();
-                    overlay.destroy();
-                    box.destroy();
-                    title.destroy();
-                    // Would need to clean up all elements properly
+                    // Clean up all elements
+                    elements.forEach(el => el.destroy());
                 });
             }
             
-            const certText = this.scene.get('HomeScene').add.text(300, y, `${cert.icon} ${cert.name}`, {
+            const certText = this.add.text(width/2 - 350, y, `${cert.icon} ${cert.name}`, {
                 fontSize: '16px',
                 color: '#FFFFFF'
             }).setOrigin(0, 0.5).setDepth(2003).setScrollFactor(0);
+            elements.push(certText);
             
             const status = earned ? '✓ EARNED' : eligible ? '→ CLICK TO EARN' : '✗ Locked';
-            this.scene.get('HomeScene').add.text(980, y, status, {
+            const statusText = this.add.text(width/2 + 340, y, status, {
                 fontSize: '14px',
                 color: earned ? '#00FF88' : eligible ? '#FFD700' : '#666666'
             }).setOrigin(1, 0.5).setDepth(2003).setScrollFactor(0);
+            elements.push(statusText);
         });
         
         // Close button
-        const closeBtn = this.scene.get('HomeScene').add.rectangle(640, 680, 200, 50, 0xFF6B6B);
+        const closeBtn = this.add.rectangle(width/2, height/2 + 220, 200, 50, 0xFF6B6B);
         closeBtn.setStrokeStyle(2, 0xFFFFFF);
         closeBtn.setInteractive();
         closeBtn.setDepth(2002);
         closeBtn.setScrollFactor(0);
+        elements.push(closeBtn);
         
-        this.scene.get('HomeScene').add.text(640, 680, 'Close', {
+        const closeText = this.add.text(width/2, height/2 + 220, 'Close', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5).setDepth(2003).setScrollFactor(0);
+        elements.push(closeText);
         
         closeBtn.on('pointerdown', () => {
-            overlay.destroy();
-            box.destroy();
-            title.destroy();
-            closeBtn.destroy();
-            // Would cleanup all
+            elements.forEach(el => el.destroy());
+        });
+        
+        // ESC to close
+        const escKey = this.input.keyboard.addKey('ESC');
+        escKey.on('down', () => {
+            elements.forEach(el => el.destroy());
         });
     }
     
