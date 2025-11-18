@@ -2486,7 +2486,7 @@ class MainMenuScene extends Phaser.Scene {
             gameState.saveGame();
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
-                this.scene.start('CharacterCustomizationScene');
+                this.scene.start('NameInputScene');
             });
         });
         
@@ -2627,6 +2627,394 @@ class MainMenuScene extends Phaser.Scene {
     
     hideAllUI() {
         // Hide all UI overlays
+        const uiElements = [
+            'ui-overlay',
+            'quest-tracker',
+            'time-weather',
+            'inventory-button',
+            'email-button',
+            'phone-button',
+            'leaderboard-button',
+            'interaction-prompt',
+            'notification'
+        ];
+        
+        uiElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
+}
+
+// Name Input Scene - First step in character creation
+class NameInputScene extends Phaser.Scene {
+    constructor() {
+        super({ key: 'NameInputScene' });
+    }
+
+    create() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        
+        // HIDE ALL UI
+        this.hideAllUI();
+        
+        // Disable ALL keyboard shortcuts - prevent interference
+        this.input.keyboard.removeAllListeners();
+        this.input.keyboard.clearCaptures();
+        
+        // Enhanced gradient background
+        const bgGradient = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        this.tweens.add({
+            targets: bgGradient,
+            alpha: 0.9,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        
+        // Animated particles background
+        for (let i = 0; i < 30; i++) {
+            const particle = this.add.circle(
+                Phaser.Math.Between(0, width),
+                Phaser.Math.Between(0, height),
+                Phaser.Math.Between(2, 4),
+                0x0A66C2,
+                Phaser.Math.FloatBetween(0.1, 0.3)
+            );
+            
+            this.tweens.add({
+                targets: particle,
+                x: particle.x + Phaser.Math.Between(-100, 100),
+                y: particle.y + Phaser.Math.Between(-100, 100),
+                alpha: 0.1,
+                duration: 3000 + Math.random() * 2000,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut',
+                delay: Math.random() * 2000
+            });
+        }
+        
+        // LARGE, CLEAR TITLE
+        const title = this.add.text(width/2, height/4 - 40, '👋 WELCOME TO LINKEDIN TYCOON!', {
+            fontSize: '56px',
+            color: '#0A66C2',
+            fontStyle: 'bold',
+            stroke: '#FFFFFF',
+            strokeThickness: 6,
+            shadow: {
+                offsetX: 3,
+                offsetY: 3,
+                color: '#000000',
+                blur: 8,
+                stroke: true,
+                fill: true
+            }
+        }).setOrigin(0.5);
+        
+        this.tweens.add({
+            targets: title,
+            scale: 1.05,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        
+        // CLEAR INSTRUCTION TEXT
+        const instruction1 = this.add.text(width/2, height/4 + 60, 'Let\'s start by creating your character!', {
+            fontSize: '32px',
+            color: '#FFFFFF',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5);
+        
+        const instruction2 = this.add.text(width/2, height/4 + 110, 'First, please enter your name:', {
+            fontSize: '28px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Animate instructions
+        this.tweens.add({
+            targets: [instruction1, instruction2],
+            alpha: 0,
+            y: height/4 + 40,
+            duration: 0
+        });
+        
+        this.tweens.add({
+            targets: instruction1,
+            alpha: 1,
+            y: height/4 + 60,
+            duration: 800,
+            delay: 300,
+            ease: 'Power2'
+        });
+        
+        this.tweens.add({
+            targets: instruction2,
+            alpha: 1,
+            y: height/4 + 110,
+            duration: 800,
+            delay: 600,
+            ease: 'Power2'
+        });
+        
+        // Name input area (CENTERED AND PROMINENT)
+        const inputAreaY = height/2 + 40;
+        
+        // Input background panel
+        const inputPanel = this.add.rectangle(width/2, inputAreaY, 600, 200, 0x1A1A2E, 0.9);
+        inputPanel.setStrokeStyle(4, 0x0A66C2);
+        
+        // Label above input
+        const nameLabel = this.add.text(width/2, inputAreaY - 50, '✏️ YOUR NAME', {
+            fontSize: '24px',
+            color: '#FFFFFF',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Create HTML input field (proper input) - positioned relative to game container
+        const gameContainer = document.getElementById('game-container');
+        const containerRect = gameContainer.getBoundingClientRect();
+        
+        const nameInputContainer = document.createElement('div');
+        nameInputContainer.id = 'name-input-container';
+        nameInputContainer.style.cssText = `
+            position: fixed;
+            left: ${containerRect.left + width/2 - 250}px;
+            top: ${containerRect.top + inputAreaY - 15}px;
+            width: 500px;
+            height: 60px;
+            z-index: 2000;
+            pointer-events: auto;
+        `;
+        
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.id = 'name-input';
+        nameInput.value = gameState.data.player.name || '';
+        nameInput.maxLength = 20;
+        nameInput.placeholder = 'Type your name here...';
+        nameInput.autofocus = true;
+        nameInput.style.cssText = `
+            width: 100%;
+            height: 100%;
+            background: rgba(42, 42, 74, 0.95);
+            border: 4px solid #0A66C2;
+            border-radius: 12px;
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            padding: 0 20px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s;
+            cursor: text;
+        `;
+        
+        // Focus effect
+        nameInput.addEventListener('focus', () => {
+            nameInput.style.borderColor = '#00FF88';
+            nameInput.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.6)';
+            nameInput.style.background = 'rgba(42, 42, 74, 1)';
+            nameInput.style.transform = 'scale(1.02)';
+        });
+        
+        nameInput.addEventListener('blur', () => {
+            nameInput.style.borderColor = '#0A66C2';
+            nameInput.style.boxShadow = 'none';
+            nameInput.style.background = 'rgba(42, 42, 74, 0.95)';
+            nameInput.style.transform = 'scale(1)';
+        });
+        
+        // Handle Enter key to proceed - PREVENT GAME SHORTCUTS
+        nameInput.addEventListener('keydown', (e) => {
+            // CRITICAL: Stop propagation to prevent game shortcuts
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            if (e.key === 'Enter' && nameInput.value.trim()) {
+                e.preventDefault();
+                this.proceedToCustomization(nameInput.value.trim());
+            }
+        }, true); // Use capture phase
+        
+        // Prevent ALL keyboard shortcuts when input is focused
+        nameInput.addEventListener('keypress', (e) => {
+            e.stopPropagation();
+        }, true);
+        
+        // Update position on window resize
+        const updateInputPosition = () => {
+            const newRect = gameContainer.getBoundingClientRect();
+            nameInputContainer.style.left = `${newRect.left + width/2 - 250}px`;
+            nameInputContainer.style.top = `${newRect.top + inputAreaY - 15}px`;
+        };
+        
+        window.addEventListener('resize', updateInputPosition);
+        this.inputPositionUpdater = updateInputPosition;
+        
+        nameInputContainer.appendChild(nameInput);
+        document.body.appendChild(nameInputContainer);
+        this.nameInputElement = nameInput;
+        
+        // Visual input box overlay (for styling)
+        const nameBoxOverlay = this.add.rectangle(width/2, inputAreaY, 500, 60, 0x2A2A4A, 0);
+        nameBoxOverlay.setStrokeStyle(4, 0x0A66C2);
+        nameBoxOverlay.setInteractive();
+        nameBoxOverlay.on('pointerdown', () => {
+            nameInput.focus();
+        });
+        
+        // Continue button (only enabled when name is entered)
+        const continueBtn = this.add.rectangle(width/2, height - 150, 450, 80, 0x4A4A4A);
+        continueBtn.setStrokeStyle(4, 0x666666);
+        continueBtn.setInteractive();
+        continueBtn.setAlpha(0.5);
+        
+        const continueText = this.add.text(width/2, height - 150, '⏭️ CONTINUE TO CUSTOMIZATION', {
+            fontSize: '28px',
+            color: '#999999',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        
+        // Update button state based on input
+        const updateButtonState = () => {
+            const hasName = nameInput.value.trim().length > 0;
+            if (hasName) {
+                continueBtn.setFillStyle(0x00FF88);
+                continueBtn.setStrokeStyle(4, 0xFFFFFF);
+                continueBtn.setAlpha(1);
+                continueText.setColor('#000000');
+                continueText.setStyle({ stroke: '#FFFFFF', strokeThickness: 3 });
+            } else {
+                continueBtn.setFillStyle(0x4A4A4A);
+                continueBtn.setStrokeStyle(4, 0x666666);
+                continueBtn.setAlpha(0.5);
+                continueText.setColor('#999999');
+                continueText.setStyle({ stroke: '#000000', strokeThickness: 2 });
+            }
+        };
+        
+        nameInput.addEventListener('input', () => {
+            updateButtonState();
+            if (nameInput.value.trim()) {
+                gameState.data.player.name = nameInput.value.trim();
+            }
+        });
+        
+        // Initial button state
+        updateButtonState();
+        
+        // Button animations
+        this.tweens.add({
+            targets: continueBtn,
+            scale: 1.02,
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        
+        continueBtn.on('pointerover', () => {
+            if (nameInput.value.trim()) {
+                continueBtn.setFillStyle(0x00CC66);
+                continueBtn.setScale(1.08);
+                continueText.setScale(1.05);
+                this.cameras.main.shake(100, 0.005);
+            }
+        });
+        
+        continueBtn.on('pointerout', () => {
+            if (nameInput.value.trim()) {
+                continueBtn.setFillStyle(0x00FF88);
+            }
+            continueBtn.setScale(1.02);
+            continueText.setScale(1);
+        });
+        
+        continueBtn.on('pointerdown', () => {
+            if (nameInput.value.trim()) {
+                this.proceedToCustomization(nameInput.value.trim());
+            } else {
+                // Shake effect if no name
+                this.cameras.main.shake(200, 0.01);
+                this.tweens.add({
+                    targets: nameInput,
+                    x: nameInput.offsetLeft - 10,
+                    duration: 50,
+                    yoyo: true,
+                    repeat: 3,
+                    ease: 'Power2'
+                });
+            }
+        });
+        
+        // Helper text
+        const helperText = this.add.text(width/2, height - 80, 'Press ENTER or click CONTINUE when ready', {
+            fontSize: '16px',
+            color: '#888888',
+            fontStyle: 'italic'
+        }).setOrigin(0.5);
+        
+        // Auto-focus input after a short delay
+        this.time.delayedCall(500, () => {
+            nameInput.focus();
+        });
+    }
+    
+    proceedToCustomization(name) {
+        if (!name || !name.trim()) return;
+        
+        // Save name
+        gameState.data.player.name = name.trim();
+        gameState.saveGame();
+        
+        // Remove HTML input
+        if (this.nameInputElement && this.nameInputElement.parentElement) {
+            this.nameInputElement.parentElement.remove();
+        }
+        
+        // Remove resize listener
+        if (this.inputPositionUpdater) {
+            window.removeEventListener('resize', this.inputPositionUpdater);
+        }
+        
+        // Transition to customization
+        this.cameras.main.flash(300, 0, 255, 0);
+        this.cameras.main.fadeOut(500);
+        this.time.delayedCall(500, () => {
+            this.scene.start('CharacterCustomizationScene');
+        });
+    }
+    
+    shutdown() {
+        // Clean up HTML input when scene closes
+        const inputContainer = document.getElementById('name-input-container');
+        if (inputContainer) {
+            inputContainer.remove();
+        }
+        
+        // Remove resize listener
+        if (this.inputPositionUpdater) {
+            window.removeEventListener('resize', this.inputPositionUpdater);
+        }
+    }
+    
+    hideAllUI() {
         const uiElements = [
             'ui-overlay',
             'quest-tracker',
@@ -9560,7 +9948,7 @@ const config = {
             debug: false
         }
     },
-    scene: [IntroScene, BootScene, MainMenuScene, CharacterCustomizationScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
+    scene: [IntroScene, BootScene, MainMenuScene, NameInputScene, CharacterCustomizationScene, TutorialScene, HomeScene, CityScene, GymScene, CoffeeShopScene, ParkScene, RestaurantScene, CoworkingScene, LibraryScene, UniversityScene, ShopScene, JobInterviewScene, MentorScene, DatingScene, ConferenceRoomScene, HackathonScene, PetShopScene, MusicVenueScene, FitnessMinigameScene, CookingScene, NetworkingEventScene, VehicleShopScene, PrestigeScene, StatsDashboardScene, LeaderboardScene, ComputerMenuScene, SkillMinigameScene, MemoryGameScene, ReactionGameScene, QuizGameScene, EmailScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
