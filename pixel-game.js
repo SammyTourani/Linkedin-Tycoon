@@ -2684,14 +2684,19 @@ class CharacterCustomizationScene extends Phaser.Scene {
         this.characterPreview = this.add.sprite(previewX, previewY, 'player');
         this.characterPreview.setScale(6);
         
-        // Customization options
+        // Load existing customization or use defaults
+        const existing = gameState.data.player.customization || {};
         this.customization = {
-            skinTone: 0, // 0-4
-            hairColor: 0, // 0-5
-            hairStyle: 0, // 0-3
-            shirtColor: 0, // 0-6
-            pantsColor: 0 // 0-3
+            skinTone: existing.skinTone || 0,
+            hairColor: existing.hairColor || 0,
+            hairStyle: existing.hairStyle || 0,
+            shirtColor: existing.shirtColor || 0,
+            pantsColor: existing.pantsColor || 0
         };
+        
+        // Check if coming from wardrobe
+        const data = this.scene.settings.data;
+        this.fromWardrobe = data && data.fromWardrobe;
         
         // Options panel (left side)
         const optionsX = width/4;
@@ -2778,12 +2783,13 @@ class CharacterCustomizationScene extends Phaser.Scene {
             }
         });
         
-        // Start Game button
+        // Start Game / Save Changes button
         const startBtn = this.add.rectangle(width/2, height - 100, 400, 80, 0x00FF88);
         startBtn.setStrokeStyle(4, 0xFFFFFF);
         startBtn.setInteractive();
         
-        const startText = this.add.text(width/2, height - 100, '✅ START GAME', {
+        const buttonText = this.fromWardrobe ? '💾 SAVE CHANGES' : '✅ START GAME';
+        const startText = this.add.text(width/2, height - 100, buttonText, {
             fontSize: '32px',
             color: '#000000',
             fontStyle: 'bold'
@@ -2813,8 +2819,13 @@ class CharacterCustomizationScene extends Phaser.Scene {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
                 // Check if coming from wardrobe
-                const data = this.scene.settings.data;
-                if (data && data.fromWardrobe) {
+                if (this.fromWardrobe) {
+                    // Update player sprite in HomeScene
+                    const homeScene = this.scene.get('HomeScene');
+                    if (homeScene && homeScene.player) {
+                        SpriteGenerator.createCustomPlayerSprite(homeScene, this.customization);
+                        homeScene.player.setTexture('player');
+                    }
                     this.scene.resume('HomeScene');
                     this.scene.stop();
                 } else {
