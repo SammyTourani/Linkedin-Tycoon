@@ -456,47 +456,13 @@ class StoryManager {
         
         if (!overlay || !content) return;
         
-        const scale = this.getScaledPosition();
+        // No need to position overlay - CSS handles it with fixed fullscreen + flexbox
+        // Just ensure it's visible when called
+        // The overlay uses fixed positioning at 0,0 with 100vw/100vh
+        // Content is centered via flexbox in CSS
         
-        // Position overlay to match canvas exactly
-        overlay.style.left = `${scale.offsetX}px`;
-        overlay.style.top = `${scale.offsetY}px`;
-        overlay.style.width = `${scale.width}px`;
-        overlay.style.height = `${scale.height}px`;
-        
-        // Scale content box
-        const maxWidth = Math.min(600 * scale.scaleX, scale.width * 0.9);
-        const padding = Math.max(20, 40 * scale.scaleX);
-        const borderRadius = Math.max(8, 16 * scale.scaleX);
-        
-        content.style.maxWidth = `${maxWidth}px`;
-        content.style.padding = `${padding}px`;
-        content.style.borderRadius = `${borderRadius}px`;
-        
-        // Scale fonts
-        if (title) {
-            const titleSize = Math.max(16, 28 * scale.scaleX);
-            const titleMargin = Math.max(10, 20 * scale.scaleY);
-            title.style.fontSize = `${titleSize}px`;
-            title.style.marginBottom = `${titleMargin}px`;
-        }
-        
-        if (text) {
-            const textSize = Math.max(12, 16 * scale.scaleX);
-            const textMargin = Math.max(10, 20 * scale.scaleY);
-            text.style.fontSize = `${textSize}px`;
-            text.style.marginBottom = `${textMargin}px`;
-        }
-        
-        if (button) {
-            const btnSize = Math.max(12, 16 * scale.scaleX);
-            const btnPaddingY = Math.max(8, 12 * scale.scaleY);
-            const btnPaddingX = Math.max(16, 32 * scale.scaleX);
-            const btnRadius = Math.max(4, 8 * scale.scaleX);
-            button.style.fontSize = `${btnSize}px`;
-            button.style.padding = `${btnPaddingY}px ${btnPaddingX}px`;
-            button.style.borderRadius = `${btnRadius}px`;
-        }
+        // Only scale fonts for responsive design if needed
+        // For now, CSS handles all sizing with responsive units
     }
     
     triggerChapter(chapterNum) {
