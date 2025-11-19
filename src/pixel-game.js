@@ -463,14 +463,6 @@ class StoryManager {
         overlay.style.top = `${scale.offsetY}px`;
         overlay.style.width = `${scale.width}px`;
         overlay.style.height = `${scale.height}px`;
-        overlay.style.display = overlay.style.display; // Preserve display state
-        
-        // CRITICAL: Set display to flex for centering
-        if (overlay.style.display !== 'none') {
-            overlay.style.display = 'flex';
-        }
-        overlay.style.justifyContent = 'center';
-        overlay.style.alignItems = 'center';
         
         // Scale content box
         const maxWidth = Math.min(600 * scale.scaleX, scale.width * 0.9);
@@ -494,8 +486,6 @@ class StoryManager {
             const textMargin = Math.max(10, 20 * scale.scaleY);
             text.style.fontSize = `${textSize}px`;
             text.style.marginBottom = `${textMargin}px`;
-            text.style.textAlign = 'center'; // Force center alignment
-            text.style.lineHeight = '1.6';
         }
         
         if (button) {
@@ -526,13 +516,14 @@ class StoryManager {
         
         // Update position before showing
         this.updateStoryOverlayPosition();
-        overlay.style.display = 'flex';
+        overlay.classList.add('show');
         
         this.currentStory = index;
     }
 
     closeStory() {
-        document.getElementById('story-overlay').style.display = 'none';
+        const overlay = document.getElementById('story-overlay');
+        overlay.classList.remove('show');
     }
 }
 
@@ -1524,57 +1515,39 @@ class EncounterManager {
     showRandomEncounter(scene) {
         const encounter = Phaser.Math.RND.pick(this.encounters);
         
-        // Show encounter overlay
-        const width = scene.cameras.main.width;
-        const height = scene.cameras.main.height;
+        // Get HTML elements
+        const overlay = document.getElementById('encounter-overlay');
+        const title = document.getElementById('encounter-title');
+        const text = document.getElementById('encounter-text');
+        const choicesContainer = document.getElementById('encounter-choices');
         
-        // Dim background
-        const overlay = scene.add.rectangle(width/2, height/2, width, height, 0x000000, 0.8);
-        overlay.setDepth(1000);
+        if (!overlay || !title || !text || !choicesContainer) {
+            console.error('Encounter overlay elements not found');
+            return;
+        }
         
-        // Encounter box
-        const box = scene.add.rectangle(width/2, height/2, 700, 400, 0x1E3A8A);
-        box.setStrokeStyle(4, 0x00FF88);
-        box.setDepth(1001);
+        // Set content
+        title.textContent = `⚡ ${encounter.title}`;
+        text.textContent = encounter.text;
         
-        // Title
-        const title = scene.add.text(width/2, height/2 - 150, `⚡ ${encounter.title}`, {
-            fontSize: '28px',
-            color: '#FFD700',
-            fontStyle: 'bold'
-        }).setOrigin(0.5).setDepth(1002);
+        // Clear previous choices
+        choicesContainer.innerHTML = '';
         
-        // Text
-        const text = scene.add.text(width/2, height/2 - 60, encounter.text, {
-            fontSize: '18px',
-            color: '#FFFFFF',
-            align: 'center',
-            wordWrap: { width: 600 }
-        }).setOrigin(0.5).setDepth(1002);
-        
-        // Choice buttons
+        // Create choice buttons
         encounter.choices.forEach((choice, i) => {
-            const btnY = height/2 + 50 + i * 70;
+            const btn = document.createElement('button');
+            btn.className = 'encounter-choice-btn';
+            btn.textContent = choice.text;
             
-            const btn = scene.add.rectangle(width/2, btnY, 600, 60, 0x0A66C2);
-            btn.setStrokeStyle(2, 0xFFFFFF);
-            btn.setInteractive();
-            btn.setDepth(1002);
+            // Add cost/energy info if applicable
+            if (choice.cost) {
+                btn.textContent += ` (💰 ${choice.cost} coins)`;
+            }
+            if (choice.energyCost) {
+                btn.textContent += ` (⚡ ${choice.energyCost} energy)`;
+            }
             
-            const btnText = scene.add.text(width/2, btnY, choice.text, {
-                fontSize: '16px',
-                color: '#FFFFFF'
-            }).setOrigin(0.5).setDepth(1003);
-            
-            btn.on('pointerover', () => {
-                btn.setFillStyle(0x0E7FE8);
-            });
-            
-            btn.on('pointerout', () => {
-                btn.setFillStyle(0x0A66C2);
-            });
-            
-            btn.on('pointerdown', () => {
+            btn.onclick = () => {
                 // Check costs
                 if (choice.cost && gameState.data.player.coins < choice.cost) {
                     showNotification('💰 Not enough coins!');
@@ -1602,27 +1575,23 @@ class EncounterManager {
                 
                 gameState.data.player.encountersCompleted++;
                 
+                // Show notification and effects
                 showNotification('✨ Encounter resolved! Rewards received');
-                scene.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
+                if (scene && scene.cameras && scene.cameras.main) {
+                    scene.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
+                }
                 updateUI();
                 achievementManager.checkAll();
                 
-                // Remove overlay
-                overlay.destroy();
-                box.destroy();
-                title.destroy();
-                text.destroy();
-                btn.destroy();
-                btnText.destroy();
-                
-                // Clean up other buttons
-                encounter.choices.forEach((_, j) => {
-                    if (j !== i && scene.children.list[scene.children.list.length - 1 - (encounter.choices.length - j - 1) * 2]) {
-                        // Would need to track and destroy properly
-                    }
-                });
-            });
+                // Hide overlay
+                overlay.classList.remove('show');
+            };
+            
+            choicesContainer.appendChild(btn);
         });
+        
+        // Show overlay
+        overlay.classList.add('show');
     }
 }
 
