@@ -237,6 +237,9 @@
             display: none;
             z-index: 15000;
             animation: fadeIn 0.5s;
+            /* Flex container for perfect centering */
+            justify-content: center;
+            align-items: center;
             /* Position and size will be set dynamically via JavaScript */
         }
 
@@ -245,6 +248,8 @@
             text-align: center;
             border: 4px solid #00ff88;
             box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            /* Ensure content is centered within the overlay */
+            margin: auto;
             /* Padding, border-radius, max-width will be set dynamically */
         }
 

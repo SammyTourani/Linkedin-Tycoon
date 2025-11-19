@@ -464,6 +464,11 @@ class StoryManager {
         overlay.style.width = `${scale.width}px`;
         overlay.style.height = `${scale.height}px`;
         overlay.style.display = overlay.style.display; // Preserve display state
+        
+        // CRITICAL: Set display to flex for centering
+        if (overlay.style.display !== 'none') {
+            overlay.style.display = 'flex';
+        }
         overlay.style.justifyContent = 'center';
         overlay.style.alignItems = 'center';
         
@@ -489,6 +494,8 @@ class StoryManager {
             const textMargin = Math.max(10, 20 * scale.scaleY);
             text.style.fontSize = `${textSize}px`;
             text.style.marginBottom = `${textMargin}px`;
+            text.style.textAlign = 'center'; // Force center alignment
+            text.style.lineHeight = '1.6';
         }
         
         if (button) {
@@ -3438,8 +3445,10 @@ class MainMenuScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         
-        // HIDE ALL UI ELEMENTS
+        // HIDE ALL UI ELEMENTS INCLUDING FULLSCREEN BUTTON
         this.hideAllUI();
+        const fsButton = document.getElementById('fullscreen-toggle');
+        if (fsButton) fsButton.style.display = 'none';
         
         // Update sound manager scene reference and play music
         if (globalSoundManager) {
@@ -3722,8 +3731,10 @@ class NameInputScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         
-        // HIDE ALL UI
+        // HIDE ALL UI INCLUDING FULLSCREEN BUTTON
         this.hideAllUI();
+        const fsButton = document.getElementById('fullscreen-toggle');
+        if (fsButton) fsButton.style.display = 'none';
         
         // Update sound manager scene reference
         if (globalSoundManager) {
@@ -4339,8 +4350,10 @@ class CharacterCustomizationScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         
-        // HIDE ALL UI
+        // HIDE ALL UI INCLUDING FULLSCREEN BUTTON
         this.hideAllUI();
+        const fsButton = document.getElementById('fullscreen-toggle');
+        if (fsButton) fsButton.style.display = 'none';
         
         // Fade in from black (in case we're transitioning from another scene)
         this.cameras.main.fadeIn(500);
@@ -4892,8 +4905,10 @@ class TutorialScene extends Phaser.Scene {
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
         
-        // SHOW UI - Game has started!
+        // SHOW UI - Game has started! NOW show fullscreen button
         showAllUI();
+        const fsButton = document.getElementById('fullscreen-toggle');
+        if (fsButton) fsButton.style.display = 'flex';
         updateUI();
         
         // Tutorial stage
