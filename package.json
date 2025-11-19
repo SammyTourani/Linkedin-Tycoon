@@ -1,27 +1,39 @@
 {
   "name": "linkedin-tycoon",
-  "version": "1.0.0",
-  "description": "**Build Your Professional Empire!**",
-  "main": "game.js",
+  "version": "2.0.0",
+  "description": "🔷 LinkedIn Tycoon - Build Your Professional Empire! An immersive pixel-art career simulation RPG game.",
+  "main": "index.html",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SammyTourani/Linkedin-Tycoon.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "game",
+    "linkedin",
+    "rpg",
+    "phaser",
+    "simulation",
+    "career",
+    "tycoon",
+    "pixel-art",
+    "networking",
+    "incremental"
+  ],
+  "author": "Sammy Tourani",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/SammyTourani/Linkedin-Tycoon/issues"
   },
-  "homepage": "https://github.com/SammyTourani/Linkedin-Tycoon#readme",
+  "homepage": "https://sammytourani.github.io/Linkedin-Tycoon/",
   "devDependencies": {
+    "gh-pages": "^6.2.0",
     "vite": "^7.2.2"
   },
   "dependencies": {

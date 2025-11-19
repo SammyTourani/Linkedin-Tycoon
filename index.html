@@ -12,353 +12,533 @@
         }
 
         body {
+            background: #0a0a0a;
+            margin: 0;
+            padding: 0;
             font-family: 'Courier New', monospace;
-            background-color: #1a1a2e;
-            color: #00ff88;
             overflow: hidden;
         }
 
         #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #fff;
-            font-size: 24px;
-            text-align: center;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        /* UI Overlays */
-        #ui-overlay {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #0a66c2;
-            border-radius: 10px;
-            padding: 15px;
-            font-size: 14px;
-            color: #fff;
-            z-index: 1000;
-            pointer-events: auto;
-        }
-
-        #player-name {
-            font-weight: bold;
-            color: #00ff88;
-            margin-bottom: 5px;
-        }
-
-        #player-title {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 10px;
-        }
-
-        #level-display {
-            font-weight: bold;
-            color: #ffd700;
-        }
-
-        #energy-display {
-            color: #ff6b6b;
-        }
-
-        #coins-display {
-            color: #ffd700;
-        }
-
-        #network-display {
-            color: #00d9ff;
-        }
-
-        #quest-tracker {
-            position: fixed;
-            top: 10px;
-            left: 250px;
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #00ff88;
-            border-radius: 10px;
-            padding: 10px;
-            min-width: 200px;
-            z-index: 1000;
-            pointer-events: auto;
-        }
-
-        .quest-item {
-            margin-bottom: 5px;
-            font-size: 11px;
-            color: #00ff88;
-        }
-
-        #time-weather {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #4169e1;
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            z-index: 1000;
-        }
-
-        #game-time, #game-weather {
-            display: block;
-            font-size: 12px;
-        }
-
-        /* UI Buttons */
-        .ui-button {
-            position: fixed;
-            width: 50px;
-            height: 50px;
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #0a66c2;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .ui-button:hover {
-            background: rgba(26, 26, 46, 1);
-            border-color: #0e7fe8;
-            transform: scale(1.1);
-        }
-
-        #inventory-button {
-            bottom: 70px;
-            right: 70px;
-        }
-
-        #email-button {
-            bottom: 70px;
-            right: 130px;
-        }
-
-        #phone-button {
-            bottom: 70px;
-            right: 190px;
-        }
-
-        #leaderboard-button {
-            bottom: 130px;
-            right: 70px;
-        }
-
-        /* Interaction Prompt */
-        #interaction-prompt {
-            position: fixed;
-            bottom: 150px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 255, 136, 0.9);
-            color: #000;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 16px;
-            animation: pulse 1s infinite;
-            z-index: 1000;
-        }
-
-        @keyframes pulse {
-            0% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.05); }
-            100% { transform: translateX(-50%) scale(1); }
-        }
-
-        /* Notification */
-        #notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(26, 26, 46, 0.95);
-            border: 2px solid #ffd700;
-            border-radius: 10px;
-            padding: 20px;
-            font-size: 16px;
-            color: #fff;
-            text-align: center;
-            max-width: 400px;
-            z-index: 2000;
-            display: none;
-        }
-
-        /* Achievement Popup */
-        #achievement-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #ffd700, #ff6b6b);
-            border: 3px solid #fff;
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            font-size: 24px;
-            color: #000;
-            font-weight: bold;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-            z-index: 3000;
-            display: none;
-            animation: achievement 0.5s ease-in-out;
-        }
-
-        @keyframes achievement {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1); }
-        }
-
-        .show {
-            animation: achievementDie 1s ease-in-out;
-        }
-
-        @keyframes achievementDie {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-        }
-
-        #achievement-text {
-            font-size: 28px;
-        }
-
-        /* Dialogue Box */
-        #dialogue-box {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 800px;
-            background: rgba(26, 26, 46, 0.95);
-            border: 3px solid #00ff88;
-            border-radius: 15px;
-            padding: 20px;
-            z-index: 1500;
-            display: none;
-        }
-
-        #dialogue-speaker {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffd700;
-            margin-bottom: 10px;
-        }
-
-        #dialogue-text {
-            font-size: 16px;
-            color: #ffffff;
-            margin-bottom: 20px;
-            min-height: 60px;
-        }
-
-        #dialogue-choices {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .dialogue-choice {
-            background: #0a66c2;
-            border: 2px solid #ffffff;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: #ffffff;
-        }
-
-        .dialogue-choice:hover {
-            background: #0e7fe8;
-            transform: translateY(-2px);
-        }
-
-        /* Story Overlay */
-        #story-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2500;
         }
 
-        #story-content {
-            background: rgba(26, 26, 46, 0.95);
-            border: 3px solid #ffd700;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
+        #game-container canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1vw;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+            color: white;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat-group {
+            display: flex;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #0a66c2;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .player-info {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #0a66c2;
+        }
+
+        .player-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00d9ff;
+        }
+
+        .player-level {
+            font-size: 10px;
+            color: #ffd700;
+        }
+
+        #interaction-prompt {
+            position: fixed;
+            bottom: 32vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #00ff88;
+            font-size: 14px;
+            display: none;
+            z-index: 10001;
+            animation: bounce 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        #notification {
+            position: fixed;
+            top: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 102, 194, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            z-index: 10002;
+            animation: slideDown 0.3s ease-out;
+            max-width: 400px;
             text-align: center;
         }
 
-        #story-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #ffd700;
-            margin-bottom: 20px;
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
         }
 
-        #story-text {
-            font-size: 18px;
-            color: #ffffff;
-            line-height: 1.6;
-            margin-bottom: 30px;
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0D1B2A;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #00ff88;
+            font-size: 24px;
+            text-align: center;
+            z-index: 9999;
         }
 
-        #story-continue {
-            background: #00ff88;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #fullscreen-toggle {
+            position: fixed;
+            top: 1vh;
+            right: 1vw;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            border: 2px solid #0a66c2;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 18px;
+            z-index: 10003;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            min-width: 40px;
+            min-height: 40px;
+        }
+
+        #fullscreen-toggle:hover {
+            background: rgba(10, 102, 194, 0.9);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(10, 102, 194, 0.5);
+        }
+        
+        #fullscreen-toggle:active {
+            transform: scale(0.95);
+        }
+        
+        /* Ensure fullscreen button stays visible in fullscreen mode */
+        #game-container:fullscreen #fullscreen-toggle,
+        #game-container:-webkit-full-screen #fullscreen-toggle,
+        #game-container:-moz-full-screen #fullscreen-toggle,
+        #game-container:-ms-fullscreen #fullscreen-toggle {
+            display: flex !important;
+            z-index: 10003 !important;
+        }
+        
+        /* Ensure all UI elements remain visible in fullscreen */
+        #game-container:fullscreen .ui-button,
+        #game-container:-webkit-full-screen .ui-button,
+        #game-container:-moz-full-screen .ui-button,
+        #game-container:-ms-fullscreen .ui-button {
+            position: fixed !important;
+            z-index: 10003 !important;
+        }
+
+        #story-overlay {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            z-index: 15000;
+            animation: fadeIn 0.5s;
+            /* Position and size will be set dynamically via JavaScript */
+        }
+
+        #story-content {
+            background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+            text-align: center;
+            border: 4px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            /* Padding, border-radius, max-width will be set dynamically */
+        }
+
+        #story-content h2 {
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            /* Font size and margin will be set dynamically */
+        }
+
+        #story-content p {
+            color: white;
+            line-height: 1.8;
+            /* Font size and margin will be set dynamically */
+        }
+
+        #story-content button {
+            background: #00ff88;
             color: #000;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            /* Padding, font-size, border-radius will be set dynamically */
         }
 
-        #story-continue:hover {
-            background: #00cc66;
+        #story-content button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
         }
 
-        /* Customization Menu */
-        #customization-menu, #skill-tree-menu {
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #dialogue-box {
+            position: fixed;
+            bottom: 12vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            border: 3px solid #0a66c2;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 600px;
+            width: 90%;
+            display: none;
+            z-index: 10500;
+            box-shadow: 0 0 30px rgba(10, 102, 194, 0.5);
+        }
+
+        #dialogue-speaker {
+            color: #00ff88;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+
+        #dialogue-text {
+            color: white;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            min-height: 60px;
+        }
+        
+        #dialogue-skip-hint {
+            color: #888;
+            font-size: 12px;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        #dialogue-choices {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .dialogue-choice {
+            background: #0a66c2;
+            color: white;
+            border: 2px solid #00ff88;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .dialogue-choice:hover {
+            background: #00ff88;
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        #quest-tracker {
+            position: fixed;
+            top: 12vh;
+            right: 2vw;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            padding: 12px;
+            max-width: 250px;
+            display: none;
+            z-index: 10001;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #quest-tracker h3 {
+            color: #FFD700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .quest-item {
+            color: white;
+            font-size: 12px;
+            margin: 8px 0;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .quest-item::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+        }
+
+        .quest-item.completed::before {
+            content: "✓";
+            color: #FFD700;
+        }
+
+        #achievement-popup {
+            position: fixed;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: 4px solid #FFFFFF;
+            text-align: center;
+            z-index: 15000;
+            display: none;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+            /* Position, size, padding, border-radius will be set dynamically */
+        }
+
+        #achievement-popup.show {
+            display: block;
+            animation: achievementPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes achievementPop {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        #achievement-popup h2 {
+            color: #000;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+            /* Font size and margin will be set dynamically */
+        }
+
+        #achievement-popup p {
+            color: #333;
+            font-weight: bold;
+            /* Font size will be set dynamically */
+        }
+
+        #controls-hint {
+            position: fixed;
+            bottom: 22vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10001;
+            display: none;
+        }
+
+        .ui-button {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 2px solid #0a66c2;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 10003;
+            transition: all 0.3s;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .ui-button:hover {
+            background: #0a66c2;
+            transform: scale(1.05);
+        }
+
+        #inventory-button { bottom: 2vh; left: 2vw; }
+        #email-button { bottom: 2vh; left: calc(2vw + 180px); }
+        #phone-button { bottom: 2vh; left: calc(2vw + 400px); }
+        #leaderboard-button { bottom: calc(2vh + 70px); left: 2vw; }
+
+        #inventory-menu, #phone-ui, #customization-menu, #skill-tree-menu {
+            display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80%;
-            max-width: 900px;
-            height: 80%;
-            max-height: 700px;
-            background: rgba(26, 26, 46, 0.95);
-            border: 3px solid #0a66c2;
-            border-radius: 20px;
-            padding: 30px;
-            z-index: 2000;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            border: 4px solid #00ff88;
+            z-index: 15000;
+            max-width: 700px;
+            min-width: 600px;
+            max-height: 80vh;
             overflow-y: auto;
+        }
+
+        #phone-ui {
+            background: #000;
+            border: 8px solid #2C2C2C;
+            border-radius: 30px;
+            width: 400px;
+            height: 700px;
+            min-width: 400px;
+        }
+
+        #mini-map {
+            position: fixed;
+            bottom: 2vh;
+            right: 2vw;
+            width: 200px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #0a66c2;
+            border-radius: 8px;
+            z-index: 10001;
             display: none;
+            pointer-events: none;
+        }
+
+        #mini-map canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+        }
+
+        .menu-button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .menu-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+
+        .menu-button.secondary {
+            background: #0a66c2;
+            color: white;
+        }
+
+        .menu-button.secondary:hover {
+            background: #0e7fe8;
         }
 
         .customization-row {
@@ -402,275 +582,124 @@
             color: #00ff88;
         }
 
-        .preview-section {
-            display: flex;
-            justify-content: center;
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-        }
-
-        .character-preview {
-            font-size: 120px;
-            text-align: center;
-        }
-
-        .save-customization {
-            background: #00ff88;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            color: #000;
-            margin-top: 30px;
-        }
-
-        .save-customization:hover {
-            background: #00cc66;
-        }
-
-        /* Controls Hint */
-        #controls-hint {
-            position: fixed;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #ffd700;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            max-width: 400px;
-            z-index: 1000;
-            display: none;
-            animation: fadeIn 1s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
             #ui-overlay {
-                top: 5px;
-                left: 5px;
-                padding: 10px;
+                padding: 0.5vh 0.5vw;
                 font-size: 12px;
             }
 
-            #quest-tracker {
-                left: 200px;
-                top: 5px;
-                min-width: 150px;
-            }
-
-            #time-weather {
-                top: 5px;
-                right: 5px;
-                padding: 8px;
-                font-size: 11px;
+            .stat-group {
+                gap: 10px;
+                padding: 6px 12px;
             }
 
             .ui-button {
-                width: 45px;
-                height: 45px;
-                font-size: 16px;
+                padding: 8px 16px;
+                font-size: 12px;
             }
 
-            #interaction-prompt {
-                bottom: 120px;
-                padding: 12px 20px;
-                font-size: 14px;
-            }
-
-            #achievement-popup {
+            #inventory-menu, #phone-ui, #customization-menu, #skill-tree-menu {
+                min-width: 90vw;
+                max-width: 95vw;
                 padding: 20px;
-                font-size: 20px;
             }
-
-            #dialogue-box {
-                width: 95%;
-                bottom: 10px;
-            }
-        }
-
-        /* Fullscreen Toggle Button */
-        #fullscreen-toggle {
-            position: fixed;
-            top: 10px;
-            right: 170px;
-            background: rgba(26, 26, 46, 0.9);
-            border: 2px solid #4169e1;
-            border-radius: 10px;
-            padding: 10px 15px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            z-index: 1000;
-            display: block;
-        }
-
-        #fullscreen-toggle:hover {
-            background: rgba(26, 26, 46, 1);
-            border-color: #6495ed;
         }
     </style>
 </head>
 <body>
-    <!-- Game Container -->
     <div id="game-container">
+        <button id="fullscreen-toggle" title="Toggle Fullscreen">⛶</button>
+        
+        <div id="ui-overlay">
+            <div class="player-info">
+                <div class="player-name" id="player-name">Alex Developer</div>
+                <div class="player-level" id="player-title">Junior Software Engineer</div>
+            </div>
+            <div class="stat-group">
+                <div class="stat">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="level-display">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">⚡ Energy</span>
+                    <span class="stat-value" id="energy-display">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">💰 Coins</span>
+                    <span class="stat-value" id="coins-display">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">🤝 Network</span>
+                    <span class="stat-value" id="network-display">5</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">💼 Items</span>
+                    <span class="stat-value" id="inventory-count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <button id="inventory-button" class="ui-button">
+            <span style="font-size: 18px;">🎒</span>
+            <span>Inventory (I)</span>
+        </button>
+        <button id="email-button" class="ui-button">
+            <span style="font-size: 18px;">📧</span>
+            <span>Messages (<span id="email-count">0</span>)</span>
+        </button>
+        <button id="phone-button" class="ui-button">
+            <span style="font-size: 18px;">📱</span>
+            <span>Phone (P)</span>
+        </button>
+        <button id="leaderboard-button" class="ui-button">
+            <span style="font-size: 18px;">🏆</span>
+            <span>Leaderboard (L)</span>
+        </button>
+
+        <div id="interaction-prompt">Press E to interact</div>
+        <div id="notification"></div>
         <div id="loading">
             Loading LinkedIn Tycoon...<br>
+            <div class="spinner"></div>
             <small>Build Your Professional Empire</small>
         </div>
 
-        <!-- UI Overlay -->
-        <div id="ui-overlay">
-            <div id="player-name">Alex Developer</div>
-            <div id="player-title">Junior Software Engineer</div>
-            <div class="stat">Lv. <span id="level-display">1</span> | ⚡ <span id="energy-display">100</span> | 💰 <span id="coins-display">0</span> | 🤝 <span id="network-display">5</span></div>
-        </div>
-
-        <!-- Quest Tracker -->
-        <div id="quest-tracker">
-            <div style="font-size: 12px; color: #00ff88; margin-bottom: 5px;">🎯 Active Quests:</div>
-            <div id="quest-list">
-                <div class="quest-item">Complete tutorials</div>
-                <div class="quest-item">Make first connection</div>
-            </div>
-        </div>
-
-        <!-- Time Weather Display -->
-        <div id="time-weather">
-            <div id="game-time">☀️ Morning</div>
-            <div id="game-weather">☀️ Sunny</div>
-        </div>
-
-        <!-- UI Buttons -->
-        <div id="inventory-button" class="ui-button" title="Inventory">
-            <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">🎒</span>
-        </div>
-        <div id="email-button" class="ui-button" title="Emails">
-            <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">📧</span>
-        </div>
-        <div id="phone-button" class="ui-button" title="Phone/Dial">
-            <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">📱</span>
-        </div>
-        <div id="leaderboard-button" class="ui-button" title="Leaderboard">
-            <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">🏆</span>
-        </div>
-
-        <!-- Fullscreen Toggle -->
-        <button id="fullscreen-toggle" onclick="toggleFullscreen()">🖥️ Fullscreen</button>
-
-        <!-- Interaction Prompt -->
-        <div id="interaction-prompt">Press E to interact</div>
-
-        <!-- Notification -->
-        <div id="notification">Welcome to LinkedIn Tycoon!</div>
-
-        <!-- Achievement Popup -->
-        <div id="achievement-popup">
-            <div id="achievement-text">🎉 Achievement Unlocked!</div>
-        </div>
-
-        <!-- Dialogue Box -->
-        <div id="dialogue-box">
-            <div id="dialogue-speaker">Character</div>
-            <div id="dialogue-text">Hello! Welcome to LinkedIn Tycoon. This is your story-driven RPG where you build your professional empire through networking, learning, and growing your career.</div>
-            <div id="dialogue-choices">
-                <button class="dialogue-choice">Yes! Let me build my empire</button>
-            </div>
-        </div>
-
-        <!-- Story Overlay -->
         <div id="story-overlay">
             <div id="story-content">
-                <div id="story-title">📖 Your Story</div>
-                <div id="story-text">Every journey begins with a single step. Your LinkedIn journey starts now. Build connections, share your story, and grow your influence.</div>
-                <button id="story-continue">Begin Your Journey</button>
+                <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
+                <p id="story-text">Your journey begins here...</p>
+                <button id="story-continue">Continue</button>
             </div>
         </div>
 
-        <!-- Customization Menu -->
-        <div id="customization-menu">
-            <h2 style="color: #0a66c2; text-align: center; margin-bottom: 30px;">👤 Character Customization</h2>
-            <div id="customization-options">
-                <!-- Options will be populated by JavaScript -->
-            </div>
+        <div id="dialogue-box">
+            <div id="dialogue-speaker">NPC Name</div>
+            <div id="dialogue-text">Dialogue text goes here...</div>
+            <div id="dialogue-skip-hint">Press Q to skip typing</div>
+            <div id="dialogue-choices"></div>
         </div>
 
-        <!-- Skill Tree Menu -->
-        <div id="skill-tree-menu">
-            <h2 style="color: #00ff88; text-align: center; margin-bottom: 30px;">🌳 Skill Tree</h2>
-            <div class="skill-tree">
-                <div class="skill-section">
-                    <h3>JavaScript</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" id="skill-js-bar"></div>
-                    </div>
-                    <span class="skill-level" id="skill-js">Lvl 0</span>
-                </div>
-                <div class="skill-section">
-                    <h3>Python</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" id="skill-python-bar"></div>
-                    </div>
-                    <span class="skill-level" id="skill-python">Lvl 0</span>
-                </div>
-                <div class="skill-section">
-                    <h3>Leadership</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" id="skill-leadership-bar"></div>
-                    </div>
-                    <span class="skill-level" id="skill-leadership">Lvl 0</span>
-                </div>
-                <div class="skill-section">
-                    <h3>Communication</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" id="skill-comm-bar"></div>
-                    </div>
-                    <span class="skill-level" id="skill-comm">Lvl 0</span>
-                </div>
-                <div class="skill-section">
-                    <h3>Content Creation</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" id="skill-content-bar"></div>
-                    </div>
-                    <span class="skill-level" id="skill-content">Lvl 0</span>
-                </div>
-                <div class="skill-section">
-                    <h3>SEO & Marketing</h3>
-                    <div class="skill-bar">
-                        <div class="skill-progress" id="skill-seo-bar"></div>
-                    </div>
-                    <span class="skill-level" id="skill-seo">Lvl 0</span>
-                </div>
-            </div>
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="save-customization" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close</button>
-            </div>
+        <div id="quest-tracker">
+            <h3>📋 Current Objectives</h3>
+            <div id="quest-list"></div>
         </div>
 
-        <!-- Controls Hint -->
+        <div id="achievement-popup">
+            <h2>🏆 ACHIEVEMENT UNLOCKED!</h2>
+            <p id="achievement-text"></p>
+        </div>
+
         <div id="controls-hint">
-            <strong>🎮 Controls:</strong><br>
-            WASD or Arrow Keys = Move<br>
-            E = Interact<br>
-            ESC = Close menus
+            WASD/Arrows: Move | E: Interact | ESC: Close Menus
         </div>
 
-        <!-- Inventory Menu -->
-        <div id="inventory-menu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); padding: 40px; border-radius: 16px; border: 4px solid #00ff88; z-index: 2500; max-width: 700px; min-width: 600px;">
+        <div id="mini-map">
+            <canvas id="minimap-canvas"></canvas>
+        </div>
+
+        <div id="inventory-menu">
             <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px;">🎒 INVENTORY</h2>
-            <div id="inventory-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
-                <!-- Items will be added here dynamically -->
-            </div>
+            <div id="inventory-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;"></div>
             <div style="margin-top: 20px; padding: 15px; background: rgba(10, 102, 194, 0.3); border-radius: 8px;">
                 <h3 style="color: #00d9ff; margin-bottom: 10px;">📦 Equipment</h3>
                 <div style="color: white;">
@@ -680,11 +709,10 @@
                     <p>👔 Outfit: <span id="equipped-outfit">Default</span></p>
                 </div>
             </div>
-            <button style="margin-top: 20px; width: 100%; background: #00ff88; color: #000; border: none; padding: 12px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer;" onclick="document.getElementById('inventory-menu').style.display='none'">Close Inventory</button>
+            <button class="menu-button" onclick="document.getElementById('inventory-menu').style.display='none'">Close Inventory</button>
         </div>
 
-        <!-- Phone UI -->
-        <div id="phone-ui" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; padding: 20px; border-radius: 30px; border: 8px solid #2C2C2C; z-index: 2500; width: 400px; height: 700px; box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);">
+        <div id="phone-ui">
             <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #0a66c2; border-radius: 20px;">
                 <h2 style="color: white; margin: 0; font-size: 20px;">📱 My Phone</h2>
                 <div style="color: #00ff88; font-size: 12px; margin-top: 5px;"><span id="phone-time">12:00 PM</span></div>
@@ -694,43 +722,199 @@
                     <div style="font-size: 40px;">💼</div>
                     <div style="color: white; font-size: 12px; margin-top: 5px;">LinkedIn</div>
                 </button>
-                <button class="phone-app" onclick="openPhoneApp('messages')" style="background: #00d9ff; border: none; padding: 20px; border-radius: 15px; cursor: pointer;">
+                <button class="phone-app" onclick="openPhoneApp('messages')" style="background: #00d9ff; border: none; padding: 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s;">
                     <div style="font-size: 40px;">📧</div>
                     <div style="color: white; font-size: 12px; margin-top: 5px;">Messages</div>
                 </button>
-                <button class="phone-app" onclick="openPhoneApp('calendar')" style="background: #ff6b6b; border: none; padding: 20px; border-radius: 15px; cursor: pointer;">
-                    <div style="font-size: 40px;">📅</div>
-                    <div style="color: white; font-size: 12px; margin-top: 5px;">Calendar</div>
-                </button>
-                <button class="phone-app" onclick="openPhoneApp('contacts')" style="background: #00ff88; border: none; padding: 20px; border-radius: 15px; cursor: pointer;">
-                    <div style="font-size: 40px;">👥</div>
-                    <div style="color: white; font-size: 12px; margin-top: 5px;">Contacts</div>
-                </button>
-                <button class="phone-app" onclick="openPhoneApp('stats')" style="background: #ffd700; border: none; padding: 20px; border-radius: 15px; cursor: pointer;">
+                <button class="phone-app" onclick="openPhoneApp('stats')" style="background: #ffd700; border: none; padding: 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s;">
                     <div style="font-size: 40px;">📊</div>
                     <div style="color: white; font-size: 12px; margin-top: 5px;">Stats</div>
                 </button>
-                <button class="phone-app" onclick="openPhoneApp('shop')" style="background: #ff00ff; border: none; padding: 20px; border-radius: 15px; cursor: pointer;">
+                <button class="phone-app" onclick="openPhoneApp('calendar')" style="background: #ff6b6b; border: none; padding: 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 40px;">📅</div>
+                    <div style="color: white; font-size: 12px; margin-top: 5px;">Calendar</div>
+                </button>
+                <button class="phone-app" onclick="openPhoneApp('contacts')" style="background: #00ff88; border: none; padding: 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 40px;">👥</div>
+                    <div style="color: white; font-size: 12px; margin-top: 5px;">Contacts</div>
+                </button>
+                <button class="phone-app" onclick="openPhoneApp('dashboard')" style="background: #9b59b6; border: none; padding: 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s;">
+                    <div style="font-size: 40px;">💻</div>
+                    <div style="color: white; font-size: 12px; margin-top: 5px;">Dashboard</div>
+                </button>
+                <button class="phone-app" onclick="openPhoneApp('shop')" style="background: #ff00ff; border: none; padding: 20px; border-radius: 15px; cursor: pointer; transition: all 0.3s;">
                     <div style="font-size: 40px;">🛍️</div>
                     <div style="color: white; font-size: 12px; margin-top: 5px;">Shop</div>
                 </button>
             </div>
             <button style="margin-top: 20px; width: calc(100% - 40px); background: #ff6b6b; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 15px; cursor: pointer; margin-left: 20px;" onclick="document.getElementById('phone-ui').style.display='none'">Close Phone</button>
         </div>
+
+        <div id="customization-menu">
+            <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px; font-size: 24px;">👤 Character Customization</h2>
+            <div id="customization-options"></div>
+            <button class="menu-button" onclick="document.getElementById('customization-menu').style.display='none'">Close</button>
+        </div>
+
+        <div id="skill-tree-menu">
+            <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px; font-size: 24px;">🌳 Skill Tree</h2>
+            <div id="skill-tree-content"></div>
+            <button class="menu-button" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close</button>
+        </div>
     </div>
 
-    <!-- Helper Functions -->
     <script>
-        // Helper function for notifications
+        // Global helper functions
+        window.hideLoadingScreen = function() {
+            const loading = document.getElementById('loading');
+            if (loading) {
+                loading.style.transition = 'opacity 0.5s';
+                loading.style.opacity = '0';
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                }, 500);
+            }
+        };
+
+        window.showUI = function() {
+            document.getElementById('ui-overlay').style.display = 'flex';
+            document.getElementById('fullscreen-toggle').style.display = 'flex';
+            document.getElementById('inventory-button').style.display = 'flex';
+            document.getElementById('email-button').style.display = 'flex';
+            document.getElementById('phone-button').style.display = 'flex';
+            document.getElementById('leaderboard-button').style.display = 'flex';
+        };
+
+        // UI Helper Functions
         function showNotification(message) {
             const notif = document.getElementById('notification');
             if (notif) {
                 notif.textContent = message;
                 notif.style.display = 'block';
+                setTimeout(() => notif.style.display = 'none', 3000);
+            }
+        }
+
+        function getScaledAchievementPosition() {
+            const canvas = document.querySelector('#game-container canvas');
+            if (!canvas || !window.game || !window.game.scene || !window.game.scene.scenes[0]) {
+                return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, width: window.innerWidth, height: window.innerHeight };
+            }
+            
+            const canvasRect = canvas.getBoundingClientRect();
+            const scene = window.game.scene.scenes.find(s => s.cameras && s.cameras.main);
+            if (!scene || !scene.cameras || !scene.cameras.main) {
+                return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, width: window.innerWidth, height: window.innerHeight };
+            }
+            
+            const camera = scene.cameras.main;
+            const scaleX = canvasRect.width / camera.width;
+            const scaleY = canvasRect.height / camera.height;
+            
+            return {
+                scaleX,
+                scaleY,
+                offsetX: canvasRect.left,
+                offsetY: canvasRect.top,
+                width: canvasRect.width,
+                height: canvasRect.height
+            };
+        }
+
+        function updateAchievementPosition() {
+            const popup = document.getElementById('achievement-popup');
+            const title = popup?.querySelector('h2');
+            const text = popup?.querySelector('p');
+            
+            if (!popup) return;
+            
+            const scale = getScaledAchievementPosition();
+            
+            // Calculate scaled dimensions
+            const padding = Math.max(15, 30 * scale.scaleX);
+            const borderRadius = Math.max(8, 16 * scale.scaleX);
+            const borderWidth = Math.max(2, 4 * scale.scaleX);
+            
+            // Position in center of canvas
+            const popupWidth = Math.min(400 * scale.scaleX, scale.width * 0.8);
+            const popupHeight = Math.min(150 * scale.scaleY, scale.height * 0.3);
+            const left = scale.offsetX + (scale.width - popupWidth) / 2;
+            const top = scale.offsetY + (scale.height - popupHeight) / 2;
+            
+            popup.style.left = `${left}px`;
+            popup.style.top = `${top}px`;
+            popup.style.width = `${popupWidth}px`;
+            popup.style.minHeight = `${popupHeight}px`;
+            popup.style.padding = `${padding}px`;
+            popup.style.borderRadius = `${borderRadius}px`;
+            popup.style.borderWidth = `${borderWidth}px`;
+            
+            // Scale fonts
+            if (title) {
+                const titleSize = Math.max(14, 24 * scale.scaleX);
+                const titleMargin = Math.max(5, 10 * scale.scaleY);
+                title.style.fontSize = `${titleSize}px`;
+                title.style.marginBottom = `${titleMargin}px`;
+            }
+            
+            if (text) {
+                const textSize = Math.max(12, 18 * scale.scaleX);
+                text.style.fontSize = `${textSize}px`;
+            }
+        }
+
+        function showAchievement(title) {
+            const popup = document.getElementById('achievement-popup');
+            const text = document.getElementById('achievement-text');
+            if (popup && text) {
+                text.textContent = title;
+                updateAchievementPosition();
+                popup.classList.add('show');
+                popup.style.display = 'block';
+                
+                // Register with global coordinate system while visible
+                if (window.coordSystem) {
+                    window.coordSystem.register('achievement-popup', 960, 540, 400, 150, updateAchievementPosition);
+                }
+                
                 setTimeout(() => {
-                    notif.style.display = 'none';
+                    popup.classList.remove('show');
+                    setTimeout(() => {
+                        popup.style.display = 'none';
+                        // Unregister when hidden
+                        if (window.coordSystem) {
+                            window.coordSystem.unregister('achievement-popup');
+                        }
+                    }, 600);
                 }, 3000);
             }
+        }
+
+        function showInteractionPrompt(show) {
+            const prompt = document.getElementById('interaction-prompt');
+            if (prompt) {
+                prompt.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        function updateUI() {
+            if (!window.gameState) return;
+            const p = window.gameState.data.player;
+            
+            const elements = {
+                'player-name': p.name,
+                'player-title': p.title,
+                'level-display': p.level,
+                'energy-display': Math.floor(p.energy),
+                'coins-display': p.coins,
+                'network-display': p.connections,
+                'inventory-count': p.inventory ? p.inventory.length : 0
+            };
+
+            Object.keys(elements).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = elements[id];
+            });
         }
 
         // Phone app handler
@@ -750,15 +934,20 @@
             
             switch(appName) {
                 case 'messages':
-                    activeScene.scene.launch('EmailScene');
+                    if (activeScene.scene) activeScene.scene.launch('EmailScene');
                     break;
                 case 'stats':
-                    activeScene.scene.launch('StatsDashboardScene');
+                    if (activeScene.scene) activeScene.scene.launch('StatsDashboardScene');
+                    break;
+                case 'dashboard':
+                    // Launch Computer Menu Scene from phone
+                    if (activeScene.scene) activeScene.scene.launch('ComputerMenuScene');
+                    showNotification('💻 Opening Dashboard...');
                     break;
                 case 'linkedin':
                     showNotification('Opening LinkedIn feed...');
                     if (window.gameState) {
-                        window.gameState.data.player.reputation += 5;
+                        window.gameState.data.player.reputation = (window.gameState.data.player.reputation || 0) + 5;
                         updateUI();
                     }
                     break;
@@ -771,7 +960,7 @@
                     }
                     break;
                 case 'shop':
-                    activeScene.scene.start('ShopScene');
+                    if (activeScene.scene) activeScene.scene.start('ShopScene');
                     break;
             }
         }
@@ -782,6 +971,8 @@
             
             const grid = document.getElementById('inventory-grid');
             const inventory = window.gameState.data.player.inventory || [];
+            
+            if (!grid) return;
             
             grid.innerHTML = '';
             
@@ -804,16 +995,16 @@
             }
             
             // Update equipment
-            const eq = window.gameState.data.player.equipment;
-            const equippedLaptop = document.getElementById('equipped-laptop');
-            const equippedPhone = document.getElementById('equipped-phone');
-            const equippedBriefcase = document.getElementById('equipped-briefcase');
-            const equippedOutfit = document.getElementById('equipped-outfit');
+            const eq = window.gameState.data.player.equipment || {};
+            const updateElement = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value || 'None';
+            };
             
-            if (equippedLaptop) equippedLaptop.textContent = eq.laptop || 'None';
-            if (equippedPhone) equippedPhone.textContent = eq.phone || 'None';
-            if (equippedBriefcase) equippedBriefcase.textContent = eq.briefcase || 'None';
-            if (equippedOutfit) equippedOutfit.textContent = eq.outfit || 'Default';
+            updateElement('equipped-laptop', eq.laptop);
+            updateElement('equipped-phone', eq.phone);
+            updateElement('equipped-briefcase', eq.briefcase);
+            updateElement('equipped-outfit', eq.outfit || 'Default');
         }
 
         // Use item from inventory
@@ -822,9 +1013,7 @@
             const item = window.gameState.data.player.inventory[index];
             if (!item) return;
             
-            // Use item
             if (item.type === 'consumable') {
-                // Apply effect
                 if (item.energyBoost) {
                     window.gameState.data.player.energy = Math.min(
                         window.gameState.data.player.maxEnergy,
@@ -838,13 +1027,14 @@
                     window.gameState.gainXP(item.xpBoost);
                 }
                 
-                // Remove from inventory
                 window.gameState.data.player.inventory.splice(index, 1);
                 showNotification(`Used ${item.name}!`);
                 updateUI();
                 updateInventoryDisplay();
             } else if (item.type === 'equipment') {
-                // Equip item
+                if (!window.gameState.data.player.equipment) {
+                    window.gameState.data.player.equipment = {};
+                }
                 window.gameState.data.player.equipment[item.slot] = item.name;
                 window.gameState.data.player.inventory.splice(index, 1);
                 showNotification(`Equipped ${item.name}!`);
@@ -852,67 +1042,113 @@
             }
         }
 
-        // Update UI helper
-        function updateUI() {
-            if (!window.gameState) return;
-            
-            const p = window.gameState.data.player;
-            
-            // Safe updates with null checks
-            const playerName = document.getElementById('player-name');
-            if (playerName) playerName.textContent = p.name;
-            
-            const playerTitle = document.getElementById('player-title');
-            if (playerTitle) playerTitle.textContent = p.title;
-            
-            const levelDisplay = document.getElementById('level-display');
-            if (levelDisplay) levelDisplay.textContent = p.level;
-            
-            const energyDisplay = document.getElementById('energy-display');
-            if (energyDisplay) energyDisplay.textContent = Math.floor(p.energy);
-            
-            const coinsDisplay = document.getElementById('coins-display');
-            if (coinsDisplay) coinsDisplay.textContent = p.coins;
-            
-            const networkDisplay = document.getElementById('network-display');
-            if (networkDisplay) networkDisplay.textContent = p.connections;
+        // Fullscreen handling with proper resize
+        let resizeDebounce;
+        
+        function handleResize() {
+            clearTimeout(resizeDebounce);
+            resizeDebounce = setTimeout(() => {
+                if (!window.game) return;
+                
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                
+                // Update canvas
+                const canvas = document.querySelector('#game-container canvas');
+                if (canvas) {
+                    canvas.style.width = width + 'px';
+                    canvas.style.height = height + 'px';
+                }
+                
+                // Update Phaser scale
+                if (window.game.scale) {
+                    window.game.scale.resize(width, height);
+                }
+                
+                // Update all active scene cameras
+                const scenes = window.game.scene.getScenes(true);
+                scenes.forEach(scene => {
+                    if (scene.cameras && scene.cameras.main) {
+                        scene.cameras.main.setSize(width, height);
+                    }
+                });
+                
+                // Notify global coordinate system
+                if (window.coordSystem) {
+                    window.coordSystem.updateAll();
+                }
+                
+                // Update name input position if it exists
+                const nameInputScene = window.game.scene.getScene('NameInputScene');
+                if (nameInputScene && nameInputScene.updateInputPosition) {
+                    console.log('🔄 Calling updateInputPosition from handleResize');
+                    nameInputScene.updateInputPosition();
+                }
+            }, 100);
         }
-    </script>
 
-    <!-- Button Click Handlers -->
-    <script>
-        // Wait for DOM to be ready
+        function toggleFullscreen() {
+            const element = document.documentElement;
+            
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && !document.msFullscreenElement) {
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.webkitRequestFullscreen) {
+                    element.webkitRequestFullscreen();
+                } else if (element.mozRequestFullScreen) {
+                    element.mozRequestFullScreen();
+                } else if (element.msRequestFullscreen) {
+                    element.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        window.toggleFullscreen = toggleFullscreen;
+
+        // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Inventory button handler
+            // Hide story overlay on load
+            const storyOverlay = document.getElementById('story-overlay');
+            if (storyOverlay) {
+                storyOverlay.style.display = 'none';
+            }
+
+            // Fullscreen button
+            const fullscreenBtn = document.getElementById('fullscreen-toggle');
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', toggleFullscreen);
+            }
+
+            // Inventory button
             const inventoryBtn = document.getElementById('inventory-button');
             if (inventoryBtn) {
                 inventoryBtn.addEventListener('click', () => {
-                    console.log('Inventory button clicked');
-                    // Toggle inventory menu if it exists in pixel-game.html
-                    const inventoryMenu = document.getElementById('inventory-menu');
-                    if (inventoryMenu) {
-                        inventoryMenu.style.display = inventoryMenu.style.display === 'none' ? 'block' : 'none';
-                        if (typeof updateInventoryDisplay === 'function') {
+                    const menu = document.getElementById('inventory-menu');
+                    if (menu) {
+                        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                        if (menu.style.display === 'block') {
                             updateInventoryDisplay();
-                        }
-                    }
-                    // If using game scenes
-                    if (window.game && window.game.scene && window.game.scene.scenes) {
-                        const activeScene = window.game.scene.getScenes(true)[0];
-                        if (activeScene && activeScene.scene) {
-                            // Could launch an inventory scene if it exists
-                            console.log('Active scene:', activeScene.scene.key);
                         }
                     }
                 });
             }
-            
-            // Email button handler
+
+            // Email button
             const emailBtn = document.getElementById('email-button');
             if (emailBtn) {
                 emailBtn.addEventListener('click', () => {
-                    console.log('Email button clicked');
-                    if (window.game && window.game.scene && window.game.scene.scenes) {
+                    if (window.game && window.game.scene) {
                         const activeScene = window.game.scene.getScenes(true)[0];
                         if (activeScene && activeScene.scene) {
                             activeScene.scene.launch('EmailScene');
@@ -920,31 +1156,33 @@
                     }
                 });
             }
-            
-            // Phone button handler
+
+            // Phone button
             const phoneBtn = document.getElementById('phone-button');
             if (phoneBtn) {
                 phoneBtn.addEventListener('click', () => {
-                    console.log('Phone button clicked');
                     const phoneUI = document.getElementById('phone-ui');
                     if (phoneUI) {
                         phoneUI.style.display = phoneUI.style.display === 'none' ? 'block' : 'none';
-                        // Update phone time
-                        const now = new Date();
-                        const phoneTime = document.getElementById('phone-time');
-                        if (phoneTime) {
-                            phoneTime.textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                        if (phoneUI.style.display === 'block') {
+                            const now = new Date();
+                            const phoneTime = document.getElementById('phone-time');
+                            if (phoneTime) {
+                                phoneTime.textContent = now.toLocaleTimeString('en-US', { 
+                                    hour: 'numeric', 
+                                    minute: '2-digit' 
+                                });
+                            }
                         }
                     }
                 });
             }
-            
-            // Leaderboard button handler
+
+            // Leaderboard button
             const leaderboardBtn = document.getElementById('leaderboard-button');
             if (leaderboardBtn) {
                 leaderboardBtn.addEventListener('click', () => {
-                    console.log('Leaderboard button clicked');
-                    if (window.game && window.game.scene && window.game.scene.scenes) {
+                    if (window.game && window.game.scene) {
                         const activeScene = window.game.scene.getScenes(true)[0];
                         if (activeScene && activeScene.scene) {
                             activeScene.scene.launch('LeaderboardScene');
@@ -952,10 +1190,38 @@
                     }
                 });
             }
+
+            // Global key handlers
+            document.addEventListener('keydown', (event) => {
+                // Q key for dialogue skip (changed from ESC)
+                if (event.key === 'q' || event.key === 'Q') {
+                    if (window.dialogueManager && window.dialogueManager.handleEscapeKey()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        console.log('⏭️ Dialogue skipped with Q key');
+                    }
+                }
+                
+                // ESC key for closing menus
+                if (event.key === 'Escape' || event.keyCode === 27) {
+                    // Close all menus
+                    document.getElementById('inventory-menu').style.display = 'none';
+                    document.getElementById('phone-ui').style.display = 'none';
+                    document.getElementById('customization-menu').style.display = 'none';
+                    document.getElementById('skill-tree-menu').style.display = 'none';
+                }
+            });
         });
+
+        // Resize and fullscreen event listeners
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
+        document.addEventListener('fullscreenchange', handleResize);
+        document.addEventListener('webkitfullscreenchange', handleResize);
+        document.addEventListener('mozfullscreenchange', handleResize);
+        document.addEventListener('MSFullscreenChange', handleResize);
     </script>
 
-    <!-- Main JavaScript - ES Module -->
     <script type="module" src="/src/pixel-game.js"></script>
 </body>
 </html>

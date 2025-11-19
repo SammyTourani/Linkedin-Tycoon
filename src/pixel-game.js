@@ -6,6 +6,160 @@
 import Phaser from 'phaser';
 
 // ============================================================================
+// GLOBAL COORDINATE SYSTEM - Universal translator for Phaser↔HTML positioning
+// ============================================================================
+// Phaser uses 1920x1080 game coordinates, but canvas scales to fit screen.
+// This class translates between game coordinates and actual screen pixels.
+class GlobalCoordinateSystem {
+    constructor() {
+        this.elements = new Map(); // elementId -> {gameX, gameY, gameWidth, gameHeight, updateFn}
+        this.isUpdating = false;
+    }
+    
+    /**
+     * Get the transformation matrix from game coords (1920x1080) to screen coords
+     */
+    getCanvasTransform() {
+        const canvas = document.querySelector('#game-container canvas');
+        if (!canvas) {
+            console.warn('Canvas not found');
+            return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, valid: false };
+        }
+        
+        const rect = canvas.getBoundingClientRect();
+        
+        // Validate rect
+        if (rect.width === 0 || rect.height === 0) {
+            console.warn('Canvas rect not ready');
+            return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, valid: false };
+        }
+        
+        // Calculate scale from Phaser's internal 1920x1080 to actual canvas size
+        const scaleX = rect.width / 1920;
+        const scaleY = rect.height / 1080;
+        
+        return {
+            scaleX,
+            scaleY,
+            offsetX: rect.left,
+            offsetY: rect.top,
+            canvasWidth: rect.width,
+            canvasHeight: rect.height,
+            valid: true
+        };
+    }
+    
+    /**
+     * Convert game coordinates to screen coordinates
+     * @param {number} gameX - X position in Phaser's 1920x1080 world
+     * @param {number} gameY - Y position in Phaser's 1920x1080 world
+     * @param {number} gameWidth - Width in game units
+     * @param {number} gameHeight - Height in game units
+     * @returns {object} Screen coordinates {x, y, width, height, fontSize, scale}
+     */
+    gameToScreen(gameX, gameY, gameWidth = 0, gameHeight = 0) {
+        const transform = this.getCanvasTransform();
+        
+        if (!transform.valid) {
+            // Fallback to centered position
+            return {
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+                width: gameWidth || 540,
+                height: gameHeight || 70,
+                fontSize: 28,
+                scale: 1,
+                valid: false
+            };
+        }
+        
+        return {
+            x: (gameX * transform.scaleX) + transform.offsetX,
+            y: (gameY * transform.scaleY) + transform.offsetY,
+            width: gameWidth * transform.scaleX,
+            height: gameHeight * transform.scaleY,
+            fontSize: Math.max(16, 28 * Math.min(transform.scaleX, transform.scaleY)),
+            scale: Math.min(transform.scaleX, transform.scaleY),
+            valid: true
+        };
+    }
+    
+    /**
+     * Register an HTML element with its game coordinates
+     */
+    register(elementId, gameX, gameY, gameWidth, gameHeight, updateFn) {
+        this.elements.set(elementId, { gameX, gameY, gameWidth, gameHeight, updateFn });
+        console.log(`✓ Registered element: ${elementId} at game coords (${gameX}, ${gameY})`);
+        
+        // Initial update
+        if (updateFn) {
+            updateFn();
+        }
+    }
+    
+    /**
+     * Unregister an HTML element
+     */
+    unregister(elementId) {
+        if (this.elements.delete(elementId)) {
+            console.log(`✗ Unregistered element: ${elementId}`);
+        }
+    }
+    
+    /**
+     * Update all registered elements (call on resize/fullscreen)
+     */
+    updateAll() {
+        if (this.isUpdating) return;
+        
+        this.isUpdating = true;
+        
+        // Wait for canvas to stabilize
+        setTimeout(() => {
+            const transform = this.getCanvasTransform();
+            
+            if (!transform.valid) {
+                console.warn('Canvas not ready for update, retrying...');
+                this.isUpdating = false;
+                setTimeout(() => this.updateAll(), 200);
+                return;
+            }
+            
+            console.log(`Updating ${this.elements.size} HTML elements...`);
+            console.log(`Canvas transform: scale(${transform.scaleX.toFixed(3)}, ${transform.scaleY.toFixed(3)}) offset(${transform.offsetX}, ${transform.offsetY})`);
+            
+            this.elements.forEach((data, elementId) => {
+                try {
+                    if (data.updateFn) {
+                        data.updateFn();
+                    }
+                } catch (error) {
+                    console.error(`Failed to update ${elementId}:`, error);
+                }
+            });
+            
+            this.isUpdating = false;
+            console.log('✓ All elements updated');
+        }, 100);
+    }
+    
+    /**
+     * Handle fullscreen changes with multiple update attempts
+     */
+    handleFullscreenChange() {
+        console.log('🔄 Fullscreen state changed');
+        
+        // Multiple attempts to catch canvas at different stages
+        setTimeout(() => this.updateAll(), 100);
+        setTimeout(() => this.updateAll(), 300);
+        setTimeout(() => this.updateAll(), 600);
+    }
+}
+
+// Global coordinate system instance
+window.coordSystem = new GlobalCoordinateSystem();
+
+// ============================================================================
 // SOUND MANAGER - Handles all audio in the game
 // ============================================================================
 class SoundManager {
@@ -256,6 +410,96 @@ class StoryManager {
             }
         ];
         this.currentChapter = 0;
+        this.setupScaling();
+    }
+    
+    setupScaling() {
+        // Story overlay positioned at game center: 960, 540
+        if (window.coordSystem) {
+            window.coordSystem.register('story-overlay', 960, 540, 1920, 1080, () => this.updateStoryOverlayPosition());
+        }
+    }
+    
+    getScaledPosition() {
+        // Same scaling logic as NameInputScene
+        const canvas = document.querySelector('#game-container canvas');
+        if (!canvas || !window.game || !window.game.scene || !window.game.scene.scenes[0]) {
+            return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, width: window.innerWidth, height: window.innerHeight };
+        }
+        
+        const canvasRect = canvas.getBoundingClientRect();
+        const scene = window.game.scene.scenes.find(s => s.cameras && s.cameras.main);
+        if (!scene || !scene.cameras || !scene.cameras.main) {
+            return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, width: window.innerWidth, height: window.innerHeight };
+        }
+        
+        const camera = scene.cameras.main;
+        const scaleX = canvasRect.width / camera.width;
+        const scaleY = canvasRect.height / camera.height;
+        
+        return {
+            scaleX,
+            scaleY,
+            offsetX: canvasRect.left,
+            offsetY: canvasRect.top,
+            width: canvasRect.width,
+            height: canvasRect.height
+        };
+    }
+    
+    updateStoryOverlayPosition() {
+        const overlay = document.getElementById('story-overlay');
+        const content = document.getElementById('story-content');
+        const title = document.querySelector('#story-content h2');
+        const text = document.querySelector('#story-content p');
+        const button = document.querySelector('#story-content button');
+        
+        if (!overlay || !content) return;
+        
+        const scale = this.getScaledPosition();
+        
+        // Position overlay to match canvas exactly
+        overlay.style.left = `${scale.offsetX}px`;
+        overlay.style.top = `${scale.offsetY}px`;
+        overlay.style.width = `${scale.width}px`;
+        overlay.style.height = `${scale.height}px`;
+        overlay.style.display = overlay.style.display; // Preserve display state
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        
+        // Scale content box
+        const maxWidth = Math.min(600 * scale.scaleX, scale.width * 0.9);
+        const padding = Math.max(20, 40 * scale.scaleX);
+        const borderRadius = Math.max(8, 16 * scale.scaleX);
+        
+        content.style.maxWidth = `${maxWidth}px`;
+        content.style.padding = `${padding}px`;
+        content.style.borderRadius = `${borderRadius}px`;
+        
+        // Scale fonts
+        if (title) {
+            const titleSize = Math.max(16, 28 * scale.scaleX);
+            const titleMargin = Math.max(10, 20 * scale.scaleY);
+            title.style.fontSize = `${titleSize}px`;
+            title.style.marginBottom = `${titleMargin}px`;
+        }
+        
+        if (text) {
+            const textSize = Math.max(12, 16 * scale.scaleX);
+            const textMargin = Math.max(10, 20 * scale.scaleY);
+            text.style.fontSize = `${textSize}px`;
+            text.style.marginBottom = `${textMargin}px`;
+        }
+        
+        if (button) {
+            const btnSize = Math.max(12, 16 * scale.scaleX);
+            const btnPaddingY = Math.max(8, 12 * scale.scaleY);
+            const btnPaddingX = Math.max(16, 32 * scale.scaleX);
+            const btnRadius = Math.max(4, 8 * scale.scaleX);
+            button.style.fontSize = `${btnSize}px`;
+            button.style.padding = `${btnPaddingY}px ${btnPaddingX}px`;
+            button.style.borderRadius = `${btnRadius}px`;
+        }
     }
     
     triggerChapter(chapterNum) {
@@ -272,6 +516,9 @@ class StoryManager {
         document.getElementById('story-title').textContent = story.title;
         document.getElementById('story-text').textContent = story.text;
         document.getElementById('story-continue').textContent = story.action;
+        
+        // Update position before showing
+        this.updateStoryOverlayPosition();
         overlay.style.display = 'flex';
         
         this.currentStory = index;
@@ -279,6 +526,109 @@ class StoryManager {
 
     closeStory() {
         document.getElementById('story-overlay').style.display = 'none';
+    }
+}
+
+// Day/Night Cycle Manager
+class DayNightCycle {
+    constructor() {
+        this.timeOfDay = 'morning'; // morning, afternoon, evening, night
+        this.timeElapsed = 0; // Seconds
+        this.timePerPhase = 180; // 3 minutes per phase (12 minutes full cycle)
+        this.overlay = null;
+        this.currentScene = null;
+    }
+    
+    init(scene) {
+        this.currentScene = scene;
+        
+        // Create overlay for day/night tinting
+        this.overlay = scene.add.rectangle(
+            scene.cameras.main.width / 2,
+            scene.cameras.main.height / 2,
+            scene.cameras.main.width,
+            scene.cameras.main.height,
+            0x000000,
+            0
+        );
+        this.overlay.setScrollFactor(0);
+        this.overlay.setDepth(9999);
+        
+        // Load time from gameState
+        if (gameState && gameState.data.time) {
+            this.timeOfDay = gameState.data.time;
+        }
+        
+        this.updateOverlay();
+    }
+    
+    update(delta) {
+        this.timeElapsed += delta / 1000;
+        
+        if (this.timeElapsed >= this.timePerPhase) {
+            this.timeElapsed = 0;
+            this.advanceTime();
+        }
+        
+        // Smooth transition during phase
+        this.updateOverlay();
+    }
+    
+    advanceTime() {
+        const phases = ['morning', 'afternoon', 'evening', 'night'];
+        const currentIndex = phases.indexOf(this.timeOfDay);
+        this.timeOfDay = phases[(currentIndex + 1) % phases.length];
+        
+        // Save to gameState
+        if (gameState) {
+            gameState.data.time = this.timeOfDay;
+            gameState.saveGame();
+        }
+        
+        // Update UI
+        updateUI();
+        
+        // Change music based on time
+        if (globalSoundManager && this.currentScene) {
+            if (this.timeOfDay === 'night' || this.timeOfDay === 'evening') {
+                globalSoundManager.playMusic('city_nighttime', true);
+            } else {
+                globalSoundManager.playMusic('city_daytime', true);
+            }
+        }
+        
+        // Show notification
+        const messages = {
+            morning: '🌅 Morning has arrived! A new day begins.',
+            afternoon: '☀️ Afternoon - peak networking hours!',
+            evening: '🌆 Evening approaches. Day is winding down.',
+            night: '🌙 Night time. Most locations close soon.'
+        };
+        showNotification(messages[this.timeOfDay]);
+    }
+    
+    updateOverlay() {
+        if (!this.overlay) return;
+        
+        const settings = {
+            morning: { color: 0xFFE4B5, alpha: 0.1 },
+            afternoon: { color: 0xFFFFFF, alpha: 0 },
+            evening: { color: 0xFF6B35, alpha: 0.15 },
+            night: { color: 0x000033, alpha: 0.4 }
+        };
+        
+        const current = settings[this.timeOfDay];
+        if (current) {
+            this.overlay.setFillStyle(current.color, current.alpha);
+        }
+    }
+    
+    getTimeOfDay() {
+        return this.timeOfDay;
+    }
+    
+    isNightTime() {
+        return this.timeOfDay === 'night' || this.timeOfDay === 'evening';
     }
 }
 
@@ -1403,6 +1753,8 @@ class CertificationManager {
 
 // Global managers
 const storyManager = new StoryManager();
+const dayNightCycle = new DayNightCycle();
+window.dayNightCycle = dayNightCycle; // Make accessible globally
 const dialogueManager = new DialogueManager();
 window.dialogueManager = dialogueManager; // Expose globally for ESC key handler
 const questManager = new QuestManager();
@@ -1564,32 +1916,44 @@ function showAllUI() {
         'inventory-button',
         'email-button',
         'phone-button',
-        'leaderboard-button'
+        'leaderboard-button',
+        'fullscreen-toggle'
     ];
     
     uiElements.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
     });
+    
+    // Special handling for ui-overlay to use flex
+    const uiOverlay = document.getElementById('ui-overlay');
+    if (uiOverlay) uiOverlay.style.display = 'flex';
 }
 
 function hideAllUI() {
     const uiElements = [
         'ui-overlay',
         'quest-tracker',
-        'time-weather',
         'inventory-button',
         'email-button',
         'phone-button',
         'leaderboard-button',
         'interaction-prompt',
-        'notification'
+        'notification',
+        // 'fullscreen-toggle', // Keep fullscreen button always visible
+        'dialogue-box',
+        'achievement-popup',
+        'controls-hint'
     ];
     
     uiElements.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
+    
+    // Ensure fullscreen button stays visible
+    const fsButton = document.getElementById('fullscreen-toggle');
+    if (fsButton) fsButton.style.display = 'flex';
 }
 
 // UI Update Functions
@@ -1620,24 +1984,7 @@ function updateUI() {
     if (networkDisplay) networkDisplay.textContent = p.connections;
     
     // Update time/weather display
-    const timeMap = {
-        morning: '☀️ Morning',
-        afternoon: '🌤️ Afternoon', 
-        evening: '🌆 Evening',
-        night: '🌙 Night'
-    };
-    
-    const weatherMap = {
-        sunny: '☀️ Sunny',
-        rain: '🌧️ Rainy',
-        cloudy: '☁️ Cloudy'
-    };
-    
-    const gameTime = document.getElementById('game-time');
-    if (gameTime) gameTime.textContent = timeMap[gameState.data.time] || 'Morning';
-    
-    const gameWeather = document.getElementById('game-weather');
-    if (gameWeather) gameWeather.textContent = weatherMap[gameState.data.weather] || 'Sunny';
+    // Time/weather display removed - day/night cycle still runs in background
     
     // Update email count
     const emailCount = gameState.data.emails ? gameState.data.emails.filter(e => !e.read).length : 0;
@@ -2600,10 +2947,23 @@ class LoadingScene extends Phaser.Scene {
         if (!globalSoundManager) {
             globalSoundManager = new SoundManager(this);
             console.log('Sound manager initialized');
+        } else {
+            // Update scene reference if sound manager already exists
+            globalSoundManager.scene = this;
         }
         
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
+        
+        // HIDE HTML loading div now that Phaser scene is ready
+        const htmlLoading = document.getElementById('loading');
+        if (htmlLoading) {
+            htmlLoading.style.transition = 'opacity 0.5s';
+            htmlLoading.style.opacity = '0';
+            setTimeout(() => {
+                htmlLoading.style.display = 'none';
+            }, 500);
+        }
         
         // HIDE ALL UI
         this.hideAllUI();
@@ -2743,11 +3103,25 @@ class IntroScene extends Phaser.Scene {
         // HIDE ALL UI ELEMENTS
         this.hideAllUI();
         
-        // Update sound manager scene reference
+        // Update sound manager scene reference and start music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
-            console.log('Playing menu theme');
-            globalSoundManager.playMusic('menu_theme', true);
+            // Resume audio context on user interaction (required by browsers)
+            this.input.once('pointerdown', () => {
+                if (this.sound.context.state === 'suspended') {
+                    this.sound.context.resume();
+                }
+                if (!globalSoundManager.currentMusic || !globalSoundManager.currentMusic.isPlaying) {
+                    globalSoundManager.playMusic('menu_theme', true);
+                    console.log('Menu theme started in IntroScene');
+                }
+            });
+            
+            // Try to start music immediately (will work if audio context is ready)
+            if (!globalSoundManager.currentMusic || !globalSoundManager.currentMusic.isPlaying) {
+                globalSoundManager.playMusic('menu_theme', true);
+                console.log('Attempting to start menu theme in IntroScene');
+            }
         }
         
         // Animated gradient background
@@ -3037,6 +3411,15 @@ class BootScene extends Phaser.Scene {
     }
 
     create() {
+        // Update sound manager scene reference
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            // Continue menu theme if not already playing
+            if (!globalSoundManager.currentMusic || !globalSoundManager.currentMusic.isPlaying) {
+                globalSoundManager.playMusic('menu_theme', true);
+            }
+        }
+        
         // Hide loading screen
         document.getElementById('loading').style.display = 'none';
         
@@ -3342,320 +3725,549 @@ class NameInputScene extends Phaser.Scene {
         // HIDE ALL UI
         this.hideAllUI();
         
-        // Disable ALL keyboard shortcuts - prevent interference
-        this.input.keyboard.removeAllListeners();
-        this.input.keyboard.clearCaptures();
+        // Update sound manager scene reference
+        if (globalSoundManager) {
+            globalSoundManager.scene = this;
+            // Continue menu theme music
+            if (!globalSoundManager.currentMusic || !globalSoundManager.currentMusic.isPlaying) {
+                globalSoundManager.playMusic('menu_theme', true);
+            }
+        }
         
-        // Enhanced gradient background
-        const bgGradient = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        this.tweens.add({
-            targets: bgGradient,
-            alpha: 0.9,
-            duration: 2000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
+        // Dark background matching LoadingScene and IntroScene
+        const bg = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
         
-        // Animated particles background
-        for (let i = 0; i < 30; i++) {
-            const particle = this.add.circle(
+        // Animated stars background (matching IntroScene style)
+        this.stars = [];
+        for (let i = 0; i < 80; i++) {
+            const star = this.add.circle(
                 Phaser.Math.Between(0, width),
                 Phaser.Math.Between(0, height),
-                Phaser.Math.Between(2, 4),
-                0x0A66C2,
-                Phaser.Math.FloatBetween(0.1, 0.3)
+                Phaser.Math.Between(1, 3),
+                0xFFFFFF,
+                Phaser.Math.FloatBetween(0.2, 0.8)
             );
+            this.stars.push(star);
             
             this.tweens.add({
-                targets: particle,
-                x: particle.x + Phaser.Math.Between(-100, 100),
-                y: particle.y + Phaser.Math.Between(-100, 100),
+                targets: star,
                 alpha: 0.1,
-                duration: 3000 + Math.random() * 2000,
+                scale: 0.5,
+                duration: 2000 + Math.random() * 2000,
                 yoyo: true,
                 repeat: -1,
                 ease: 'Sine.easeInOut',
+                delay: Math.random() * 1000
+            });
+        }
+        
+        // Floating briefcase particles (matching IntroScene)
+        for (let i = 0; i < 15; i++) {
+            const x = Phaser.Math.Between(0, width);
+            const y = Phaser.Math.Between(0, height);
+            const briefcase = this.add.text(x, y, '💼', {
+                fontSize: Phaser.Math.Between(20, 36)
+            }).setAlpha(Phaser.Math.FloatBetween(0.1, 0.3));
+            
+            this.tweens.add({
+                targets: briefcase,
+                x: x + Phaser.Math.Between(-150, 150),
+                y: y - Phaser.Math.Between(100, 200),
+                alpha: 0.05,
+                rotation: Phaser.Math.Between(-0.5, 0.5),
+                duration: 5000 + Math.random() * 3000,
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: -1,
                 delay: Math.random() * 2000
             });
         }
         
-        // LARGE, CLEAR TITLE
-        const title = this.add.text(width/2, height/4 - 40, '👋 WELCOME TO LINKEDIN TYCOON!', {
-            fontSize: '56px',
+        // Welcome icon - appears AFTER all text (at the end)
+        const icon = this.add.text(width/2, height/4 - 40, '👋', {
+            fontSize: '80px'
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Title matching IntroScene/LoadingScene style
+        const title = this.add.text(width/2, height/4 + 60, 'WELCOME TO LINKEDIN TYCOON!', {
+            fontSize: '48px',
             color: '#0A66C2',
             fontStyle: 'bold',
             stroke: '#FFFFFF',
-            strokeThickness: 6,
-            shadow: {
-                offsetX: 3,
-                offsetY: 3,
-                color: '#000000',
-                blur: 8,
-                stroke: true,
-                fill: true
-            }
-        }).setOrigin(0.5);
+            strokeThickness: 5
+        }).setOrigin(0.5).setAlpha(0);
         
-        this.tweens.add({
-            targets: title,
-            scale: 1.05,
-            duration: 2000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-        
-        // CLEAR INSTRUCTION TEXT
-        const instruction1 = this.add.text(width/2, height/4 + 60, 'Let\'s start by creating your character!', {
-            fontSize: '32px',
-            color: '#FFFFFF',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5);
-        
-        const instruction2 = this.add.text(width/2, height/4 + 110, 'First, please enter your name:', {
-            fontSize: '28px',
-            color: '#00FF88',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 2
-        }).setOrigin(0.5);
-        
-        // Animate instructions
-        this.tweens.add({
-            targets: [instruction1, instruction2],
-            alpha: 0,
-            y: height/4 + 40,
-            duration: 0
-        });
-        
-        this.tweens.add({
-            targets: instruction1,
-            alpha: 1,
-            y: height/4 + 60,
-            duration: 800,
-            delay: 300,
-            ease: 'Power2'
-        });
-        
-        this.tweens.add({
-            targets: instruction2,
-            alpha: 1,
-            y: height/4 + 110,
-            duration: 800,
-            delay: 600,
-            ease: 'Power2'
-        });
-        
-        // Name input area (CENTERED AND PROMINENT)
-        const inputAreaY = height/2 + 40;
-        
-        // Input background panel
-        const inputPanel = this.add.rectangle(width/2, inputAreaY, 600, 200, 0x1A1A2E, 0.9);
-        inputPanel.setStrokeStyle(4, 0x0A66C2);
-        
-        // Label above input
-        const nameLabel = this.add.text(width/2, inputAreaY - 50, '✏️ YOUR NAME', {
+        // Subtitle
+        const subtitle = this.add.text(width/2, height/4 + 120, 'Let\'s start by creating your character!', {
             fontSize: '24px',
             color: '#FFFFFF',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 2
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setAlpha(0);
         
-        // Create HTML input field (proper input) - positioned relative to game container
-        const gameContainer = document.getElementById('game-container');
-        const containerRect = gameContainer.getBoundingClientRect();
+        // Instruction text
+        const instruction = this.add.text(width/2, height/4 + 170, 'First, please enter your name:', {
+            fontSize: '20px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5).setAlpha(0);
         
-        const nameInputContainer = document.createElement('div');
-        nameInputContainer.id = 'name-input-container';
-        nameInputContainer.style.cssText = `
-            position: fixed;
-            left: ${containerRect.left + width/2 - 250}px;
-            top: ${containerRect.top + inputAreaY - 15}px;
-            width: 500px;
-            height: 60px;
-            z-index: 2000;
-            pointer-events: auto;
+        // Animate text elements with staggered timing
+        this.tweens.add({
+            targets: title,
+            alpha: 1,
+            y: height/4 + 60,
+            duration: 600,
+            delay: 200,
+            ease: 'Power2'
+        });
+        
+        this.tweens.add({
+            targets: subtitle,
+            alpha: 1,
+            y: height/4 + 120,
+            duration: 600,
+            delay: 500,
+            ease: 'Power2'
+        });
+        
+        this.tweens.add({
+            targets: instruction,
+            alpha: 1,
+            y: height/4 + 170,
+            duration: 600,
+            delay: 800,
+            ease: 'Power2'
+        });
+        
+        // Icon appears LAST, after all text
+        this.tweens.add({
+            targets: icon,
+            alpha: 1,
+            scale: 1.1,
+            duration: 800,
+            delay: 1200,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                this.tweens.add({
+                    targets: icon,
+                    rotation: 0.1,
+                    duration: 1500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            }
+        });
+        
+        // Name input container with modern card design
+        const inputY = height/2 + 60;
+        
+        // Card background shadow
+        const cardShadow = this.add.rectangle(width/2, inputY + 3, 600, 110, 0x000000, 0.3);
+        cardShadow.setAlpha(0);
+        
+        // Main input card
+        const inputBox = this.add.rectangle(width/2, inputY, 600, 110, 0x1A1A2E, 0.98);
+        inputBox.setStrokeStyle(3, 0x0A66C2);
+        inputBox.setAlpha(0);
+        
+        // Decorative corner accents
+        const cornerTL = this.add.rectangle(width/2 - 295, inputY - 52, 8, 3, 0x00FF88);
+        const cornerTR = this.add.rectangle(width/2 + 295, inputY - 52, 8, 3, 0x00FF88);
+        const cornerBL = this.add.rectangle(width/2 - 295, inputY + 52, 8, 3, 0x00FF88);
+        const cornerBR = this.add.rectangle(width/2 + 295, inputY + 52, 8, 3, 0x00FF88);
+        [cornerTL, cornerTR, cornerBL, cornerBR].forEach(c => c.setAlpha(0));
+        
+        // Input label with better spacing
+        const inputLabel = this.add.text(width/2, inputY - 42, '✏️  YOUR NAME', {
+            fontSize: '16px',
+            color: '#00FF88',
+            fontStyle: 'bold',
+            letterSpacing: 1
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Animate input elements with improved timing
+        this.tweens.add({
+            targets: [cardShadow, inputBox],
+            alpha: { from: 0, to: [0.3, 1] },
+            duration: 600,
+            delay: 1400,
+            ease: 'Power2'
+        });
+        
+        this.tweens.add({
+            targets: inputLabel,
+            alpha: 1,
+            duration: 400,
+            delay: 1600,
+            ease: 'Power2'
+        });
+        
+        this.tweens.add({
+            targets: [cornerTL, cornerTR, cornerBL, cornerBR],
+            alpha: 0.8,
+            scaleX: 3,
+            duration: 600,
+            delay: 1700,
+            ease: 'Power2'
+        });
+        
+        // Create HTML input - USING GAME COORDINATES (1920x1080 system)
+        let existingInput = document.getElementById('name-input-container');
+        if (existingInput) existingInput.remove();
+        
+        // Define position in GAME COORDINATES (Phaser's 1920x1080 world)
+        const GAME_X = 960;  // Center X of 1920
+        const GAME_Y = 540;  // Center Y of 1080  
+        const GAME_WIDTH = 540;
+        const GAME_HEIGHT = 70;
+        
+        const updateInputPosition = () => {
+            console.log('🔄 updateInputPosition called');
+            
+            // Get the actual Phaser canvas element
+            const canvas = this.game.canvas;
+            if (!canvas) {
+                console.error('❌ Canvas not found');
+                return;
+            }
+            
+            // Get canvas position and size on screen
+            const canvasRect = canvas.getBoundingClientRect();
+            console.log('📐 Canvas rect:', {
+                left: canvasRect.left,
+                top: canvasRect.top,
+                width: canvasRect.width,
+                height: canvasRect.height
+            });
+            
+            // Calculate scale from game coordinates (1920x1080) to actual canvas size
+            const scaleX = canvasRect.width / 1920;
+            const scaleY = canvasRect.height / 1080;
+            console.log('📏 Scale factors:', { scaleX, scaleY });
+            
+            // The Phaser inputBox is drawn at (width/2, height/2 + 60) = (960, 600)
+            // Convert these game coordinates to screen pixels
+            const gameBoxX = 960;  // Phaser box center X in game coords
+            const gameBoxY = 600;  // Phaser box center Y in game coords (height/2 + 60)
+            const gameBoxWidth = 580;  // Phaser box width
+            const gameBoxHeight = 100; // Phaser box height
+            
+            // Convert to screen coordinates
+            const screenX = canvasRect.left + (gameBoxX * scaleX);
+            const screenY = canvasRect.top + (gameBoxY * scaleY);
+            const screenWidth = gameBoxWidth * scaleX;
+            const screenHeight = gameBoxHeight * scaleY;
+            
+            console.log('🎯 Target position:', {
+                screenX: screenX.toFixed(1),
+                screenY: screenY.toFixed(1),
+                screenWidth: screenWidth.toFixed(1),
+                screenHeight: screenHeight.toFixed(1)
+            });
+            
+            // Position HTML input to EXACTLY match the Phaser rectangle
+            inputContainer.style.position = 'fixed';
+            inputContainer.style.left = screenX + 'px';
+            inputContainer.style.top = screenY + 'px';
+            inputContainer.style.width = screenWidth + 'px';
+            inputContainer.style.height = screenHeight + 'px';
+            inputContainer.style.transform = 'translate(-50%, -50%)'; // Center anchor like Phaser
+            inputContainer.style.zIndex = '10001';  // Above canvas
+            
+            // Scale font size proportionally
+            const scaledFontSize = Math.max(16, 28 * Math.min(scaleX, scaleY));
+            nameInput.style.fontSize = scaledFontSize + 'px';
+            
+            console.log(`✓ Input positioned at (${screenX.toFixed(0)}, ${screenY.toFixed(0)}) size ${screenWidth.toFixed(0)}x${screenHeight.toFixed(0)}`);
+            console.log(`   Font size: ${scaledFontSize.toFixed(0)}px`);
+        };
+        
+        const inputContainer = document.createElement('div');
+        inputContainer.id = 'name-input-container';
+        inputContainer.style.cssText = `
+            position: fixed !important;
+            z-index: 10001 !important;
+            pointer-events: auto !important;
+            display: block !important;
         `;
         
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.id = 'name-input';
         nameInput.value = gameState.data.player.name || '';
-        nameInput.maxLength = 20;
-        nameInput.placeholder = 'Type your name here...';
-        nameInput.autofocus = true;
+        nameInput.maxLength = 25;
+        nameInput.placeholder = 'Alex Developer';
         nameInput.style.cssText = `
-            width: 100%;
-            height: 100%;
-            background: rgba(42, 42, 74, 0.95);
-            border: 4px solid #0A66C2;
-            border-radius: 12px;
-            color: #FFFFFF;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            padding: 0 20px;
-            box-sizing: border-box;
-            outline: none;
-            transition: all 0.3s;
-            cursor: text;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(26, 26, 46, 0.98) !important;
+            border: 3px solid #0A66C2 !important;
+            border-radius: 10px !important;
+            color: #FFFFFF !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            font-family: 'Courier New', monospace !important;
+            padding: 0 20px !important;
+            box-sizing: border-box !important;
+            outline: none !important;
+            -webkit-text-fill-color: #FFFFFF !important;
+            caret-color: #00FF88 !important;
+            opacity: 1 !important;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
         `;
         
-        // Focus effect
         nameInput.addEventListener('focus', () => {
             nameInput.style.borderColor = '#00FF88';
-            nameInput.style.boxShadow = '0 0 20px rgba(0, 255, 136, 0.6)';
-            nameInput.style.background = 'rgba(42, 42, 74, 1)';
-            nameInput.style.transform = 'scale(1.02)';
+            nameInput.style.boxShadow = '0 0 25px rgba(0, 255, 136, 0.6)';
+            if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.2);
         });
         
         nameInput.addEventListener('blur', () => {
             nameInput.style.borderColor = '#0A66C2';
             nameInput.style.boxShadow = 'none';
-            nameInput.style.background = 'rgba(42, 42, 74, 0.95)';
-            nameInput.style.transform = 'scale(1)';
         });
         
-        // Handle Enter key to proceed - PREVENT GAME SHORTCUTS
         nameInput.addEventListener('keydown', (e) => {
-            // CRITICAL: Stop propagation to prevent game shortcuts
             e.stopPropagation();
-            e.stopImmediatePropagation();
-            
             if (e.key === 'Enter' && nameInput.value.trim()) {
                 e.preventDefault();
                 this.proceedToCustomization(nameInput.value.trim());
             }
-        }, true); // Use capture phase
-        
-        // Prevent ALL keyboard shortcuts when input is focused
-        nameInput.addEventListener('keypress', (e) => {
-            e.stopPropagation();
-        }, true);
-        
-        // Update position on window resize
-        const updateInputPosition = () => {
-            const newRect = gameContainer.getBoundingClientRect();
-            nameInputContainer.style.left = `${newRect.left + width/2 - 250}px`;
-            nameInputContainer.style.top = `${newRect.top + inputAreaY - 15}px`;
-        };
-        
-        window.addEventListener('resize', updateInputPosition);
-        this.inputPositionUpdater = updateInputPosition;
-        
-        nameInputContainer.appendChild(nameInput);
-        document.body.appendChild(nameInputContainer);
-        this.nameInputElement = nameInput;
-        
-        // Visual input box overlay (for styling)
-        const nameBoxOverlay = this.add.rectangle(width/2, inputAreaY, 500, 60, 0x2A2A4A, 0);
-        nameBoxOverlay.setStrokeStyle(4, 0x0A66C2);
-        nameBoxOverlay.setInteractive();
-        nameBoxOverlay.on('pointerdown', () => {
-            nameInput.focus();
         });
         
-        // ENHANCED Continue button - clean professional design
-        const continueBtn = this.add.rectangle(width/2, height - 140, 500, 85, 0x4A4A4A);
-        continueBtn.setStrokeStyle(5, 0x666666);
+        inputContainer.appendChild(nameInput);
+        document.body.appendChild(inputContainer);
+        this.nameInputElement = nameInput;
+        
+        // Set initial position
+        updateInputPosition();
+        
+        // Auto-focus the input after a short delay (after animations)
+        this.time.delayedCall(1500, () => {
+            nameInput.focus();
+            console.log('🎯 Name input focused');
+        });
+        
+        // Store update function for cleanup
+        this.updateInputPosition = updateInputPosition;
+        
+        // Modern Continue button with better design
+        const continueY = height - 180;
+        
+        // Button shadow
+        const btnShadow = this.add.rectangle(width/2, continueY + 4, 480, 75, 0x000000, 0.3);
+        btnShadow.setAlpha(0);
+        
+        // Main button background
+        const continueBtn = this.add.rectangle(width/2, continueY, 480, 75, 0x2A2A4A);
+        continueBtn.setStrokeStyle(3, 0x555577);
         continueBtn.setInteractive();
-        continueBtn.setAlpha(0.5);
+        continueBtn.setAlpha(0);
         
-        const continueText = this.add.text(width/2, height - 140, '➡️  CONTINUE TO CUSTOMIZATION', {
-            fontSize: '26px',
-            color: '#999999',
+        // Button glow effect (hidden initially)
+        const btnGlow = this.add.rectangle(width/2, continueY, 480, 75, 0x00FF88, 0.15);
+        btnGlow.setAlpha(0);
+        
+        // Button text (centered, no icon initially)
+        const continueText = this.add.text(width/2, continueY, 'CONTINUE TO CUSTOMIZATION', {
+            fontSize: '22px',
+            color: '#666677',
             fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5);
+            letterSpacing: 1
+        }).setOrigin(0.5).setAlpha(0);
         
-        // ENHANCED button state - clean transitions, no emoji weirdness
-        const updateButtonState = () => {
+        // Arrow icon (appears when ready)
+        const continueIcon = this.add.text(width/2 + 160, continueY, '→', {
+            fontSize: '28px',
+            color: '#00FF88'
+        }).setOrigin(0.5).setAlpha(0);
+        
+        // Animate button appearance
+        this.tweens.add({
+            targets: [btnShadow, continueBtn, continueText],
+            alpha: { from: 0, to: [0.3, 1, 1] },
+            duration: 600,
+            delay: 1900,
+            ease: 'Power2'
+        });
+        
+        // Subtle hint text below button
+        const hintText = this.add.text(width/2, continueY + 55, 'Press ENTER or click to continue', {
+            fontSize: '14px',
+            color: '#666677',
+            fontStyle: 'italic'
+        }).setOrigin(0.5).setAlpha(0);
+        
+        this.tweens.add({
+            targets: hintText,
+            alpha: 0.6,
+            duration: 800,
+            delay: 2200,
+            ease: 'Power2'
+        });
+        
+        // Back button with minimal design
+        const backBtn = this.add.rectangle(width/2, continueY + 100, 180, 45, 0x1A1A2A, 0.5);
+        backBtn.setStrokeStyle(2, 0x333344);
+        backBtn.setInteractive();
+        backBtn.setAlpha(0);
+        
+        const backText = this.add.text(width/2, continueY + 100, '← BACK TO MENU', {
+            fontSize: '14px',
+            color: '#777788'
+        }).setOrigin(0.5).setAlpha(0);
+        
+        this.tweens.add({
+            targets: [backBtn, backText],
+            alpha: { from: 0, to: [0.8, 1] },
+            duration: 600,
+            delay: 1900,
+            ease: 'Power2'
+        });
+        
+        // Button state management with modern styling
+        const updateContinueButton = () => {
             const hasName = nameInput.value.trim().length > 0;
             if (hasName) {
+                // Active state - vibrant and inviting
                 continueBtn.setFillStyle(0x00FF88);
-                continueBtn.setStrokeStyle(5, 0xFFFFFF);
-                continueBtn.setAlpha(1);
-                continueText.setColor('#FFFFFF');
-                continueText.setStyle({ stroke: '#000000', strokeThickness: 4 });
+                continueBtn.setStrokeStyle(3, 0xFFFFFF);
+                continueText.setColor('#000000');
+                btnGlow.setAlpha(1);
+                continueIcon.setAlpha(1);
+                
+                // Pulsing glow animation
+                this.tweens.add({
+                    targets: btnGlow,
+                    alpha: 0.3,
+                    duration: 1000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+                
+                // Subtle bounce on icon
+                this.tweens.add({
+                    targets: continueIcon,
+                    x: width/2 + 165,
+                    duration: 800,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
             } else {
-                continueBtn.setFillStyle(0x4A4A4A);
-                continueBtn.setStrokeStyle(5, 0x666666);
-                continueBtn.setAlpha(0.5);
-                continueText.setColor('#999999');
-                continueText.setStyle({ stroke: '#000000', strokeThickness: 3 });
+                // Inactive state - subdued
+                continueBtn.setFillStyle(0x2A2A4A);
+                continueBtn.setStrokeStyle(3, 0x555577);
+                continueText.setColor('#666677');
+                btnGlow.setAlpha(0);
+                continueIcon.setAlpha(0);
+                
+                // Stop animations
+                this.tweens.killTweensOf([btnGlow, continueIcon]);
             }
         };
         
         nameInput.addEventListener('input', () => {
-            updateButtonState();
+            updateContinueButton();
             if (nameInput.value.trim()) {
                 gameState.data.player.name = nameInput.value.trim();
             }
         });
         
-        // Initial button state
-        updateButtonState();
+        updateContinueButton();
         
-        // Button animations
-        this.tweens.add({
-            targets: continueBtn,
-            scale: 1.02,
-            duration: 2000,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-        
+        // Continue button interactions with smooth effects
         continueBtn.on('pointerover', () => {
             if (nameInput.value.trim()) {
-                continueBtn.setFillStyle(0x00CC66);
-                continueBtn.setScale(1.08);
-                continueText.setScale(1.05);
-                this.cameras.main.shake(100, 0.005);
-            }
-        });
-        
-        continueBtn.on('pointerout', () => {
-            if (nameInput.value.trim()) {
-                continueBtn.setFillStyle(0x00FF88);
-            }
-            continueBtn.setScale(1.02);
-            continueText.setScale(1);
-        });
-        
-        continueBtn.on('pointerdown', () => {
-            if (nameInput.value.trim()) {
-                this.proceedToCustomization(nameInput.value.trim());
-            } else {
-                // Shake effect if no name
-                this.cameras.main.shake(200, 0.01);
+                continueBtn.setScale(1.03);
+                continueBtn.setFillStyle(0x00FFAA);
+                if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.15);
+                
                 this.tweens.add({
-                    targets: nameInput,
-                    x: nameInput.offsetLeft - 10,
-                    duration: 50,
-                    yoyo: true,
-                    repeat: 3,
+                    targets: continueIcon,
+                    x: width/2 + 170,
+                    duration: 200,
                     ease: 'Power2'
                 });
             }
         });
         
-        // Helper text
-        const helperText = this.add.text(width/2, height - 80, 'Press ENTER or click CONTINUE when ready', {
-            fontSize: '16px',
-            color: '#888888',
-            fontStyle: 'italic'
-        }).setOrigin(0.5);
+        continueBtn.on('pointerout', () => {
+            continueBtn.setScale(1);
+            if (nameInput.value.trim()) {
+                continueBtn.setFillStyle(0x00FF88);
+            }
+        });
         
-        // Auto-focus input after a short delay
+        continueBtn.on('pointerdown', () => {
+            if (nameInput.value.trim()) {
+                continueBtn.setScale(0.97);
+                if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.3);
+                this.cameras.main.flash(200, 0, 255, 136, false);
+                this.time.delayedCall(150, () => {
+                    this.proceedToCustomization(nameInput.value.trim());
+                });
+            } else {
+                // Shake effect if no name
+                this.tweens.add({
+                    targets: [continueBtn, continueText],
+                    x: width/2 + 10,
+                    duration: 50,
+                    yoyo: true,
+                    repeat: 3,
+                    ease: 'Power2'
+                });
+                if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.1);
+            }
+        });
+                continueBtn.setFillStyle(0x00CC66);
+        
+        // Back button interactions with hover effects
+        backBtn.on('pointerover', () => {
+            backBtn.setFillStyle(0x2A2A3A);
+            backBtn.setStrokeStyle(2, 0x555566);
+            backText.setColor('#AAAAAA');
+            backBtn.setScale(1.03);
+            if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.1);
+        });
+        
+        backBtn.on('pointerout', () => {
+            backBtn.setFillStyle(0x1A1A2A);
+            backBtn.setStrokeStyle(2, 0x333344);
+            backText.setColor('#777788');
+            backBtn.setScale(1);
+        });
+        
+        backBtn.on('pointerdown', () => {
+            if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.3);
+            backBtn.setScale(0.97);
+            this.time.delayedCall(100, () => {
+                this.goBackToMenu();
+            });
+        });
+    }
+    
+    goBackToMenu() {
+        // Clean up resize handler
+        if (this.inputResizeHandler) {
+            window.removeEventListener('resize', this.inputResizeHandler);
+            this.scale.off('resize', this.inputResizeHandler);
+        }
+        
+        // Clean up input element
+        const inputContainer = document.getElementById('name-input-container');
+        if (inputContainer) inputContainer.remove();
+        
+        // Fade out and return to MainMenuScene
+        this.cameras.main.fadeOut(500, 0, 0, 0);
         this.time.delayedCall(500, () => {
-            nameInput.focus();
+            this.scene.start('MainMenuScene');
         });
     }
     
@@ -3666,49 +4278,35 @@ class NameInputScene extends Phaser.Scene {
         gameState.data.player.name = name.trim();
         gameState.saveGame();
         
-        // Remove HTML input
-        if (this.nameInputElement && this.nameInputElement.parentElement) {
-            this.nameInputElement.parentElement.remove();
+        // Play success sound
+        if (globalSoundManager) globalSoundManager.playSfx('success', 0.5);
+        
+        // Unregister from coordinate system
+        if (window.coordSystem) {
+            window.coordSystem.unregister('name-input-container');
         }
         
-        // Remove resize listener
-        if (this.inputPositionUpdater) {
-            window.removeEventListener('resize', this.inputPositionUpdater);
-        }
+        // Remove HTML input
+        const inputContainer = document.getElementById('name-input-container');
+        if (inputContainer) inputContainer.remove();
         
         // Transition to customization
         this.cameras.main.flash(300, 0, 255, 0);
         this.cameras.main.fadeOut(500);
         this.time.delayedCall(500, () => {
-            // Start the new scene and ensure it fades in
             this.scene.start('CharacterCustomizationScene');
         });
     }
     
     shutdown() {
-        // CRITICAL: Clean up HTML input when scene closes to prevent duplicates
+        // CRITICAL: Clean up HTML input when scene closes
         const inputContainer = document.getElementById('name-input-container');
-        if (inputContainer && inputContainer.parentElement) {
-            inputContainer.parentElement.removeChild(inputContainer);
-        }
+        if (inputContainer) inputContainer.remove();
         
-        // Remove ALL event listeners to prevent memory leaks
-        if (this.nameInputElement) {
-            this.nameInputElement.removeEventListener('keydown', null);
-            this.nameInputElement.removeEventListener('keypress', null);
-            this.nameInputElement.removeEventListener('input', null);
-            this.nameInputElement.removeEventListener('focus', null);
-            this.nameInputElement.removeEventListener('blur', null);
+        // Unregister from coordinate system
+        if (window.coordSystem) {
+            window.coordSystem.unregister('name-input-container');
         }
-        
-        // Remove resize listener
-        if (this.inputPositionUpdater) {
-            window.removeEventListener('resize', this.inputPositionUpdater);
-            this.inputPositionUpdater = null;
-        }
-        
-        // Clear references
-        this.nameInputElement = null;
     }
     
     hideAllUI() {
@@ -3836,8 +4434,9 @@ class CharacterCustomizationScene extends Phaser.Scene {
         // LEFT PANEL: ALL Customization Options
         // ============================================
         const leftPanelX = width * 0.25;
-        const leftPanelStartY = 160;
-        const sectionSpacing = 140; // Spacing between section titles
+        // RESPONSIVE: Scale starting Y and spacing based on camera height
+        const leftPanelStartY = height * 0.15; // 15% from top instead of fixed 160px
+        const sectionSpacing = height * 0.18; // 18% of height instead of fixed 220px
         
         // Create scrollable panel background
         const leftPanelBg = this.add.rectangle(leftPanelX, height/2 + 50, 450, height - 180, 0x1A1A2E, 0.85);
@@ -4066,13 +4665,23 @@ class CharacterCustomizationScene extends Phaser.Scene {
     }
     
     createOptionSection(x, y, title, options, key) {
+        // Get scale factor for responsive sizing
+        const baseWidth = 1920; // Game's base internal width
+        const baseHeight = 1080; // Game's base internal height
+        const scaleX = this.cameras.main.width / baseWidth;
+        const scaleY = this.cameras.main.height / baseHeight;
+        const scale = Math.min(scaleX, scaleY); // Use minimum to maintain aspect ratio
+        
+        const fontSize = Math.max(14, 20 * scale); // Min 14px, scales with camera
+        const buttonFontSize = Math.max(10, 13 * scale); // Min 10px for buttons
+        
         // Title at top
         const titleText = this.add.text(x, y, title, {
-            fontSize: '20px',
+            fontSize: `${fontSize}px`,
             color: '#FFD700',
             fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 3
+            strokeThickness: Math.max(2, 3 * scale)
         }).setOrigin(0.5).setDepth(6);
         
         // Store buttons for this section
@@ -4080,23 +4689,28 @@ class CharacterCustomizationScene extends Phaser.Scene {
             this.buttonGroups[key] = [];
         }
         
-        // Create buttons in a clean grid - MUCH BETTER SPACING
-        const buttonWidth = 110;
-        const buttonHeight = 45;
-        const buttonSpacingX = 130;
-        const buttonSpacingY = 60;
+        // RESPONSIVE button sizing and spacing
+        const buttonWidth = Math.max(90, 110 * scale);
+        const buttonHeight = Math.max(35, 45 * scale);
+        const buttonSpacingX = Math.max(100, 130 * scale);
+        const buttonSpacingY = Math.max(48, 60 * scale);
         const buttonsPerRow = 3;
+        
+        // RESPONSIVE horizontal centering offset
+        const totalRowWidth = (buttonsPerRow - 1) * buttonSpacingX;
+        const centerOffset = totalRowWidth / 2;
         
         options.forEach((option, i) => {
             const col = i % buttonsPerRow;
             const row = Math.floor(i / buttonsPerRow);
-            const btnX = x - 130 + col * buttonSpacingX;
-            const btnY = y + 40 + row * buttonSpacingY;
+            // FIXED: Center buttons properly by starting from left edge
+            const btnX = x - centerOffset + col * buttonSpacingX;
+            const btnY = y + (35 * scale) + row * buttonSpacingY; // Scale the 35px offset too
             
             // Button background
             const isSelected = this.customization[key] === option.value;
             const btn = this.add.rectangle(btnX, btnY, buttonWidth, buttonHeight, isSelected ? 0x00FF88 : 0x0A66C2);
-            btn.setStrokeStyle(3, isSelected ? 0xFFFFFF : 0x4A90E2);
+            btn.setStrokeStyle(Math.max(2, 3 * scale), isSelected ? 0xFFFFFF : 0x4A90E2);
             btn.setInteractive({ useHandCursor: true });
             btn.setData('value', option.value);
             btn.setData('key', key);
@@ -4109,11 +4723,11 @@ class CharacterCustomizationScene extends Phaser.Scene {
             }
             
             const btnText = this.add.text(btnX, btnY, displayName, {
-                fontSize: '13px',
+                fontSize: `${buttonFontSize}px`,
                 color: '#FFFFFF',
                 fontStyle: 'bold',
                 stroke: '#000000',
-                strokeThickness: 2,
+                strokeThickness: Math.max(1, 2 * scale),
                 wordWrap: { width: buttonWidth - 10 }
             }).setOrigin(0.5).setDepth(7);
             
@@ -4698,6 +5312,9 @@ class HomeScene extends Phaser.Scene {
         computer.setData('name', 'Work Computer');
         computer.refreshBody();
         
+        // Add glow effect to computer
+        this.addGlowEffect(computer, 0x00FF88);
+        
         // Laptop on desk
         this.add.image(460, 95, 'laptop');
         
@@ -4712,6 +5329,9 @@ class HomeScene extends Phaser.Scene {
         bed.setData('type', 'bed');
         bed.setData('name', 'Bed');
         bed.refreshBody();
+        
+        // Add glow effect to bed
+        this.addGlowEffect(bed, 0xFFD700);
         
         // Create collision body for bed
         const bedCollision = this.obstacles.create(520, 360, 'bed');
@@ -4729,6 +5349,9 @@ class HomeScene extends Phaser.Scene {
         wardrobe.setData('type', 'wardrobe');
         wardrobe.setData('name', 'Wardrobe');
         wardrobe.refreshBody();
+        
+        // Add glow effect to wardrobe
+        this.addGlowEffect(wardrobe, 0x00D9FF);
         
         // Visual wardrobe (draw it)
         const wardrobeBg = this.add.rectangle(100, 400, 80, 100, 0x654321);
@@ -4784,6 +5407,34 @@ class HomeScene extends Phaser.Scene {
         
         // Add ambient animations
         this.createAmbientAnimations();
+    }
+    
+    addGlowEffect(object, color = 0x00FF88) {
+        // Create a circular glow graphic
+        const graphics = this.add.graphics();
+        graphics.fillStyle(color, 0.4);
+        graphics.fillCircle(0, 0, object.displayWidth * 0.8);
+        graphics.generateTexture('glow_temp', object.displayWidth * 1.6, object.displayWidth * 1.6);
+        graphics.destroy();
+        
+        // Add glow sprite behind the object
+        const glow = this.add.sprite(object.x, object.y, 'glow_temp');
+        glow.setDepth(object.depth - 1);
+        glow.setAlpha(0.3);
+        
+        // Pulsing animation
+        this.tweens.add({
+            targets: glow,
+            alpha: 0.6,
+            scale: 1.2,
+            duration: 1500,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+        
+        // Store glow reference on object for potential cleanup
+        object.setData('glowSprite', glow);
     }
     
     createAmbientAnimations() {
@@ -5004,10 +5655,17 @@ class CityScene extends Phaser.Scene {
     create() {
         gameState.data.location = 'city';
         
+        // Initialize day/night cycle
+        if (window.dayNightCycle) {
+            window.dayNightCycle.init(this);
+        }
+        
         // Update sound manager and play city daytime music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
-            globalSoundManager.playMusic('city_daytime', true);
+            // Play appropriate music based on time of day
+            const isNight = window.dayNightCycle && window.dayNightCycle.isNightTime();
+            globalSoundManager.playMusic(isNight ? 'city_nighttime' : 'city_daytime', true);
         }
         
         // Create outdoor environment
@@ -5501,7 +6159,12 @@ class CityScene extends Phaser.Scene {
         });
     }
 
-    update() {
+    update(time, delta) {
+        // Update day/night cycle
+        if (window.dayNightCycle) {
+            window.dayNightCycle.update(delta);
+        }
+        
         this.handleMovement();
         this.checkInteractions();
         this.updateNPCAI();
@@ -8106,6 +8769,10 @@ class ComputerMenuScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         
+        // Calculate scale factor for responsive sizing
+        const baseWidth = 1920;
+        const scaleX = width / baseWidth;
+        
         // Fullscreen dark overlay
         const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.85);
         overlay.setScrollFactor(0);
@@ -8114,21 +8781,22 @@ class ComputerMenuScene extends Phaser.Scene {
         const menuWidth = Math.min(900, width - 100);
         const menuHeight = Math.min(700, height - 100);
         const menuBg = this.add.rectangle(width/2, height/2, menuWidth, menuHeight, 0x0A66C2);
-        menuBg.setStrokeStyle(5, 0xFFFFFF);
+        menuBg.setStrokeStyle(Math.max(3, 5 * scaleX), 0xFFFFFF);
         menuBg.setScrollFactor(0);
         
-        // Title
+        // Title with scaled font
+        const titleFontSize = Math.max(20, 36 * scaleX);
         const title = this.add.text(width/2, height/2 - menuHeight/2 + 50, '💻 LINKEDIN DASHBOARD', {
-            fontSize: '36px',
+            fontSize: `${titleFontSize}px`,
             color: '#FFFFFF',
             fontStyle: 'bold',
             stroke: '#000000',
-            strokeThickness: 4
+            strokeThickness: Math.max(2, 4 * scaleX)
         }).setOrigin(0.5).setScrollFactor(0);
         
         // Create scrollable button area
         const buttonAreaY = height/2 - menuHeight/2 + 120;
-        const buttonSpacing = 55;
+        const buttonSpacing = Math.max(40, 55 * scaleX);
         const buttonWidth = menuWidth - 80;
         
         // Create buttons in a grid layout (2 columns)
@@ -8151,21 +8819,23 @@ class ComputerMenuScene extends Phaser.Scene {
             const x = width/2 - menuWidth/2 + 50 + (btn.col * (buttonWidth/2 + 20));
             const y = buttonAreaY + (btn.row * buttonSpacing);
             
-            this.createButton(x, y, btn.text, btn.action, buttonWidth/2 - 10);
+            this.createButton(x, y, btn.text, btn.action, buttonWidth/2 - 10, scaleX);
         });
 
         // ESC to close
         this.input.keyboard.on('keydown-ESC', () => this.closeMenu());
     }
 
-    createButton(x, y, text, callback, width = 400) {
-        const button = this.add.rectangle(x, y, width, 48, 0x004182);
-        button.setStrokeStyle(2, 0xFFFFFF);
+    createButton(x, y, text, callback, width = 400, scale = 1) {
+        const buttonHeight = Math.max(40, 48 * scale);
+        const button = this.add.rectangle(x, y, width, buttonHeight, 0x004182);
+        button.setStrokeStyle(Math.max(1, 2 * scale), 0xFFFFFF);
         button.setInteractive();
         button.setScrollFactor(0);
         
+        const fontSize = Math.max(12, 16 * scale);
         const buttonText = this.add.text(x, y, text, {
-            fontSize: '16px',
+            fontSize: `${fontSize}px`,
             color: '#FFFFFF',
             fontStyle: 'bold',
             wordWrap: { width: width - 20 }
@@ -10738,10 +11408,10 @@ class HackathonScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 1920,
+    height: 1080,
     parent: 'game-container',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#0D1B2A',
     pixelArt: true,
     physics: {
         default: 'arcade',
@@ -10790,11 +11460,19 @@ const config = {
         HackathonScene
     ],
     scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        resizeInterval: 100
+        parent: 'game-container',
+        width: 1920,
+        height: 1080
+    },
+    render: {
+        pixelArt: true,
+        antialias: false,
+        roundPixels: true
+    },
+    dom: {
+        createContainer: true
     }
 };
 
@@ -10825,14 +11503,9 @@ function createGame() {
 
         console.log('Phaser game created successfully');
 
-        // Hide loading after short delay to ensure game has started
-        setTimeout(() => {
-            const loading = document.getElementById('loading');
-            if (loading) {
-                loading.style.display = 'none';
-            }
-        }, 500);
-
+        // Keep HTML loading screen visible until LoadingScene is ready
+        // LoadingScene will handle hiding it via its own UI hiding method
+        
     } catch (error) {
         console.error('Failed to create Phaser game:', error);
         const loading = document.getElementById('loading');
@@ -10856,12 +11529,14 @@ document.addEventListener('DOMContentLoaded', () => {
         storyOverlay.style.display = 'none';
     }
     
-    // Add global ESC key handler for dialogue system
+    // Add global Q key handler for dialogue system (changed from ESC to Q)
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' || event.keyCode === 27) {
+        if (event.key === 'q' || event.key === 'Q') {
+            // Handle dialogue skip with Q key
             if (window.dialogueManager && window.dialogueManager.handleEscapeKey()) {
                 event.preventDefault();
                 event.stopPropagation();
+                console.log('⏭️ Dialogue skipped with Q key');
             }
         }
     });
@@ -10870,98 +11545,73 @@ document.addEventListener('DOMContentLoaded', () => {
 window.game = game; // Expose globally for fullscreen toggle
 window.gameState = gameState; // Expose for customization
 
+// ============================================================================
+// RESIZE AND FULLSCREEN HANDLING - PROFESSIONAL IMPLEMENTATION
+// ============================================================================
+
 // Comprehensive resize handler
 let resizeTimeout;
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        if (game && game.scale) {
-            const newWidth = window.innerWidth;
-            const newHeight = window.innerHeight;
-            
-            // Update Phaser game size
-            game.scale.resize(newWidth, newHeight);
-            
-            // Update all active scenes
-            game.scene.scenes.forEach(scene => {
-                if (scene.scene.isActive() || scene.scene.isPaused()) {
-                    // Update camera viewport
+        if (!window.game) return;
+        
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        // Resize the game canvas directly
+        if (window.game.canvas) {
+            window.game.canvas.style.width = width + 'px';
+            window.game.canvas.style.height = height + 'px';
+        }
+        
+        // Update Phaser game scale
+        if (window.game.scale) {
+            window.game.scale.resize(width, height);
+        }
+        
+        // Update all active scene cameras to match new dimensions
+        if (window.game.scene && window.game.scene.scenes) {
+            window.game.scene.scenes.forEach(scene => {
+                if (scene.sys && (scene.scene.isActive() || scene.scene.isVisible())) {
                     if (scene.cameras && scene.cameras.main) {
-                        scene.cameras.main.setViewport(0, 0, newWidth, newHeight);
-                        // Maintain camera zoom and bounds
-                        if (scene.cameras.main.zoom) {
-                            // Keep zoom consistent
-                        }
-                    }
-                    
-                    // Call scene's resize handler if it exists
-                    if (typeof scene.resize === 'function') {
-                        scene.resize(newWidth, newHeight);
+                        scene.cameras.main.setSize(width, height);
                     }
                 }
             });
-            
-            // Update fullscreen button visibility
-            updateFullscreenButton();
         }
-    }, 100); // Debounce resize events
-}
-
-// Listen to all resize scenarios
-window.addEventListener('resize', handleResize);
-window.addEventListener('orientationchange', handleResize);
-window.addEventListener('focus', handleResize);
-
-// Fullscreen change handler
-function handleFullscreenChange() {
-    updateFullscreenButton();
-    
-    // Resize game when fullscreen changes
-    setTimeout(() => {
-        if (game && game.scale) {
-            game.scale.resize(window.innerWidth, window.innerHeight);
-        }
+        
+        console.log(`✓ Game resized: ${width}x${height}`);
     }, 100);
 }
 
-// Listen to fullscreen changes
-document.addEventListener('fullscreenchange', handleFullscreenChange);
-document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+// Listen to resize events
+window.addEventListener('resize', handleResize);
+window.addEventListener('orientationchange', handleResize);
 
-// Update fullscreen button visibility
-function updateFullscreenButton() {
-    const btn = document.getElementById('fullscreen-toggle');
-    if (!btn) return;
+// Cross-browser fullscreen toggle
+function toggleFullscreen() {
+    const container = document.getElementById('game-container');
+    if (!container) return;
     
-    const isFullscreen = !!(document.fullscreenElement || 
-                           document.webkitFullscreenElement || 
-                           document.mozFullScreenElement || 
-                           document.msFullscreenElement ||
-                           (game && game.scale && game.scale.isFullscreen));
+    const isFullscreen = document.fullscreenElement || 
+                         document.webkitFullscreenElement || 
+                         document.mozFullScreenElement || 
+                         document.msFullscreenElement;
     
     if (isFullscreen) {
-        btn.style.display = 'none';
-    } else {
-        btn.style.display = 'block';
-    }
-}
-
-// Fullscreen toggle function
-function toggleFullscreen() {
-    if (!game || !game.scale) return;
-    
-    try {
-        if (game.scale.isFullscreen) {
-            game.scale.stopFullscreen();
-        } else {
-            game.scale.startFullscreen();
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
         }
-    } catch (error) {
-        console.log('Fullscreen error:', error);
-        // Fallback to manual fullscreen
-        const container = document.getElementById('game-container');
+    } else {
+        // Enter fullscreen
         if (container.requestFullscreen) {
             container.requestFullscreen();
         } else if (container.webkitRequestFullscreen) {
@@ -10974,11 +11624,37 @@ function toggleFullscreen() {
     }
 }
 
+// Handle fullscreen state changes
+function handleFullscreenChange() {
+    console.log('🔄 Global fullscreen change detected');
+    
+    // Use global coordinate system
+    if (window.coordSystem) {
+        window.coordSystem.handleFullscreenChange();
+    }
+    
+    // Trigger Phaser resize
+    setTimeout(() => {
+        handleResize();
+        
+        // Dispatch resize event
+        window.dispatchEvent(new Event('resize'));
+        
+        // Trigger Phaser's scale manager resize event
+        if (window.game && window.game.scale) {
+            window.game.scale.emit('resize', window.game.scale);
+        }
+    }, 100);
+}
+
+// Listen to fullscreen changes (all browsers)
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
 // Expose globally
 window.toggleFullscreen = toggleFullscreen;
-
-// Initial fullscreen button state
-updateFullscreenButton();
 
 // Update UI periodically
 setInterval(updateUI, 1000);
