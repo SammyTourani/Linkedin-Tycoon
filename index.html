@@ -788,22 +788,6 @@
             <small>Build Your Professional Empire</small>
         </div>
 
-        <div id="story-overlay">
-            <div id="story-content">
-                <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
-                <p id="story-text">Your journey begins here...</p>
-                <button id="story-continue">Continue</button>
-            </div>
-        </div>
-
-        <div id="encounter-overlay">
-            <div id="encounter-content">
-                <h2 id="encounter-title">Random Event</h2>
-                <p id="encounter-text">Something happened...</p>
-                <div id="encounter-choices"></div>
-            </div>
-        </div>
-
         <div id="dialogue-box">
             <div id="dialogue-speaker">NPC Name</div>
             <div id="dialogue-text">Dialogue text goes here...</div>
@@ -892,6 +876,23 @@
             <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px; font-size: 24px;">🌳 Skill Tree</h2>
             <div id="skill-tree-content"></div>
             <button class="menu-button" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Story and Encounter overlays OUTSIDE game-container to prevent clipping -->
+    <div id="story-overlay">
+        <div id="story-content">
+            <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
+            <p id="story-text">Your journey begins here...</p>
+            <button id="story-continue">Continue</button>
+        </div>
+    </div>
+
+    <div id="encounter-overlay">
+        <div id="encounter-content">
+            <h2 id="encounter-title">Random Event</h2>
+            <p id="encounter-text">Something happened...</p>
+            <div id="encounter-choices"></div>
         </div>
     </div>
 
