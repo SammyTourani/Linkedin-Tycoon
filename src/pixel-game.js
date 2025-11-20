@@ -410,41 +410,7 @@ class StoryManager {
             }
         ];
         this.currentChapter = 0;
-        this.setupScaling();
-    }
-    
-    setupScaling() {
-        // Story overlay positioned at game center: 960, 540
-        if (window.coordSystem) {
-            window.coordSystem.register('story-overlay', 960, 540, 1920, 1080, () => this.updateStoryOverlayPosition());
-        }
-    }
-    
-    getScaledPosition() {
-        // Same scaling logic as NameInputScene
-        const canvas = document.querySelector('#game-container canvas');
-        if (!canvas || !window.game || !window.game.scene || !window.game.scene.scenes[0]) {
-            return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, width: window.innerWidth, height: window.innerHeight };
-        }
-        
-        const canvasRect = canvas.getBoundingClientRect();
-        const scene = window.game.scene.scenes.find(s => s.cameras && s.cameras.main);
-        if (!scene || !scene.cameras || !scene.cameras.main) {
-            return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, width: window.innerWidth, height: window.innerHeight };
-        }
-        
-        const camera = scene.cameras.main;
-        const scaleX = canvasRect.width / camera.width;
-        const scaleY = canvasRect.height / camera.height;
-        
-        return {
-            scaleX,
-            scaleY,
-            offsetX: canvasRect.left,
-            offsetY: canvasRect.top,
-            width: canvasRect.width,
-            height: canvasRect.height
-        };
+        // No need for setupScaling - CSS handles all positioning
     }
     
     updateStoryOverlayPosition() {
@@ -472,17 +438,44 @@ class StoryManager {
     }
 
     showStory(index) {
-        if (index >= this.stories.length) return;
+        console.log('📖 showStory called with index:', index);
+        if (index >= this.stories.length) {
+            console.error('Story index out of range:', index, 'max:', this.stories.length);
+            return;
+        }
         
         const story = this.stories[index];
+        console.log('Story data:', story);
+        
         const overlay = document.getElementById('story-overlay');
-        document.getElementById('story-title').textContent = story.title;
-        document.getElementById('story-text').textContent = story.text;
-        document.getElementById('story-continue').textContent = story.action;
+        const titleEl = document.getElementById('story-title');
+        const textEl = document.getElementById('story-text');
+        const btnEl = document.getElementById('story-continue');
+        
+        console.log('DOM elements found:', {
+            overlay: !!overlay,
+            title: !!titleEl,
+            text: !!textEl,
+            button: !!btnEl
+        });
+        
+        if (!overlay) {
+            console.error('story-overlay element not found in DOM!');
+            return;
+        }
+        
+        titleEl.textContent = story.title;
+        textEl.textContent = story.text;
+        btnEl.textContent = story.action;
+        
+        console.log('Content set, adding show class...');
         
         // Update position before showing
         this.updateStoryOverlayPosition();
         overlay.classList.add('show');
+        
+        console.log('Overlay classes:', overlay.className);
+        console.log('Overlay computed style:', window.getComputedStyle(overlay).visibility, window.getComputedStyle(overlay).opacity);
         
         this.currentStory = index;
     }
@@ -2909,6 +2902,8 @@ class LoadingScene extends Phaser.Scene {
         
         // HIDE ALL UI
         this.hideAllUI();
+        const fsButton = document.getElementById('fullscreen-toggle');
+        if (fsButton) fsButton.style.display = 'none';
         
         // Dark background
         this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
@@ -3044,6 +3039,8 @@ class IntroScene extends Phaser.Scene {
         
         // HIDE ALL UI ELEMENTS
         this.hideAllUI();
+        const fsButton = document.getElementById('fullscreen-toggle');
+        if (fsButton) fsButton.style.display = 'none';
         
         // Update sound manager scene reference and start music
         if (globalSoundManager) {
