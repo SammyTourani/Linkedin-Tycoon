@@ -5013,15 +5013,20 @@ class TutorialScene extends Phaser.Scene {
     }
     
     completeTutorial() {
+        console.log('🎓 Tutorial completed!');
         gameState.data.tutorialComplete = true;
         gameState.saveGame();
         document.getElementById('dialogue-box').style.display = 'none';
         showNotification('Tutorial complete! Welcome to LinkedIn Tycoon!');
         
+        console.log('📹 Starting camera fade out...');
         this.cameras.main.fadeOut(1000);
         this.time.delayedCall(1000, () => {
+            console.log('📖 Fade complete, showing Chapter 1 story...');
             storyManager.showStory(0);
+            console.log('🔘 Setting up continue button click handler...');
             document.getElementById('story-continue').onclick = () => {
+                console.log('▶️ Continue button clicked, closing story and starting HomeScene');
                 storyManager.closeStory();
                 this.scene.start('HomeScene');
             };
