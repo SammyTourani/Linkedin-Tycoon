@@ -15,7 +15,7 @@ class GlobalCoordinateSystem {
         this.elements = new Map(); // elementId -> {gameX, gameY, gameWidth, gameHeight, updateFn}
         this.isUpdating = false;
     }
-    
+
     /**
      * Get the transformation matrix from game coords (1920x1080) to screen coords
      */
@@ -25,19 +25,19 @@ class GlobalCoordinateSystem {
             console.warn('Canvas not found');
             return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, valid: false };
         }
-        
+
         const rect = canvas.getBoundingClientRect();
-        
+
         // Validate rect
         if (rect.width === 0 || rect.height === 0) {
             console.warn('Canvas rect not ready');
             return { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0, valid: false };
         }
-        
+
         // Calculate scale from Phaser's internal 1920x1080 to actual canvas size
         const scaleX = rect.width / 1920;
         const scaleY = rect.height / 1080;
-        
+
         return {
             scaleX,
             scaleY,
@@ -48,7 +48,7 @@ class GlobalCoordinateSystem {
             valid: true
         };
     }
-    
+
     /**
      * Convert game coordinates to screen coordinates
      * @param {number} gameX - X position in Phaser's 1920x1080 world
@@ -59,7 +59,7 @@ class GlobalCoordinateSystem {
      */
     gameToScreen(gameX, gameY, gameWidth = 0, gameHeight = 0) {
         const transform = this.getCanvasTransform();
-        
+
         if (!transform.valid) {
             // Fallback to centered position
             return {
@@ -72,7 +72,7 @@ class GlobalCoordinateSystem {
                 valid: false
             };
         }
-        
+
         return {
             x: (gameX * transform.scaleX) + transform.offsetX,
             y: (gameY * transform.scaleY) + transform.offsetY,
@@ -83,20 +83,20 @@ class GlobalCoordinateSystem {
             valid: true
         };
     }
-    
+
     /**
      * Register an HTML element with its game coordinates
      */
     register(elementId, gameX, gameY, gameWidth, gameHeight, updateFn) {
         this.elements.set(elementId, { gameX, gameY, gameWidth, gameHeight, updateFn });
         console.log(`✓ Registered element: ${elementId} at game coords (${gameX}, ${gameY})`);
-        
+
         // Initial update
         if (updateFn) {
             updateFn();
         }
     }
-    
+
     /**
      * Unregister an HTML element
      */
@@ -105,29 +105,29 @@ class GlobalCoordinateSystem {
             console.log(`✗ Unregistered element: ${elementId}`);
         }
     }
-    
+
     /**
      * Update all registered elements (call on resize/fullscreen)
      */
     updateAll() {
         if (this.isUpdating) return;
-        
+
         this.isUpdating = true;
-        
+
         // Wait for canvas to stabilize
         setTimeout(() => {
             const transform = this.getCanvasTransform();
-            
+
             if (!transform.valid) {
                 console.warn('Canvas not ready for update, retrying...');
                 this.isUpdating = false;
                 setTimeout(() => this.updateAll(), 200);
                 return;
             }
-            
+
             console.log(`Updating ${this.elements.size} HTML elements...`);
             console.log(`Canvas transform: scale(${transform.scaleX.toFixed(3)}, ${transform.scaleY.toFixed(3)}) offset(${transform.offsetX}, ${transform.offsetY})`);
-            
+
             this.elements.forEach((data, elementId) => {
                 try {
                     if (data.updateFn) {
@@ -137,18 +137,18 @@ class GlobalCoordinateSystem {
                     console.error(`Failed to update ${elementId}:`, error);
                 }
             });
-            
+
             this.isUpdating = false;
             console.log('✓ All elements updated');
         }, 100);
     }
-    
+
     /**
      * Handle fullscreen changes with multiple update attempts
      */
     handleFullscreenChange() {
         console.log('🔄 Fullscreen state changed');
-        
+
         // Multiple attempts to catch canvas at different stages
         setTimeout(() => this.updateAll(), 100);
         setTimeout(() => this.updateAll(), 300);
@@ -172,14 +172,14 @@ class SoundManager {
         this.musicVolume = 0.4;
         this.sfxVolume = 0.6;
         this.talkVolume = 0.5;
-        
+
         // Load all sounds
         this.loadSounds();
     }
-    
+
     loadSounds() {
         const soundPath = import.meta.env.BASE_URL + 'Sounds for LinkedIn Tycoon/';
-        
+
         // Background Music (themes)
         this.sounds.menu_theme = { key: 'menu_theme', path: soundPath + 'menu_theme.mp3', type: 'music' };
         this.sounds.home_ambient = { key: 'home_ambient', path: soundPath + 'home_ambient_theme.mp3', type: 'music' };
@@ -187,13 +187,13 @@ class SoundManager {
         this.sounds.office_work = { key: 'office_work', path: soundPath + 'office_work_theme.wav', type: 'music' };
         this.sounds.customization_theme = { key: 'customization_theme', path: soundPath + 'Character_Customization_theme.mp3', type: 'music' };
         this.sounds.special_event = { key: 'special_event', path: soundPath + 'special_event.mp3', type: 'music' };
-        
+
         // UI Sounds
         this.sounds.button_press = { key: 'button_press', path: soundPath + 'buttonpress:switchbutton.wav', type: 'sfx' };
         this.sounds.interact = { key: 'interact', path: soundPath + 'Interact(E).wav', type: 'sfx' };
         this.sounds.door = { key: 'door', path: soundPath + 'door open:close.wav', type: 'sfx' };
         this.sounds.sleep = { key: 'sleep', path: soundPath + 'sleep_option.wav', type: 'sfx' };
-        
+
         // Game Events
         this.sounds.coin = { key: 'coin', path: soundPath + 'coin.mp3', type: 'sfx' };
         this.sounds.level_up = { key: 'level_up', path: soundPath + 'level_up.wav', type: 'sfx' };
@@ -202,24 +202,24 @@ class SoundManager {
         this.sounds.wrong = { key: 'wrong', path: soundPath + 'wrong.wav', type: 'sfx' };
         this.sounds.purchase = { key: 'purchase', path: soundPath + 'purchase.wav', type: 'sfx' };
         this.sounds.new_connection = { key: 'new_connection', path: soundPath + 'New Connection.wav', type: 'sfx' };
-        
+
         // Talk Sounds (for dialogue typing effect)
         this.sounds.talk1 = { key: 'talk1', path: soundPath + 'talk1.mp3', type: 'talk' };
         this.sounds.talk2 = { key: 'talk2', path: soundPath + 'talk2.mp3', type: 'talk' };
         this.sounds.talk3 = { key: 'talk3', path: soundPath + 'talk3.mp3', type: 'talk' };
         this.sounds.talk4 = { key: 'talk4', path: soundPath + 'talk4.mp3', type: 'talk' };
     }
-    
+
     preloadAll(scene) {
         // Preload all sounds in a Phaser scene
         Object.values(this.sounds).forEach(sound => {
             scene.load.audio(sound.key, sound.path);
         });
     }
-    
+
     playMusic(key, fadeIn = true) {
         if (!this.isMusicEnabled) return;
-        
+
         // Stop current music
         if (this.currentMusic) {
             if (fadeIn) {
@@ -240,26 +240,26 @@ class SoundManager {
             this.startNewMusic(key, fadeIn);
         }
     }
-    
+
     startNewMusic(key, fadeIn = true) {
         if (!this.scene.sound) {
             console.error('Sound system not ready');
             return;
         }
-        
+
         try {
             this.currentMusic = this.scene.sound.add(key, {
                 loop: true,
                 volume: fadeIn ? 0 : this.musicVolume
             });
-            
+
             if (!this.currentMusic) {
                 console.error(`Failed to create sound: ${key}`);
                 return;
             }
-            
+
             this.currentMusic.play();
-            
+
             if (fadeIn && this.scene.tweens) {
                 this.scene.tweens.add({
                     targets: this.currentMusic,
@@ -272,20 +272,20 @@ class SoundManager {
             console.error('Error starting music:', error);
         }
     }
-    
+
     playSfx(key, volume = null) {
         if (!this.isSfxEnabled || !this.scene.sound) return;
-        
+
         const sound = this.scene.sound.add(key, {
             volume: volume !== null ? volume : this.sfxVolume
         });
         sound.play();
         return sound;
     }
-    
+
     playTalk(characterName) {
         if (!this.isSfxEnabled || !this.scene.sound) return null;
-        
+
         // Assign different talk sounds to different NPCs
         const talkMap = {
             'Sarah Chen': 'talk1',
@@ -295,9 +295,9 @@ class SoundManager {
             'Dr. Jennifer Liu': 'talk1',
             'default': 'talk2'
         };
-        
+
         const talkKey = talkMap[characterName] || talkMap.default;
-        
+
         const sound = this.scene.sound.add(talkKey, {
             volume: this.talkVolume,
             loop: true
@@ -305,7 +305,7 @@ class SoundManager {
         sound.play();
         return sound;
     }
-    
+
     stopTalk(sound) {
         if (sound) {
             this.scene.tweens.add({
@@ -319,14 +319,14 @@ class SoundManager {
             });
         }
     }
-    
+
     stopMusic() {
         if (this.currentMusic) {
             this.currentMusic.stop();
             this.currentMusic = null;
         }
     }
-    
+
     stopAllSounds() {
         // Stop all sounds including music and SFX
         if (this.scene && this.scene.sound) {
@@ -334,32 +334,32 @@ class SoundManager {
         }
         this.currentMusic = null;
     }
-    
+
     pauseAllSounds() {
         // Pause all sounds
         if (this.scene && this.scene.sound) {
             this.scene.sound.pauseAll();
         }
     }
-    
+
     resumeAllSounds() {
         // Resume all sounds
         if (this.scene && this.scene.sound) {
             this.scene.sound.resumeAll();
         }
     }
-    
+
     setMusicVolume(volume) {
         this.musicVolume = Math.max(0, Math.min(1, volume));
         if (this.currentMusic) {
             this.currentMusic.setVolume(this.musicVolume);
         }
     }
-    
+
     setSfxVolume(volume) {
         this.sfxVolume = Math.max(0, Math.min(1, volume));
     }
-    
+
     toggleMusic() {
         this.isMusicEnabled = !this.isMusicEnabled;
         if (!this.isMusicEnabled && this.currentMusic) {
@@ -368,7 +368,7 @@ class SoundManager {
         }
         return this.isMusicEnabled;
     }
-    
+
     toggleSfx() {
         this.isSfxEnabled = !this.isSfxEnabled;
         return this.isSfxEnabled;
@@ -412,25 +412,25 @@ class StoryManager {
         this.currentChapter = 0;
         // No need for setupScaling - CSS handles all positioning
     }
-    
+
     updateStoryOverlayPosition() {
         const overlay = document.getElementById('story-overlay');
         const content = document.getElementById('story-content');
         const title = document.querySelector('#story-content h2');
         const text = document.querySelector('#story-content p');
         const button = document.querySelector('#story-content button');
-        
+
         if (!overlay || !content) return;
-        
+
         // No need to position overlay - CSS handles it with fixed fullscreen + flexbox
         // Just ensure it's visible when called
         // The overlay uses fixed positioning at 0,0 with 100vw/100vh
         // Content is centered via flexbox in CSS
-        
+
         // Only scale fonts for responsive design if needed
         // For now, CSS handles all sizing with responsive units
     }
-    
+
     triggerChapter(chapterNum) {
         if (chapterNum <= this.currentChapter) return;
         this.currentChapter = chapterNum;
@@ -443,44 +443,44 @@ class StoryManager {
             console.error('Story index out of range:', index, 'max:', this.stories.length);
             return;
         }
-        
+
         const story = this.stories[index];
         console.log('Story data:', story);
-        
+
         const overlay = document.getElementById('story-overlay');
         const titleEl = document.getElementById('story-title');
         const textEl = document.getElementById('story-text');
         const btnEl = document.getElementById('story-continue');
-        
+
         console.log('DOM elements found:', {
             overlay: !!overlay,
             title: !!titleEl,
             text: !!textEl,
             button: !!btnEl
         });
-        
+
         if (!overlay) {
             console.error('story-overlay element not found in DOM!');
             return;
         }
-        
+
         titleEl.textContent = story.title;
         textEl.textContent = story.text;
         btnEl.textContent = story.action;
-        
+
         console.log('Content set, adding show class...');
-        
+
         // Update position before showing
         this.updateStoryOverlayPosition();
         overlay.classList.add('show');
-        
+
         // Force display styles to ensure visibility
         overlay.style.display = 'flex';
         overlay.style.width = '100vw';
         overlay.style.height = '100vh';
         overlay.style.top = '0';
         overlay.style.left = '0';
-        
+
         console.log('Overlay classes:', overlay.className);
         const computedStyle = window.getComputedStyle(overlay);
         console.log('Overlay computed style:', {
@@ -495,7 +495,7 @@ class StoryManager {
             height: computedStyle.height,
             pointerEvents: computedStyle.pointerEvents
         });
-        
+
         // Get overlay's actual position on screen
         const rect = overlay.getBoundingClientRect();
         console.log('Overlay bounding rect:', {
@@ -506,7 +506,7 @@ class StoryManager {
             bottom: rect.bottom,
             right: rect.right
         });
-        
+
         this.currentStory = index;
     }
 
@@ -526,10 +526,10 @@ class DayNightCycle {
         this.overlay = null;
         this.currentScene = null;
     }
-    
+
     init(scene) {
         this.currentScene = scene;
-        
+
         // Create overlay for day/night tinting
         this.overlay = scene.add.rectangle(
             scene.cameras.main.width / 2,
@@ -541,41 +541,41 @@ class DayNightCycle {
         );
         this.overlay.setScrollFactor(0);
         this.overlay.setDepth(9999);
-        
+
         // Load time from gameState
         if (gameState && gameState.data.time) {
             this.timeOfDay = gameState.data.time;
         }
-        
+
         this.updateOverlay();
     }
-    
+
     update(delta) {
         this.timeElapsed += delta / 1000;
-        
+
         if (this.timeElapsed >= this.timePerPhase) {
             this.timeElapsed = 0;
             this.advanceTime();
         }
-        
+
         // Smooth transition during phase
         this.updateOverlay();
     }
-    
+
     advanceTime() {
         const phases = ['morning', 'afternoon', 'evening', 'night'];
         const currentIndex = phases.indexOf(this.timeOfDay);
         this.timeOfDay = phases[(currentIndex + 1) % phases.length];
-        
+
         // Save to gameState
         if (gameState) {
             gameState.data.time = this.timeOfDay;
             gameState.saveGame();
         }
-        
+
         // Update UI
         updateUI();
-        
+
         // Change music based on time
         if (globalSoundManager && this.currentScene) {
             if (this.timeOfDay === 'night' || this.timeOfDay === 'evening') {
@@ -584,7 +584,7 @@ class DayNightCycle {
                 globalSoundManager.playMusic('city_daytime', true);
             }
         }
-        
+
         // Show notification
         const messages = {
             morning: '🌅 Morning has arrived! A new day begins.',
@@ -594,27 +594,27 @@ class DayNightCycle {
         };
         showNotification(messages[this.timeOfDay]);
     }
-    
+
     updateOverlay() {
         if (!this.overlay) return;
-        
+
         const settings = {
             morning: { color: 0xFFE4B5, alpha: 0.1 },
             afternoon: { color: 0xFFFFFF, alpha: 0 },
             evening: { color: 0xFF6B35, alpha: 0.15 },
             night: { color: 0x000033, alpha: 0.4 }
         };
-        
+
         const current = settings[this.timeOfDay];
         if (current) {
             this.overlay.setFillStyle(current.color, current.alpha);
         }
     }
-    
+
     getTimeOfDay() {
         return this.timeOfDay;
     }
-    
+
     isNightTime() {
         return this.timeOfDay === 'night' || this.timeOfDay === 'evening';
     }
@@ -702,17 +702,17 @@ class DialogueManager {
         const skipHint = document.getElementById('dialogue-skip-hint');
 
         speaker.textContent = npcName;
-        
+
         // Clear previous text and start typing effect
         text.textContent = '';
         choices.innerHTML = '';
         if (skipHint) skipHint.style.display = 'block';
-        
+
         // Play talk sound
         if (globalSoundManager) {
             this.currentTalkSound = globalSoundManager.playTalk(npcName);
         }
-        
+
         // Type out the intro text
         this.typeText(npc.intro, text, () => {
             // Stop talk sound when done
@@ -720,30 +720,30 @@ class DialogueManager {
                 globalSoundManager.stopTalk(this.currentTalkSound);
                 this.currentTalkSound = null;
             }
-            
+
             // Hide skip hint when done typing
             if (skipHint) skipHint.style.display = 'none';
-            
+
             // Show choices after typing is done
             this.showDialogueChoices(npcName, npc, text, choices, scene);
         });
-        
+
         box.style.display = 'block';
         this.currentDialogue = npcName;
     }
-    
+
     typeText(fullText, element, onComplete) {
         this.isTyping = true;
         this.currentFullText = fullText;
         this.currentElement = element;
         this.currentOnComplete = onComplete;
         let currentIndex = 0;
-        
+
         // Clear any existing interval
         if (this.typingInterval) {
             clearInterval(this.typingInterval);
         }
-        
+
         this.typingInterval = setInterval(() => {
             if (currentIndex < fullText.length) {
                 element.textContent += fullText[currentIndex];
@@ -759,7 +759,7 @@ class DialogueManager {
             }
         }, this.typingSpeed);
     }
-    
+
     skipTyping(fullText, element, onComplete) {
         // Skip to end of typing
         if (this.typingInterval) {
@@ -768,72 +768,72 @@ class DialogueManager {
         }
         element.textContent = fullText;
         this.isTyping = false;
-        
+
         // Stop talk sound
         if (globalSoundManager && this.currentTalkSound) {
             globalSoundManager.stopTalk(this.currentTalkSound);
             this.currentTalkSound = null;
         }
-        
+
         // Hide skip hint
         const skipHint = document.getElementById('dialogue-skip-hint');
         if (skipHint) skipHint.style.display = 'none';
-        
+
         // Clear stored values
         this.currentFullText = null;
         this.currentElement = null;
         this.currentOnComplete = null;
-        
+
         if (onComplete) onComplete();
     }
-    
+
     handleEscapeKey() {
         // If currently typing, skip to the end
         if (this.isTyping && this.currentFullText && this.currentElement && this.currentOnComplete) {
             this.skipTyping(this.currentFullText, this.currentElement, this.currentOnComplete);
             return true;
         }
-        
+
         // If dialogue is open but not typing, close it
         if (this.currentDialogue) {
             this.hideDialogue();
             return true;
         }
-        
+
         return false;
     }
-    
+
     hideDialogue() {
         const box = document.getElementById('dialogue-box');
         box.style.display = 'none';
-        
+
         // Stop any typing and talk sounds
         if (this.typingInterval) {
             clearInterval(this.typingInterval);
             this.typingInterval = null;
         }
-        
+
         if (globalSoundManager && this.currentTalkSound) {
             globalSoundManager.stopTalk(this.currentTalkSound);
             this.currentTalkSound = null;
         }
-        
+
         this.isTyping = false;
         this.currentDialogue = null;
         this.currentFullText = null;
         this.currentElement = null;
         this.currentOnComplete = null;
     }
-    
+
     showDialogueChoices(npcName, npc, text, choices, scene) {
         choices.innerHTML = '';
-        
+
         // More dialogue options based on NPC
         let options = [
             { text: "💼 Tell me about networking", key: 'networking' },
             { text: "💡 Got any advice?", key: 'advice' }
         ];
-        
+
         // Add NPC-specific options
         if (npcName === 'Sarah Chen') {
             options.push({ text: "💼 Product Management?", key: 'career' });
@@ -860,7 +860,7 @@ class DialogueManager {
             options.push({ text: "🎯 Mentorship wisdom?", key: 'mentorship' });
             options.push({ text: "⚖️ Work-life balance?", key: 'life' });
         }
-        
+
         options.push({ text: "👋 Nice meeting you!", key: 'goodbye' });
 
         options.forEach(option => {
@@ -872,7 +872,7 @@ class DialogueManager {
                 if (globalSoundManager) {
                     globalSoundManager.playSfx('button_press', 0.3);
                 }
-                
+
                 if (option.key === 'goodbye') {
                     this.closeDialogue(scene);
                     if (scene && scene.networkWithPerson) {
@@ -881,12 +881,12 @@ class DialogueManager {
                 } else {
                     const responseText = npc.responses[option.key];
                     text.textContent = '';
-                    
+
                     // Play talk sound
                     if (globalSoundManager) {
                         this.currentTalkSound = globalSoundManager.playTalk(npcName);
                     }
-                    
+
                     // Type out response
                     this.typeText(responseText, text, () => {
                         // Stop talk sound when done
@@ -899,7 +899,7 @@ class DialogueManager {
             };
             choices.appendChild(btn);
         });
-        
+
         // Add click-to-skip functionality on dialogue text
         text.style.cursor = 'pointer';
         text.onclick = () => {
@@ -919,13 +919,13 @@ class DialogueManager {
             clearInterval(this.typingInterval);
             this.typingInterval = null;
         }
-        
+
         // Stop talk sound
         if (globalSoundManager && this.currentTalkSound) {
             globalSoundManager.stopTalk(this.currentTalkSound);
             this.currentTalkSound = null;
         }
-        
+
         document.getElementById('dialogue-box').style.display = 'none';
         this.currentDialogue = null;
         this.isTyping = false;
@@ -944,7 +944,7 @@ class QuestManager {
             { id: 7, title: "Make 10 connections", completed: false, reward: { xp: 100, coins: 250 }, type: 'main' },
             { id: 8, title: "Learn 3 new skills", completed: false, reward: { xp: 150, coins: 300 }, type: 'main' }
         ];
-        
+
         this.sideQuests = [
             { id: 101, title: "Visit the gym", completed: false, reward: { xp: 30, coins: 60 }, type: 'side' },
             { id: 102, title: "Buy coffee from the shop", completed: false, reward: { xp: 20, coins: 40 }, type: 'side' },
@@ -975,7 +975,7 @@ class QuestManager {
             { id: 127, title: "Build a 20+ connection network", completed: false, reward: { xp: 90, coins: 180 }, type: 'side' },
             { id: 128, title: "Post 5 times in one session", completed: false, reward: { xp: 80, coins: 160 }, type: 'side' }
         ];
-        
+
         this.quests = [...this.mainQuests, ...this.sideQuests];
         this.updateDisplay();
     }
@@ -996,17 +996,17 @@ class QuestManager {
         const tracker = document.getElementById('quest-tracker');
         const list = document.getElementById('quest-list');
         const mainQuests = this.mainQuests.filter(q => !q.completed);
-        
+
         if (mainQuests.length > 0) {
             tracker.style.display = 'block';
-            list.innerHTML = mainQuests.slice(0, 3).map(q => 
+            list.innerHTML = mainQuests.slice(0, 3).map(q =>
                 `<div class="quest-item">${q.title}</div>`
             ).join('');
         } else {
             const sideQuests = this.sideQuests.filter(q => !q.completed);
             if (sideQuests.length > 0) {
                 list.innerHTML = '<div style="color: #00d9ff; font-size: 11px; margin-bottom: 5px;">Side Quests:</div>' +
-                    sideQuests.slice(0, 3).map(q => 
+                    sideQuests.slice(0, 3).map(q =>
                         `<div class="quest-item" style="font-size: 11px;">${q.title}</div>`
                     ).join('');
             }
@@ -1015,14 +1015,14 @@ class QuestManager {
 
     checkAllQuests(gameData) {
         const p = gameData.player;
-        
+
         // Main quests
         if (p.postsCount >= 1) this.checkQuest(1);
         if (p.connections >= 3) this.checkQuest(2);
         if (p.connections >= 10) this.checkQuest(7);
         if (p.followers >= 100) this.checkQuest(4);
         if (p.level >= 5) this.checkQuest(6);
-        
+
         // Side quests
         if (p.inventory.length >= 3) this.checkQuest(105);
         if (p.equipment.laptop) this.checkQuest(106);
@@ -1144,23 +1144,23 @@ class ItemManager {
             }
         };
     }
-    
+
     getItem(itemId) {
-        return {...this.itemDatabase[itemId]};
+        return { ...this.itemDatabase[itemId] };
     }
-    
+
     addItemToInventory(itemId) {
         // Ensure inventory array exists
         if (!gameState.data.player.inventory) {
             gameState.data.player.inventory = [];
         }
-        
+
         // Check inventory capacity (20 items max)
         if (gameState.data.player.inventory.length >= 20) {
             showNotification('Inventory full! Remove items first.');
             return false;
         }
-        
+
         const item = this.getItem(itemId);
         if (item) {
             gameState.data.player.inventory.push(item);
@@ -1169,15 +1169,15 @@ class ItemManager {
         }
         return false;
     }
-    
+
     spawnRandomItem() {
         const commonItems = ['energy_drink', 'coffee', 'protein_bar'];
         const uncommonItems = ['lucky_coin', 'xp_boost', 'leather_briefcase', 'business_suit'];
         const rareItems = ['pro_laptop', 'pro_phone', 'designer_briefcase', 'designer_suit'];
-        
+
         const roll = Math.random();
         let itemId;
-        
+
         if (roll < 0.6) {
             itemId = Phaser.Math.RND.pick(commonItems);
         } else if (roll < 0.9) {
@@ -1185,7 +1185,7 @@ class ItemManager {
         } else {
             itemId = Phaser.Math.RND.pick(rareItems);
         }
-        
+
         return itemId;
     }
 }
@@ -1200,7 +1200,7 @@ class AchievementManager {
             'tutorial_complete': { name: 'Getting Started', desc: 'Completed the tutorial', icon: '🎓', reward: { xp: 50, coins: 100 } },
             'first_job': { name: 'Employed', desc: 'Got your first job', icon: '💼', reward: { xp: 100, coins: 200 } },
             'first_item': { name: 'Collector', desc: 'Found your first item', icon: '🎒', reward: { xp: 25, coins: 50 } },
-            
+
             // Connections (10)
             'connections_10': { name: 'Networker', desc: 'Reach 10 connections', icon: '🤝', reward: { xp: 50, coins: 100 } },
             'connections_25': { name: 'Connected', desc: 'Reach 25 connections', icon: '🌟', reward: { xp: 100, coins: 200 } },
@@ -1212,7 +1212,7 @@ class AchievementManager {
             'influencer_network': { name: 'Influencer Network', desc: 'Build a network of influencers', icon: '✨', reward: { xp: 300, coins: 600 } },
             'diverse_network': { name: 'Diverse Network', desc: 'Connect with all 5 unique NPCs', icon: '🌍', reward: { xp: 150, coins: 300 } },
             'rapid_networker': { name: 'Rapid Networker', desc: 'Make 10 connections in one day', icon: '⚡', reward: { xp: 200, coins: 400 } },
-            
+
             // Posts & Content (10)
             'posts_10': { name: 'Content Creator', desc: 'Publish 10 posts', icon: '✍️', reward: { xp: 75, coins: 150 } },
             'posts_25': { name: 'Regular Poster', desc: 'Publish 25 posts', icon: '📝', reward: { xp: 150, coins: 300 } },
@@ -1224,7 +1224,7 @@ class AchievementManager {
             'engagement_king': { name: 'Engagement King', desc: 'Get 1000 total likes', icon: '👍', reward: { xp: 300, coins: 600 } },
             'hashtag_master': { name: 'Hashtag Master', desc: 'Use 100 hashtags total', icon: '#️⃣', reward: { xp: 100, coins: 200 } },
             'thought_leader': { name: 'Thought Leader', desc: 'Reach 500 followers', icon: '🎤', reward: { xp: 400, coins: 800 } },
-            
+
             // Levels (10)
             'level_5': { name: 'Rising Professional', desc: 'Reach level 5', icon: '⬆️', reward: { xp: 100, coins: 200 } },
             'level_10': { name: 'Experienced Pro', desc: 'Reach level 10', icon: '📈', reward: { xp: 250, coins: 500 } },
@@ -1236,7 +1236,7 @@ class AchievementManager {
             'max_level': { name: 'The GOAT', desc: 'Reach maximum level', icon: '🐐', reward: { xp: 25000, coins: 50000 } },
             'fast_leveler': { name: 'Speed Demon', desc: 'Reach level 10 in under 1 hour', icon: '⚡', reward: { xp: 500, coins: 1000 } },
             'grinder': { name: 'Grinder', desc: 'Gain 10,000 total XP', icon: '💪', reward: { xp: 500, coins: 1000 } },
-            
+
             // Skills (8)
             'skill_50': { name: 'Skilled', desc: 'Reach 50 skill points', icon: '📚', reward: { xp: 100, coins: 200 } },
             'skill_100': { name: 'Expert Skills', desc: 'Reach 100 skill points', icon: '🎓', reward: { xp: 250, coins: 500 } },
@@ -1246,7 +1246,7 @@ class AchievementManager {
             'lifelong_learner': { name: 'Lifelong Learner', desc: 'Complete 10 courses', icon: '📖', reward: { xp: 300, coins: 600 } },
             'certified': { name: 'Certified Pro', desc: 'Earn 5 certifications', icon: '📜', reward: { xp: 400, coins: 800 } },
             'mentor_graduate': { name: 'Mentored', desc: 'Complete mentorship program', icon: '🎓', reward: { xp: 500, coins: 1000 } },
-            
+
             // Wealth (8)
             'rich_100': { name: 'Hundred Club', desc: 'Earn 100 coins', icon: '💰', reward: { xp: 50, coins: 50 } },
             'rich_1000': { name: 'Thousand Club', desc: 'Earn 1,000 coins', icon: '💵', reward: { xp: 150, coins: 200 } },
@@ -1256,7 +1256,7 @@ class AchievementManager {
             'big_spender': { name: 'Big Spender', desc: 'Spend 5,000 coins', icon: '💳', reward: { xp: 200, coins: 300 } },
             'investor': { name: 'Investor', desc: 'Upgrade apartment to max', icon: '🏠', reward: { xp: 500, coins: 1000 } },
             'shopaholic': { name: 'Shopaholic', desc: 'Buy 20 items from shop', icon: '🛍️', reward: { xp: 300, coins: 600 } },
-            
+
             // Events & Activities (12)
             'event_attended': { name: 'First Event', desc: 'Attend your first event', icon: '🎯', reward: { xp: 50, coins: 100 } },
             'event_10': { name: 'Event Regular', desc: 'Attend 10 events', icon: '🎪', reward: { xp: 200, coins: 400 } },
@@ -1270,7 +1270,7 @@ class AchievementManager {
             'presentation_pro': { name: 'Presenter', desc: 'Give 10 presentations', icon: '📊', reward: { xp: 300, coins: 600 } },
             'world_traveler': { name: 'Explorer', desc: 'Visit all 15 locations', icon: '🗺️', reward: { xp: 500, coins: 1000 } },
             'regular_customer': { name: 'Regular', desc: 'Visit coffee shop 30 times', icon: '☕', reward: { xp: 200, coins: 400 } },
-            
+
             // Minigames (8)
             'typing_master': { name: 'Typing Master', desc: 'Complete typing game in under 5 seconds', icon: '⌨️', reward: { xp: 200, coins: 400 } },
             'memory_genius': { name: 'Memory Genius', desc: 'Complete memory game in under 20 moves', icon: '🧠', reward: { xp: 250, coins: 500 } },
@@ -1280,7 +1280,7 @@ class AchievementManager {
             'speedrunner': { name: 'Speedrunner', desc: 'Complete minigame in record time', icon: '⏱️', reward: { xp: 300, coins: 600 } },
             'perfect_streak': { name: 'Perfect Streak', desc: 'Win 5 minigames in a row', icon: '🔥', reward: { xp: 400, coins: 800 } },
             'game_addict': { name: 'Game Addict', desc: 'Play 50 minigames', icon: '🎮', reward: { xp: 600, coins: 1200 } },
-            
+
             // Reputation (6)
             'reputation_50': { name: 'Respected', desc: 'Reach 50 reputation', icon: '⭐', reward: { xp: 100, coins: 200 } },
             'reputation_100': { name: 'Well Known', desc: 'Reach 100 reputation', icon: '🌟', reward: { xp: 250, coins: 500 } },
@@ -1288,7 +1288,7 @@ class AchievementManager {
             'reputation_500': { name: 'Industry Icon', desc: 'Reach 500 reputation', icon: '👑', reward: { xp: 1500, coins: 3000 } },
             'reputation_1000': { name: 'Living Legend', desc: 'Reach 1000 reputation', icon: '🏆', reward: { xp: 5000, coins: 10000 } },
             'reputation_max': { name: 'Legendary Status', desc: 'Max out reputation', icon: '💎', reward: { xp: 10000, coins: 25000 } },
-            
+
             // Followers (6)
             'followers_50': { name: '50 Followers', desc: 'Reach 50 followers', icon: '👥', reward: { xp: 75, coins: 150 } },
             'followers_100': { name: 'Hundred Club', desc: 'Reach 100 followers', icon: '📢', reward: { xp: 150, coins: 300 } },
@@ -1296,7 +1296,7 @@ class AchievementManager {
             'followers_1000': { name: 'Influencer', desc: 'Reach 1,000 followers', icon: '⭐', reward: { xp: 1000, coins: 2000 } },
             'followers_5000': { name: 'Major Influencer', desc: 'Reach 5,000 followers', icon: '🌟', reward: { xp: 3000, coins: 6000 } },
             'followers_10000': { name: 'Mega Influencer', desc: 'Reach 10,000 followers', icon: '👑', reward: { xp: 10000, coins: 20000 } },
-            
+
             // Special Activities (15)
             'early_bird': { name: 'Early Bird', desc: 'Log in during morning time', icon: '🌅', reward: { xp: 50, coins: 100 } },
             'night_owl': { name: 'Night Owl', desc: 'Log in during night time', icon: '🌙', reward: { xp: 50, coins: 100 } },
@@ -1314,39 +1314,39 @@ class AchievementManager {
             'dedication': { name: 'Dedicated', desc: 'Play for 5 hours total', icon: '⏱️', reward: { xp: 300, coins: 600 } },
             'marathon_player': { name: 'Marathon Player', desc: 'Play for 10 hours total', icon: '🏃', reward: { xp: 1000, coins: 2000 } }
         };
-        
+
         this.unlocked = new Set();
     }
-    
+
     check(achievementId, condition) {
         if (this.unlocked.has(achievementId)) return;
-        
+
         if (condition) {
             this.unlock(achievementId);
         }
     }
-    
+
     unlock(achievementId) {
         if (this.unlocked.has(achievementId)) return;
-        
+
         const achievement = this.achievements[achievementId];
         if (!achievement) return;
-        
+
         this.unlocked.add(achievementId);
-        
+
         // Apply rewards
         if (achievement.reward.xp) gameState.gainXP(achievement.reward.xp);
         if (achievement.reward.coins) gameState.data.player.coins += achievement.reward.coins;
-        
+
         showAchievement(`${achievement.icon} ${achievement.name}`);
         showNotification(`🏆 Achievement: ${achievement.name}!`);
         updateUI();
         gameState.saveGame();
     }
-    
+
     checkAll() {
         const p = gameState.data.player;
-        
+
         // Connection achievements
         this.check('connections_10', p.connections >= 10);
         this.check('connections_25', p.connections >= 25);
@@ -1355,13 +1355,13 @@ class AchievementManager {
         this.check('connections_250', p.connections >= 250);
         this.check('connections_500', p.connections >= 500);
         this.check('connections_1000', p.connections >= 1000);
-        
+
         // Post achievements
         this.check('posts_10', p.postsCount >= 10);
         this.check('posts_25', p.postsCount >= 25);
         this.check('posts_50', p.postsCount >= 50);
         this.check('posts_100', p.postsCount >= 100);
-        
+
         // Level achievements
         this.check('level_5', p.level >= 5);
         this.check('level_10', p.level >= 10);
@@ -1370,19 +1370,19 @@ class AchievementManager {
         this.check('level_30', p.level >= 30);
         this.check('level_40', p.level >= 40);
         this.check('level_50', p.level >= 50);
-        
+
         // Skill achievements
         this.check('skill_50', p.skills >= 50);
         this.check('skill_100', p.skills >= 100);
         this.check('skill_200', p.skills >= 200);
-        
+
         // Reputation achievements
         this.check('reputation_50', p.reputation >= 50);
         this.check('reputation_100', p.reputation >= 100);
         this.check('reputation_250', p.reputation >= 250);
         this.check('reputation_500', p.reputation >= 500);
         this.check('reputation_1000', p.reputation >= 1000);
-        
+
         // Follower achievements
         this.check('followers_50', p.followers >= 50);
         this.check('followers_100', p.followers >= 100);
@@ -1390,18 +1390,18 @@ class AchievementManager {
         this.check('followers_1000', p.followers >= 1000);
         this.check('followers_5000', p.followers >= 5000);
         this.check('followers_10000', p.followers >= 10000);
-        
+
         // Wealth achievements
         this.check('rich_100', p.coins >= 100);
         this.check('rich_1000', p.coins >= 1000);
         this.check('rich_5000', p.coins >= 5000);
         this.check('rich_10000', p.coins >= 10000);
-        
+
         // Special achievements
         this.check('first_post', p.postsCount >= 1);
         this.check('first_connection', p.connections >= 1);
         this.check('first_job', p.job !== null);
-        this.check('fully_equipped', 
+        this.check('fully_equipped',
             p.equipment.laptop && p.equipment.phone && p.equipment.briefcase && p.equipment.outfit !== 'default'
         );
     }
@@ -1489,46 +1489,46 @@ class EncounterManager {
                 ]
             }
         ];
-        
+
         this.lastEncounter = Date.now();
         this.encounterCooldown = 60000; // 1 minute between encounters
     }
-    
+
     tryTriggerEncounter() {
         if (Date.now() - this.lastEncounter < this.encounterCooldown) return false;
         if (Math.random() > 0.3) return false; // 30% chance when cooldown expires
-        
+
         this.lastEncounter = Date.now();
         return true;
     }
-    
+
     showRandomEncounter(scene) {
         const encounter = Phaser.Math.RND.pick(this.encounters);
-        
+
         // Get HTML elements
         const overlay = document.getElementById('encounter-overlay');
         const title = document.getElementById('encounter-title');
         const text = document.getElementById('encounter-text');
         const choicesContainer = document.getElementById('encounter-choices');
-        
+
         if (!overlay || !title || !text || !choicesContainer) {
             console.error('Encounter overlay elements not found');
             return;
         }
-        
+
         // Set content
         title.textContent = `⚡ ${encounter.title}`;
         text.textContent = encounter.text;
-        
+
         // Clear previous choices
         choicesContainer.innerHTML = '';
-        
+
         // Create choice buttons
         encounter.choices.forEach((choice, i) => {
             const btn = document.createElement('button');
             btn.className = 'encounter-choice-btn';
             btn.textContent = choice.text;
-            
+
             // Add cost/energy info if applicable
             if (choice.cost) {
                 btn.textContent += ` (💰 ${choice.cost} coins)`;
@@ -1536,7 +1536,7 @@ class EncounterManager {
             if (choice.energyCost) {
                 btn.textContent += ` (⚡ ${choice.energyCost} energy)`;
             }
-            
+
             btn.onclick = () => {
                 // Check costs
                 if (choice.cost && gameState.data.player.coins < choice.cost) {
@@ -1547,11 +1547,11 @@ class EncounterManager {
                     showNotification('⚡ Not enough energy!');
                     return;
                 }
-                
+
                 // Apply costs
                 if (choice.cost) gameState.data.player.coins -= choice.cost;
                 if (choice.energyCost) gameState.data.player.energy -= choice.energyCost;
-                
+
                 // Apply rewards
                 const r = choice.reward;
                 if (r.xp) gameState.gainXP(r.xp);
@@ -1562,9 +1562,9 @@ class EncounterManager {
                 if (r.connections) gameState.data.player.connections += r.connections;
                 if (r.followers) gameState.data.player.followers += r.followers;
                 if (r.maxEnergy) gameState.data.player.maxEnergy += r.maxEnergy;
-                
+
                 gameState.data.player.encountersCompleted++;
-                
+
                 // Show notification and effects
                 showNotification('✨ Encounter resolved! Rewards received');
                 if (scene && scene.cameras && scene.cameras.main) {
@@ -1572,14 +1572,14 @@ class EncounterManager {
                 }
                 updateUI();
                 achievementManager.checkAll();
-                
+
                 // Hide overlay
                 overlay.classList.remove('show');
             };
-            
+
             choicesContainer.appendChild(btn);
         });
-        
+
         // Show overlay
         overlay.classList.add('show');
     }
@@ -1598,7 +1598,7 @@ class ReputationManager {
             { min: 1000, max: 9999, name: 'LEGEND', color: '#FF00FF', perks: ['30% post boost', '30% networking bonus', '25% coin bonus', 'All services free', 'VIP access'] }
         ];
     }
-    
+
     getCurrentTier(reputation) {
         for (let tier of this.tiers) {
             if (reputation >= tier.min && reputation <= tier.max) {
@@ -1607,7 +1607,7 @@ class ReputationManager {
         }
         return this.tiers[this.tiers.length - 1];
     }
-    
+
     getPostBoost(reputation) {
         const tier = this.getCurrentTier(reputation);
         const boostPerk = tier.perks.find(p => p.includes('post boost'));
@@ -1615,7 +1615,7 @@ class ReputationManager {
         const percent = parseInt(boostPerk);
         return 1 + (percent / 100);
     }
-    
+
     getNetworkingBonus(reputation) {
         const tier = this.getCurrentTier(reputation);
         const bonusPerk = tier.perks.find(p => p.includes('networking bonus'));
@@ -1623,7 +1623,7 @@ class ReputationManager {
         const percent = parseInt(bonusPerk);
         return 1 + (percent / 100);
     }
-    
+
     getCoinBonus(reputation) {
         const tier = this.getCurrentTier(reputation);
         const bonusPerk = tier.perks.find(p => p.includes('coin bonus'));
@@ -1647,63 +1647,63 @@ class CertificationManager {
             { id: 'master_cert', name: 'LinkedIn Master', icon: '💎', requirement: { level: 30 }, reward: { reputation: 100, xp: 500, coins: 1000 } }
         ];
     }
-    
+
     checkEligible(certId) {
         const cert = this.certifications.find(c => c.id === certId);
         if (!cert) return false;
-        
+
         const p = gameState.data.player;
         const req = cert.requirement;
-        
+
         if (req.skills && p.skills < req.skills) return false;
         if (req.networking && p.networking < req.networking) return false;
         if (req.followers && p.followers < req.followers) return false;
         if (req.connections && p.connections < req.connections) return false;
         if (req.postsCount && p.postsCount < req.postsCount) return false;
         if (req.level && p.level < req.level) return false;
-        
+
         return true;
     }
-    
+
     earnCertification(certId) {
         // Ensure array exists
         if (!gameState.data.player.certificationsEarned) {
             gameState.data.player.certificationsEarned = [];
         }
-        
+
         if (gameState.data.player.certificationsEarned.includes(certId)) {
             showNotification('You already have this certification!');
             return;
         }
-        
+
         const cert = this.certifications.find(c => c.id === certId);
         if (!cert) return;
-        
+
         if (!this.checkEligible(certId)) {
             showNotification('You don\'t meet the requirements yet!');
             return;
         }
-        
+
         gameState.data.player.certificationsEarned.push(certId);
-        
+
         // Apply rewards
         const r = cert.reward;
         if (r.reputation) gameState.data.player.reputation += r.reputation;
         if (r.xp) gameState.gainXP(r.xp);
         if (r.coins) gameState.data.player.coins += r.coins;
-        
+
         showNotification(`🎓 Earned ${cert.name}!`);
         showAchievement(`${cert.icon} ${cert.name}`);
         updateUI();
         gameState.saveGame();
     }
-    
+
     checkAllCertifications() {
         // Ensure array exists
         if (!gameState.data.player.certificationsEarned) {
             gameState.data.player.certificationsEarned = [];
         }
-        
+
         this.certifications.forEach(cert => {
             if (!gameState.data.player.certificationsEarned.includes(cert.id)) {
                 if (this.checkEligible(cert.id)) {
@@ -1832,15 +1832,15 @@ class GameState {
         this.data.player.energy = this.data.player.maxEnergy;
         this.data.player.coins += 50;
         this.updateTitle();
-        
+
         // Play level up sound
         if (globalSoundManager) {
             globalSoundManager.playSfx('level_up', 0.8);
         }
-        
+
         showNotification(`🎉 Level Up! You're now level ${this.data.player.level}!`);
         showAchievement(`Level ${this.data.player.level} Reached!`);
-        
+
         // Milestone achievements
         if (this.data.player.level === 5) showAchievement('Rising Star 🌟');
         if (this.data.player.level === 10) showAchievement('Professional 💼');
@@ -1885,12 +1885,12 @@ function showAllUI() {
         'leaderboard-button',
         'fullscreen-toggle'
     ];
-    
+
     uiElements.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
     });
-    
+
     // Special handling for ui-overlay to use flex
     const uiOverlay = document.getElementById('ui-overlay');
     if (uiOverlay) uiOverlay.style.display = 'flex';
@@ -1911,12 +1911,12 @@ function hideAllUI() {
         'achievement-popup',
         'controls-hint'
     ];
-    
+
     uiElements.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
-    
+
     // Ensure fullscreen button stays visible
     const fsButton = document.getElementById('fullscreen-toggle');
     if (fsButton) fsButton.style.display = 'flex';
@@ -1927,31 +1927,31 @@ function updateUI() {
     // Only update if UI is visible (game is running)
     const uiOverlay = document.getElementById('ui-overlay');
     if (!uiOverlay || uiOverlay.style.display === 'none') return;
-    
+
     const p = gameState.data.player;
-    
+
     // Safe updates with null checks
     const playerName = document.getElementById('player-name');
     if (playerName) playerName.textContent = p.name;
-    
+
     const playerTitle = document.getElementById('player-title');
     if (playerTitle) playerTitle.textContent = p.title;
-    
+
     const levelDisplay = document.getElementById('level-display');
     if (levelDisplay) levelDisplay.textContent = p.level;
-    
+
     const energyDisplay = document.getElementById('energy-display');
     if (energyDisplay) energyDisplay.textContent = Math.floor(p.energy);
-    
+
     const coinsDisplay = document.getElementById('coins-display');
     if (coinsDisplay) coinsDisplay.textContent = p.coins;
-    
+
     const networkDisplay = document.getElementById('network-display');
     if (networkDisplay) networkDisplay.textContent = p.connections;
-    
+
     // Update time/weather display
     // Time/weather display removed - day/night cycle still runs in background
-    
+
     // Update email count
     const emailCount = gameState.data.emails ? gameState.data.emails.filter(e => !e.read).length : 0;
     const emailCountEl = document.getElementById('email-count');
@@ -1962,7 +1962,7 @@ function showNotification(message) {
     const notif = document.getElementById('notification');
     notif.textContent = message;
     notif.style.display = 'block';
-    
+
     // Play appropriate sound based on message content
     if (globalSoundManager) {
         if (message.includes('💰') || message.includes('coins') || message.includes('Earned')) {
@@ -1977,7 +1977,7 @@ function showNotification(message) {
             globalSoundManager.playSfx('button_press', 0.2);
         }
     }
-    
+
     setTimeout(() => {
         notif.style.display = 'none';
     }, 3000);
@@ -1989,12 +1989,12 @@ function showAchievement(title) {
     text.textContent = title;
     popup.classList.add('show');
     popup.style.display = 'block';
-    
+
     // Play epic achievement sound
     if (globalSoundManager) {
         globalSoundManager.playSfx('achievement', 0.7);
     }
-    
+
     setTimeout(() => {
         popup.classList.remove('show');
         setTimeout(() => {
@@ -2020,32 +2020,32 @@ class SpriteGenerator {
         };
         this.createCustomPlayerSprite(scene, defaultCustom, 'player');
     }
-    
+
     static createCustomPlayerSprite(scene, customization = {}, textureKey = 'player') {
         const size = 32;
-        
+
         // Remove existing texture if it exists
         if (scene.textures.exists(textureKey)) {
             scene.textures.remove(textureKey);
         }
-        
+
         // Create new texture
         const texture = scene.textures.createCanvas(textureKey, size, size);
-        
+
         // Check if texture was created successfully
         if (!texture) {
             console.error(`Failed to create texture: ${textureKey}`);
             return;
         }
-        
+
         const ctx = texture.getContext();
-        
+
         // Check if context is valid
         if (!ctx) {
             console.error(`Failed to get context for texture: ${textureKey}`);
             return;
         }
-        
+
         // Color palettes
         const skinTones = [
             ['#FFDBAC', '#FFC9A3', '#FFB380'], // Light
@@ -2053,7 +2053,7 @@ class SpriteGenerator {
             ['#C68642', '#B87333', '#A05A2B'], // Tan
             ['#8B4513', '#6B3410', '#5A2A0E']  // Dark
         ];
-        
+
         const hairColors = [
             ['#1A1A1A', '#2C2C2C'], // Black
             ['#3D2817', '#5C4033'], // Brown
@@ -2062,7 +2062,7 @@ class SpriteGenerator {
             ['#808080', '#A0A0A0'], // Gray
             ['#4169E1', '#6495ED']  // Blue
         ];
-        
+
         const shirtColors = [
             ['#0A66C2', '#0E7FE8'], // LinkedIn Blue
             ['#DC143C', '#FF1744'], // Red
@@ -2072,26 +2072,26 @@ class SpriteGenerator {
             ['#FF6B35', '#FF8C42'], // Orange
             ['#FFFFFF', '#F5F5F5']  // White
         ];
-        
+
         const pantsColors = [
             ['#1E3A8A', '#2563EB'], // Navy
             ['#1A1A1A', '#2C2C2C'], // Black
             ['#4A4A4A', '#6B6B6B'], // Gray
             ['#654321', '#8B4513']  // Brown
         ];
-        
+
         const skin = skinTones[customization.skinTone || 0];
         const hair = hairColors[customization.hairColor || 0];
         const shirt = shirtColors[customization.shirtColor || 0];
         const pants = pantsColors[customization.pantsColor || 0];
         const hairStyle = customization.hairStyle || 0;
-        
+
         // Shadow (enhanced)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.fillRect(6, 28, 20, 4);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
         ctx.fillRect(8, 30, 16, 2);
-        
+
         // Shoes (enhanced with shine)
         ctx.fillStyle = '#1A1A1A';
         ctx.fillRect(9, 24, 5, 4);
@@ -2099,7 +2099,7 @@ class SpriteGenerator {
         ctx.fillStyle = '#2C2C2C';
         ctx.fillRect(10, 24, 3, 2);
         ctx.fillRect(19, 24, 3, 2);
-        
+
         // Pants (with better shading)
         ctx.fillStyle = pants[0];
         ctx.fillRect(8, 16, 7, 8);
@@ -2111,7 +2111,7 @@ class SpriteGenerator {
         ctx.fillStyle = '#000000';
         ctx.fillRect(11, 16, 1, 8);
         ctx.fillRect(20, 16, 1, 8);
-        
+
         // Belt (enhanced)
         ctx.fillStyle = '#2C2C2C';
         ctx.fillRect(8, 15, 16, 2);
@@ -2122,7 +2122,7 @@ class SpriteGenerator {
         ctx.fillRect(14, 14, 4, 3);
         ctx.fillStyle = '#FFA500';
         ctx.fillRect(15, 15, 2, 1);
-        
+
         // Shirt (with better detail)
         ctx.fillStyle = shirt[0];
         ctx.fillRect(7, 9, 18, 7);
@@ -2133,13 +2133,13 @@ class SpriteGenerator {
         ctx.fillRect(15, 11, 1, 1);
         ctx.fillRect(15, 13, 1, 1);
         ctx.fillRect(15, 15, 1, 1);
-        
+
         // Collar (enhanced)
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(13, 9, 6, 3);
         ctx.fillStyle = '#E0E0E0';
         ctx.fillRect(14, 9, 4, 2);
-        
+
         // Arms (with muscle definition)
         ctx.fillStyle = shirt[0];
         ctx.fillRect(5, 10, 2, 6);
@@ -2154,13 +2154,13 @@ class SpriteGenerator {
         ctx.fillStyle = skin[1];
         ctx.fillRect(5, 17, 2, 2);
         ctx.fillRect(25, 17, 2, 2);
-        
+
         // Neck (with shading)
         ctx.fillStyle = skin[0];
         ctx.fillRect(13, 7, 6, 3);
         ctx.fillStyle = skin[1];
         ctx.fillRect(14, 7, 4, 2);
-        
+
         // Head (enhanced with better proportions)
         ctx.fillStyle = skin[0];
         ctx.fillRect(11, 1, 10, 8);
@@ -2168,7 +2168,7 @@ class SpriteGenerator {
         ctx.fillRect(12, 2, 8, 6);
         ctx.fillStyle = skin[2];
         ctx.fillRect(13, 3, 6, 4);
-        
+
         // Hair (based on style)
         if (hairStyle === 0) { // Short
             ctx.fillStyle = hair[0];
@@ -2192,7 +2192,7 @@ class SpriteGenerator {
             ctx.fillStyle = hair[1];
             ctx.fillRect(11, 1, 10, 4);
         } // else bald (no hair)
-        
+
         // Eyes (HAPPY - bigger and brighter)
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(12, 4, 3, 3);
@@ -2205,12 +2205,12 @@ class SpriteGenerator {
         ctx.fillStyle = '#2C2C2C';
         ctx.fillRect(13, 5, 1, 2);
         ctx.fillRect(18, 5, 1, 2);
-        
+
         // Eyebrows (friendly, not frowning)
         ctx.fillStyle = hair[0];
         ctx.fillRect(12, 3, 3, 1);
         ctx.fillRect(17, 3, 3, 1);
-        
+
         // SMILE (HAPPY FACE - big, friendly smile)
         ctx.fillStyle = '#FF6B9D';
         // Upper lip
@@ -2222,17 +2222,17 @@ class SpriteGenerator {
         ctx.fillRect(18, 9, 1, 1);
         // Lower lip
         ctx.fillRect(14, 9, 4, 1);
-        
+
         // Cheeks (rosy, happy)
         ctx.fillStyle = '#FFB3BA';
         ctx.fillRect(10, 6, 2, 2);
         ctx.fillRect(20, 6, 2, 2);
-        
+
         // Refresh texture to apply changes
         if (texture) {
             texture.refresh();
         }
-        
+
         // Animation
         if (!scene.anims.exists('idle')) {
             scene.anims.create({
@@ -2356,7 +2356,7 @@ class SpriteGenerator {
         bedTexture.refresh();
 
         // UNIQUE CHARACTER SPRITES - Different bodies, hairstyles, outfits
-        
+
         // Sarah Chen - Female, long hair, professional dress
         const sarah = scene.textures.createCanvas('npc1', 32, 32);
         const sCtx = sarah.getContext();
@@ -2401,7 +2401,7 @@ class SpriteGenerator {
         sCtx.fillStyle = '#C41E3A';
         sCtx.fillRect(14, 7, 4, 1);
         sarah.refresh();
-        
+
         // Create mentor badge sprite
         const mentorBadge = scene.textures.createCanvas('mentor_badge', 16, 16);
         const mbCtx = mentorBadge.getContext();
@@ -2412,7 +2412,7 @@ class SpriteGenerator {
         mbCtx.fillStyle = '#000000';
         mbCtx.fillText('M', 5, 11);
         mentorBadge.refresh();
-        
+
         // Marcus Johnson - Male, bald/short hair, athletic build
         const marcus = scene.textures.createCanvas('npc2', 32, 32);
         const mCtx = marcus.getContext();
@@ -2466,7 +2466,7 @@ class SpriteGenerator {
         mCtx.fillStyle = '#1A1A1A';
         mCtx.fillRect(12, 7, 8, 2);
         marcus.refresh();
-        
+
         // Emily Rodriguez - Female, medium build, business casual
         const emily = scene.textures.createCanvas('npc3', 32, 32);
         const eCtx = emily.getContext();
@@ -2522,7 +2522,7 @@ class SpriteGenerator {
         eCtx.fillStyle = '#E87E7E';
         eCtx.fillRect(14, 6, 4, 1);
         emily.refresh();
-        
+
         // David Park - Male, casual style, hoodie
         const david = scene.textures.createCanvas('npc4', 32, 32);
         const dCtx = david.getContext();
@@ -2588,7 +2588,7 @@ class SpriteGenerator {
         dCtx.fillRect(12, 6, 1, 1);
         dCtx.fillRect(19, 6, 1, 1);
         david.refresh();
-        
+
         // Dr. Jennifer Liu - Female, glasses, formal attire
         const liu = scene.textures.createCanvas('npc5', 32, 32);
         const lCtx = liu.getContext();
@@ -2871,11 +2871,11 @@ class LoadingScene extends Phaser.Scene {
     constructor() {
         super({ key: 'LoadingScene' });
     }
-    
+
     preload() {
         // Preload all sounds
         const soundPath = import.meta.env.BASE_URL + 'Sounds for LinkedIn Tycoon/';
-        
+
         // Background Music (themes)
         this.load.audio('menu_theme', soundPath + 'menu_theme.mp3');
         this.load.audio('home_ambient', soundPath + 'home_ambient_theme.mp3');
@@ -2883,13 +2883,13 @@ class LoadingScene extends Phaser.Scene {
         this.load.audio('office_work', soundPath + 'office_work_theme.wav');
         this.load.audio('customization_theme', soundPath + 'Character_Customization_theme.mp3');
         this.load.audio('special_event', soundPath + 'special_event.mp3');
-        
+
         // UI Sounds
         this.load.audio('button_press', soundPath + 'buttonpress:switchbutton.wav');
         this.load.audio('interact', soundPath + 'Interact(E).wav');
         this.load.audio('door', soundPath + 'door open:close.wav');
         this.load.audio('sleep', soundPath + 'sleep_option.wav');
-        
+
         // Game Events
         this.load.audio('coin', soundPath + 'coin.mp3');
         this.load.audio('level_up', soundPath + 'level_up.wav');
@@ -2898,13 +2898,13 @@ class LoadingScene extends Phaser.Scene {
         this.load.audio('wrong', soundPath + 'wrong.wav');
         this.load.audio('purchase', soundPath + 'purchase.wav');
         this.load.audio('new_connection', soundPath + 'New Connection.wav');
-        
+
         // Talk Sounds
         this.load.audio('talk1', soundPath + 'talk1.mp3');
         this.load.audio('talk2', soundPath + 'talk2.mp3');
         this.load.audio('talk3', soundPath + 'talk3.mp3');
         this.load.audio('talk4', soundPath + 'talk4.mp3');
-        
+
         console.log('All sounds loaded');
     }
 
@@ -2917,10 +2917,10 @@ class LoadingScene extends Phaser.Scene {
             // Update scene reference if sound manager already exists
             globalSoundManager.scene = this;
         }
-        
+
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // HIDE HTML loading div now that Phaser scene is ready
         const htmlLoading = document.getElementById('loading');
         if (htmlLoading) {
@@ -2930,23 +2930,23 @@ class LoadingScene extends Phaser.Scene {
                 htmlLoading.style.display = 'none';
             }, 500);
         }
-        
+
         // HIDE ALL UI
         this.hideAllUI();
         const fsButton = document.getElementById('fullscreen-toggle');
         if (fsButton) fsButton.style.display = 'none';
-        
+
         // Dark background
-        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
+
         // Animated pixel grid background
         this.createPixelGrid();
-        
+
         // LinkedIn logo
-        const logo = this.add.text(width/2, height/2 - 100, '💼', {
+        const logo = this.add.text(width / 2, height / 2 - 100, '💼', {
             fontSize: '120px'
         }).setOrigin(0.5).setAlpha(0);
-        
+
         this.tweens.add({
             targets: logo,
             alpha: 1,
@@ -2954,23 +2954,23 @@ class LoadingScene extends Phaser.Scene {
             duration: 800,
             ease: 'Back.easeOut'
         });
-        
+
         // Loading text
-        const loadingText = this.add.text(width/2, height/2 + 80, 'LOADING', {
+        const loadingText = this.add.text(width / 2, height / 2 + 80, 'LOADING', {
             fontSize: '32px',
             color: '#0A66C2',
             fontStyle: 'bold',
             stroke: '#FFFFFF',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Animated dots
-        this.loadingDots = this.add.text(width/2 + 90, height/2 + 80, '', {
+        this.loadingDots = this.add.text(width / 2 + 90, height / 2 + 80, '', {
             fontSize: '32px',
             color: '#0A66C2',
             fontStyle: 'bold'
         }).setOrigin(0, 0.5);
-        
+
         this.dotCount = 0;
         this.time.addEvent({
             delay: 400,
@@ -2980,16 +2980,16 @@ class LoadingScene extends Phaser.Scene {
             },
             loop: true
         });
-        
+
         // Progress bar
         const barWidth = 400;
         const barHeight = 20;
-        const barBg = this.add.rectangle(width/2, height/2 + 140, barWidth, barHeight, 0x2C2C2C);
+        const barBg = this.add.rectangle(width / 2, height / 2 + 140, barWidth, barHeight, 0x2C2C2C);
         barBg.setStrokeStyle(3, 0x0A66C2);
-        
-        const progressBar = this.add.rectangle(width/2 - barWidth/2, height/2 + 140, 0, barHeight - 6, 0x00FF88);
+
+        const progressBar = this.add.rectangle(width / 2 - barWidth / 2, height / 2 + 140, 0, barHeight - 6, 0x00FF88);
         progressBar.setOrigin(0, 0.5);
-        
+
         // Animate progress bar
         this.tweens.add({
             targets: progressBar,
@@ -3004,13 +3004,13 @@ class LoadingScene extends Phaser.Scene {
                 });
             }
         });
-        
+
         // Floating particles
         for (let i = 0; i < 30; i++) {
             const x = Phaser.Math.Between(0, width);
             const y = Phaser.Math.Between(0, height);
             const particle = this.add.rectangle(x, y, 4, 4, 0x0A66C2, 0.6);
-            
+
             this.tweens.add({
                 targets: particle,
                 y: y - 100,
@@ -3021,17 +3021,17 @@ class LoadingScene extends Phaser.Scene {
             });
         }
     }
-    
+
     createPixelGrid() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         const gridSize = 20;
-        
+
         for (let x = 0; x < width; x += gridSize) {
             for (let y = 0; y < height; y += gridSize) {
                 if (Math.random() > 0.9) {
                     const pixel = this.add.rectangle(x, y, gridSize - 2, gridSize - 2, 0x0A66C2, 0.1);
-                    
+
                     this.tweens.add({
                         targets: pixel,
                         alpha: 0.3,
@@ -3044,7 +3044,7 @@ class LoadingScene extends Phaser.Scene {
             }
         }
     }
-    
+
     hideAllUI() {
         const uiElements = [
             'ui-overlay', 'quest-tracker', 'time-weather',
@@ -3067,12 +3067,12 @@ class IntroScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // HIDE ALL UI ELEMENTS
         this.hideAllUI();
         const fsButton = document.getElementById('fullscreen-toggle');
         if (fsButton) fsButton.style.display = 'none';
-        
+
         // Update sound manager scene reference and start music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
@@ -3086,16 +3086,16 @@ class IntroScene extends Phaser.Scene {
                     console.log('Menu theme started in IntroScene');
                 }
             });
-            
+
             // Try to start music immediately (will work if audio context is ready)
             if (!globalSoundManager.currentMusic || !globalSoundManager.currentMusic.isPlaying) {
                 globalSoundManager.playMusic('menu_theme', true);
                 console.log('Attempting to start menu theme in IntroScene');
             }
         }
-        
+
         // Animated gradient background
-        const bg = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
         this.tweens.add({
             targets: bg,
             alpha: 0.8,
@@ -3104,7 +3104,7 @@ class IntroScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         // Animated stars/particles background
         this.stars = [];
         for (let i = 0; i < 100; i++) {
@@ -3116,7 +3116,7 @@ class IntroScene extends Phaser.Scene {
                 Phaser.Math.FloatBetween(0.2, 1)
             );
             this.stars.push(star);
-            
+
             this.tweens.add({
                 targets: star,
                 alpha: 0.1,
@@ -3128,7 +3128,7 @@ class IntroScene extends Phaser.Scene {
                 delay: Math.random() * 2000
             });
         }
-        
+
         // Floating briefcase particles (more dynamic)
         this.briefcases = [];
         for (let i = 0; i < 80; i++) {
@@ -3138,7 +3138,7 @@ class IntroScene extends Phaser.Scene {
                 fontSize: Phaser.Math.Between(16, 32)
             }).setAlpha(0);
             this.briefcases.push(briefcase);
-            
+
             // Complex floating animation
             this.tweens.add({
                 targets: briefcase,
@@ -3154,12 +3154,12 @@ class IntroScene extends Phaser.Scene {
                 repeat: -1
             });
         }
-        
+
         // LinkedIn logo icon (animated)
-        const logo = this.add.text(width/2, height/4 - 80, '💼', {
+        const logo = this.add.text(width / 2, height / 4 - 80, '💼', {
             fontSize: '120px'
         }).setOrigin(0.5).setAlpha(0).setScale(0);
-        
+
         this.tweens.add({
             targets: logo,
             alpha: 1,
@@ -3179,7 +3179,7 @@ class IntroScene extends Phaser.Scene {
                 });
             }
         });
-        
+
         // Main title (enhanced)
         const title = this.add.text(width / 2, height / 4 + 40, 'LINKEDIN TYCOON', {
             fontSize: '72px',
@@ -3196,7 +3196,7 @@ class IntroScene extends Phaser.Scene {
                 fill: true
             }
         }).setOrigin(0.5).setAlpha(0).setScale(0.5);
-        
+
         // Subtitle (enhanced)
         const subtitle = this.add.text(width / 2, height / 4 + 120, 'Build Your Professional Empire', {
             fontSize: '28px',
@@ -3205,14 +3205,14 @@ class IntroScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Tagline
         const tagline = this.add.text(width / 2, height / 4 + 160, 'Network • Grow • Succeed', {
             fontSize: '18px',
             color: '#FFFFFF',
             alpha: 0.7
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Animate title entrance (epic)
         this.tweens.add({
             targets: title,
@@ -3233,7 +3233,7 @@ class IntroScene extends Phaser.Scene {
                 });
             }
         });
-        
+
         // Animate subtitle
         this.tweens.add({
             targets: subtitle,
@@ -3243,7 +3243,7 @@ class IntroScene extends Phaser.Scene {
             delay: 1200,
             ease: 'Power2'
         });
-        
+
         // Animate tagline
         this.tweens.add({
             targets: tagline,
@@ -3252,26 +3252,26 @@ class IntroScene extends Phaser.Scene {
             delay: 1800,
             ease: 'Power2'
         });
-        
+
         // Interactive elements - floating action buttons
-        const startBtn = this.add.rectangle(width/2, height/2 + 100, 350, 70, 0x0A66C2);
+        const startBtn = this.add.rectangle(width / 2, height / 2 + 100, 350, 70, 0x0A66C2);
         startBtn.setStrokeStyle(4, 0xFFFFFF);
         startBtn.setInteractive();
         startBtn.setAlpha(0);
-        
-        const startText = this.add.text(width/2, height/2 + 100, '🎮 START GAME', {
+
+        const startText = this.add.text(width / 2, height / 2 + 100, '🎮 START GAME', {
             fontSize: '32px',
             color: '#FFFFFF',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Animate button entrance
         this.tweens.add({
             targets: [startBtn, startText],
             alpha: 1,
-            y: height/2 + 100,
+            y: height / 2 + 100,
             duration: 1000,
             delay: 2500,
             ease: 'Power2',
@@ -3287,66 +3287,66 @@ class IntroScene extends Phaser.Scene {
                 });
             }
         });
-        
+
         // Hover effects
         startBtn.on('pointerover', () => {
             startBtn.setFillStyle(0x0E7FE8);
             startBtn.setScale(1.1);
             this.cameras.main.shake(100, 0.005);
         });
-        
+
         startBtn.on('pointerout', () => {
             startBtn.setFillStyle(0x0A66C2);
             startBtn.setScale(1.05);
         });
-        
+
         // Click handler
         const startGame = () => {
             // Play button sound
             if (globalSoundManager) {
                 globalSoundManager.playSfx('button_press', 0.5);
             }
-            
+
             // Explosion effect
             for (let i = 0; i < 30; i++) {
                 const particle = this.add.circle(
-                    width/2,
-                    height/2 + 100,
+                    width / 2,
+                    height / 2 + 100,
                     Phaser.Math.Between(3, 8),
                     Phaser.Math.RND.pick([0x0A66C2, 0x00FF88, 0xFFD700, 0xFFFFFF])
                 );
-                
+
                 this.tweens.add({
                     targets: particle,
-                    x: width/2 + Phaser.Math.Between(-200, 200),
-                    y: height/2 + 100 + Phaser.Math.Between(-200, 200),
+                    x: width / 2 + Phaser.Math.Between(-200, 200),
+                    y: height / 2 + 100 + Phaser.Math.Between(-200, 200),
                     alpha: 0,
                     scale: 0,
                     duration: 800,
                     onComplete: () => particle.destroy()
                 });
             }
-            
+
             this.cameras.main.flash(500, 255, 255, 255);
             this.cameras.main.fadeOut(1000);
             this.time.delayedCall(1000, () => {
                 this.scene.start('BootScene');
             });
         };
-        
+
         startBtn.on('pointerdown', startGame);
-        
+
         // Keyboard input
         this.input.keyboard.once('keydown', startGame);
-        
+
         // Mouse click anywhere
         this.input.once('pointerdown', (pointer) => {
-            if (pointer.y < height/2 + 50 || pointer.y > height/2 + 150) {
+            if (pointer.y < height / 2 + 50 || pointer.y > height / 2 + 150) {
                 startGame();
             }
         });
     }
-    
+
     hideAllUI() {
         // Hide all UI overlays
         const uiElements = [
@@ -3360,7 +3360,7 @@ class IntroScene extends Phaser.Scene {
             'interaction-prompt',
             'notification'
         ];
-        
+
         uiElements.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
@@ -3389,10 +3389,10 @@ class BootScene extends Phaser.Scene {
                 globalSoundManager.playMusic('menu_theme', true);
             }
         }
-        
+
         // Hide loading screen
         document.getElementById('loading').style.display = 'none';
-        
+
         // Go to main menu
         this.scene.start('MainMenuScene');
     }
@@ -3407,12 +3407,12 @@ class MainMenuScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // HIDE ALL UI ELEMENTS INCLUDING FULLSCREEN BUTTON
         this.hideAllUI();
         const fsButton = document.getElementById('fullscreen-toggle');
         if (fsButton) fsButton.style.display = 'none';
-        
+
         // Update sound manager scene reference and play music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
@@ -3420,10 +3420,10 @@ class MainMenuScene extends Phaser.Scene {
                 globalSoundManager.playMusic('menu_theme', true);
             }
         }
-        
+
         // Dark background
-        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
+
         // Animated background particles
         for (let i = 0; i < 50; i++) {
             const star = this.add.circle(
@@ -3433,7 +3433,7 @@ class MainMenuScene extends Phaser.Scene {
                 0xFFFFFF,
                 Phaser.Math.FloatBetween(0.3, 1)
             );
-            
+
             this.tweens.add({
                 targets: star,
                 alpha: 0.2,
@@ -3443,34 +3443,34 @@ class MainMenuScene extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             });
         }
-        
+
         // Game Title
-        const title = this.add.text(width/2, height/4, 'LINKEDIN TYCOON', {
+        const title = this.add.text(width / 2, height / 4, 'LINKEDIN TYCOON', {
             fontSize: '64px',
             color: '#0A66C2',
             fontStyle: 'bold',
             stroke: '#FFFFFF',
             strokeThickness: 6
         }).setOrigin(0.5);
-        
+
         // Subtitle - FIXED ANIMATION (no flickering)
-        const subtitle = this.add.text(width/2, height/4 + 80, 'Pixel Edition', {
+        const subtitle = this.add.text(width / 2, height / 4 + 80, 'Pixel Edition', {
             fontSize: '28px',
             color: '#00FF88',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Animate title - FIXED: title and subtitle animate independently
         this.tweens.add({
             targets: title,
             alpha: 1,
-            y: height/4,
+            y: height / 4,
             duration: 1000,
             ease: 'Power2'
         });
-        
+
         // Subtitle fades in smoothly AFTER title (no disappearing bug)
         this.tweens.add({
             targets: subtitle,
@@ -3479,7 +3479,7 @@ class MainMenuScene extends Phaser.Scene {
             delay: 1200,
             ease: 'Power2'
         });
-        
+
         // Add glow effect to subtitle
         this.tweens.add({
             targets: subtitle,
@@ -3490,21 +3490,21 @@ class MainMenuScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         // Check if save exists
         const hasSave = localStorage.getItem('linkedinTycoonSave') !== null;
-        
+
         // Menu buttons
-        const buttonY = height/2 + 50;
+        const buttonY = height / 2 + 50;
         const buttonSpacing = 80;
-        
+
         // New Game button (always available)
-        const newGameBtn = this.createMenuButton(width/2, buttonY, '🆕 NEW GAME', () => {
+        const newGameBtn = this.createMenuButton(width / 2, buttonY, '🆕 NEW GAME', () => {
             // Play button sound
             if (globalSoundManager) {
                 globalSoundManager.playSfx('button_press', 0.5);
             }
-            
+
             // Reset game state
             gameState.data = gameState.createNewGame();
             gameState.saveGame();
@@ -3513,15 +3513,15 @@ class MainMenuScene extends Phaser.Scene {
                 this.scene.start('NameInputScene');
             });
         });
-        
+
         // Continue button (only if save exists)
         if (hasSave) {
-            const continueBtn = this.createMenuButton(width/2, buttonY + buttonSpacing, '▶️ CONTINUE', () => {
+            const continueBtn = this.createMenuButton(width / 2, buttonY + buttonSpacing, '▶️ CONTINUE', () => {
                 // Play button sound
                 if (globalSoundManager) {
                     globalSoundManager.playSfx('button_press', 0.5);
                 }
-                
+
                 // Load existing game
                 gameState.data = gameState.loadGame();
                 this.cameras.main.fadeOut(500);
@@ -3534,40 +3534,40 @@ class MainMenuScene extends Phaser.Scene {
                 });
             });
         }
-        
+
         // Options button
-        const optionsBtn = this.createMenuButton(width/2, buttonY + buttonSpacing * (hasSave ? 2 : 1), '⚙️ OPTIONS', () => {
+        const optionsBtn = this.createMenuButton(width / 2, buttonY + buttonSpacing * (hasSave ? 2 : 1), '⚙️ OPTIONS', () => {
             // Play button sound
             if (globalSoundManager) {
                 globalSoundManager.playSfx('button_press', 0.5);
             }
             this.showOptions();
         });
-        
+
         // Credits/Version
-        this.add.text(width/2, height - 40, 'Version 1.0 | Made with Phaser 3', {
+        this.add.text(width / 2, height - 40, 'Version 1.0 | Made with Phaser 3', {
             fontSize: '14px',
             color: '#666666'
         }).setOrigin(0.5);
     }
-    
+
     createMenuButton(x, y, text, callback) {
         const btn = this.add.rectangle(x, y, 400, 70, 0x0A66C2);
         btn.setStrokeStyle(4, 0xFFFFFF);
         btn.setInteractive();
-        
+
         const btnText = this.add.text(x, y, text, {
             fontSize: '28px',
             color: '#FFFFFF',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         btn.on('pointerover', () => {
             // Play hover sound
             if (globalSoundManager) {
                 globalSoundManager.playSfx('button_press', 0.1);
             }
-            
+
             btn.setFillStyle(0x0E7FE8);
             btn.setScale(1.05);
             this.tweens.add({
@@ -3576,7 +3576,7 @@ class MainMenuScene extends Phaser.Scene {
                 duration: 100
             });
         });
-        
+
         btn.on('pointerout', () => {
             btn.setFillStyle(0x0A66C2);
             this.tweens.add({
@@ -3585,44 +3585,44 @@ class MainMenuScene extends Phaser.Scene {
                 duration: 100
             });
         });
-        
+
         btn.on('pointerdown', () => {
             this.cameras.main.flash(200, 255, 255, 255);
             callback();
         });
-        
+
         return btn;
     }
-    
+
     showOptions() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Options overlay
-        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
         overlay.setDepth(1000);
-        
-        const optionsBox = this.add.rectangle(width/2, height/2, 600, 500, 0x1E3A8A);
+
+        const optionsBox = this.add.rectangle(width / 2, height / 2, 600, 500, 0x1E3A8A);
         optionsBox.setStrokeStyle(4, 0xFFD700);
         optionsBox.setDepth(1001);
-        
-        const title = this.add.text(width/2, height/2 - 200, '⚙️ OPTIONS', {
+
+        const title = this.add.text(width / 2, height / 2 - 200, '⚙️ OPTIONS', {
             fontSize: '36px',
             color: '#FFD700',
             fontStyle: 'bold'
         }).setOrigin(0.5).setDepth(1002);
-        
+
         // Fullscreen toggle
-        const fullscreenBtn = this.add.rectangle(width/2, height/2 - 50, 500, 60, 0x0A66C2);
+        const fullscreenBtn = this.add.rectangle(width / 2, height / 2 - 50, 500, 60, 0x0A66C2);
         fullscreenBtn.setStrokeStyle(2, 0xFFFFFF);
         fullscreenBtn.setInteractive();
         fullscreenBtn.setDepth(1002);
-        
-        const fullscreenText = this.add.text(width/2, height/2 - 50, '🖥️ Toggle Fullscreen', {
+
+        const fullscreenText = this.add.text(width / 2, height / 2 - 50, '🖥️ Toggle Fullscreen', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5).setDepth(1003);
-        
+
         fullscreenBtn.on('pointerdown', () => {
             if (window.game && window.game.scale.isFullscreen) {
                 window.game.scale.stopFullscreen();
@@ -3630,28 +3630,28 @@ class MainMenuScene extends Phaser.Scene {
                 window.game.scale.startFullscreen();
             }
         });
-        
+
         // Sound toggle (placeholder)
-        const soundBtn = this.add.rectangle(width/2, height/2 + 50, 500, 60, 0x0A66C2);
+        const soundBtn = this.add.rectangle(width / 2, height / 2 + 50, 500, 60, 0x0A66C2);
         soundBtn.setStrokeStyle(2, 0xFFFFFF);
         soundBtn.setDepth(1002);
-        
-        this.add.text(width/2, height/2 + 50, '🔊 Sound: ON', {
+
+        this.add.text(width / 2, height / 2 + 50, '🔊 Sound: ON', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5).setDepth(1003);
-        
+
         // Close button
-        const closeBtn = this.add.rectangle(width/2, height/2 + 200, 300, 60, 0xFF6B6B);
+        const closeBtn = this.add.rectangle(width / 2, height / 2 + 200, 300, 60, 0xFF6B6B);
         closeBtn.setStrokeStyle(2, 0xFFFFFF);
         closeBtn.setInteractive();
         closeBtn.setDepth(1002);
-        
-        this.add.text(width/2, height/2 + 200, 'Back to Menu', {
+
+        this.add.text(width / 2, height / 2 + 200, 'Back to Menu', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5).setDepth(1003);
-        
+
         closeBtn.on('pointerdown', () => {
             overlay.destroy();
             optionsBox.destroy();
@@ -3662,7 +3662,7 @@ class MainMenuScene extends Phaser.Scene {
             closeBtn.destroy();
         });
     }
-    
+
     hideAllUI() {
         // Hide all UI overlays
         const uiElements = [
@@ -3676,7 +3676,7 @@ class MainMenuScene extends Phaser.Scene {
             'interaction-prompt',
             'notification'
         ];
-        
+
         uiElements.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
@@ -3693,12 +3693,12 @@ class NameInputScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // HIDE ALL UI INCLUDING FULLSCREEN BUTTON
         this.hideAllUI();
         const fsButton = document.getElementById('fullscreen-toggle');
         if (fsButton) fsButton.style.display = 'none';
-        
+
         // Update sound manager scene reference
         if (globalSoundManager) {
             globalSoundManager.scene = this;
@@ -3707,10 +3707,10 @@ class NameInputScene extends Phaser.Scene {
                 globalSoundManager.playMusic('menu_theme', true);
             }
         }
-        
+
         // Dark background matching LoadingScene and IntroScene
-        const bg = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        
+        const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
+
         // Animated stars background (matching IntroScene style)
         this.stars = [];
         for (let i = 0; i < 80; i++) {
@@ -3722,7 +3722,7 @@ class NameInputScene extends Phaser.Scene {
                 Phaser.Math.FloatBetween(0.2, 0.8)
             );
             this.stars.push(star);
-            
+
             this.tweens.add({
                 targets: star,
                 alpha: 0.1,
@@ -3734,7 +3734,7 @@ class NameInputScene extends Phaser.Scene {
                 delay: Math.random() * 1000
             });
         }
-        
+
         // Floating briefcase particles (matching IntroScene)
         for (let i = 0; i < 15; i++) {
             const x = Phaser.Math.Between(0, width);
@@ -3742,7 +3742,7 @@ class NameInputScene extends Phaser.Scene {
             const briefcase = this.add.text(x, y, '💼', {
                 fontSize: Phaser.Math.Between(20, 36)
             }).setAlpha(Phaser.Math.FloatBetween(0.1, 0.3));
-            
+
             this.tweens.add({
                 targets: briefcase,
                 x: x + Phaser.Math.Between(-150, 150),
@@ -3756,67 +3756,67 @@ class NameInputScene extends Phaser.Scene {
                 delay: Math.random() * 2000
             });
         }
-        
+
         // Welcome icon - appears AFTER all text (at the end)
-        const icon = this.add.text(width/2, height/4 - 40, '👋', {
+        const icon = this.add.text(width / 2, height / 4 - 40, '👋', {
             fontSize: '80px'
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Title matching IntroScene/LoadingScene style
-        const title = this.add.text(width/2, height/4 + 60, 'WELCOME TO LINKEDIN TYCOON!', {
+        const title = this.add.text(width / 2, height / 4 + 60, 'WELCOME TO LINKEDIN TYCOON!', {
             fontSize: '48px',
             color: '#0A66C2',
             fontStyle: 'bold',
             stroke: '#FFFFFF',
             strokeThickness: 5
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Subtitle
-        const subtitle = this.add.text(width/2, height/4 + 120, 'Let\'s start by creating your character!', {
+        const subtitle = this.add.text(width / 2, height / 4 + 120, 'Let\'s start by creating your character!', {
             fontSize: '24px',
             color: '#FFFFFF',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Instruction text
-        const instruction = this.add.text(width/2, height/4 + 170, 'First, please enter your name:', {
+        const instruction = this.add.text(width / 2, height / 4 + 170, 'First, please enter your name:', {
             fontSize: '20px',
             color: '#00FF88',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Animate text elements with staggered timing
         this.tweens.add({
             targets: title,
             alpha: 1,
-            y: height/4 + 60,
+            y: height / 4 + 60,
             duration: 600,
             delay: 200,
             ease: 'Power2'
         });
-        
+
         this.tweens.add({
             targets: subtitle,
             alpha: 1,
-            y: height/4 + 120,
+            y: height / 4 + 120,
             duration: 600,
             delay: 500,
             ease: 'Power2'
         });
-        
+
         this.tweens.add({
             targets: instruction,
             alpha: 1,
-            y: height/4 + 170,
+            y: height / 4 + 170,
             duration: 600,
             delay: 800,
             ease: 'Power2'
         });
-        
+
         // Icon appears LAST, after all text
         this.tweens.add({
             targets: icon,
@@ -3836,34 +3836,34 @@ class NameInputScene extends Phaser.Scene {
                 });
             }
         });
-        
+
         // Name input container with modern card design
-        const inputY = height/2 + 60;
-        
+        const inputY = height / 2 + 60;
+
         // Card background shadow
-        const cardShadow = this.add.rectangle(width/2, inputY + 3, 600, 110, 0x000000, 0.3);
+        const cardShadow = this.add.rectangle(width / 2, inputY + 3, 600, 110, 0x000000, 0.3);
         cardShadow.setAlpha(0);
-        
+
         // Main input card
-        const inputBox = this.add.rectangle(width/2, inputY, 600, 110, 0x1A1A2E, 0.98);
+        const inputBox = this.add.rectangle(width / 2, inputY, 600, 110, 0x1A1A2E, 0.98);
         inputBox.setStrokeStyle(3, 0x0A66C2);
         inputBox.setAlpha(0);
-        
+
         // Decorative corner accents
-        const cornerTL = this.add.rectangle(width/2 - 295, inputY - 52, 8, 3, 0x00FF88);
-        const cornerTR = this.add.rectangle(width/2 + 295, inputY - 52, 8, 3, 0x00FF88);
-        const cornerBL = this.add.rectangle(width/2 - 295, inputY + 52, 8, 3, 0x00FF88);
-        const cornerBR = this.add.rectangle(width/2 + 295, inputY + 52, 8, 3, 0x00FF88);
+        const cornerTL = this.add.rectangle(width / 2 - 295, inputY - 52, 8, 3, 0x00FF88);
+        const cornerTR = this.add.rectangle(width / 2 + 295, inputY - 52, 8, 3, 0x00FF88);
+        const cornerBL = this.add.rectangle(width / 2 - 295, inputY + 52, 8, 3, 0x00FF88);
+        const cornerBR = this.add.rectangle(width / 2 + 295, inputY + 52, 8, 3, 0x00FF88);
         [cornerTL, cornerTR, cornerBL, cornerBR].forEach(c => c.setAlpha(0));
-        
+
         // Input label with better spacing
-        const inputLabel = this.add.text(width/2, inputY - 42, '✏️  YOUR NAME', {
+        const inputLabel = this.add.text(width / 2, inputY - 42, '✏️  YOUR NAME', {
             fontSize: '16px',
             color: '#00FF88',
             fontStyle: 'bold',
             letterSpacing: 1
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Animate input elements with improved timing
         this.tweens.add({
             targets: [cardShadow, inputBox],
@@ -3872,7 +3872,7 @@ class NameInputScene extends Phaser.Scene {
             delay: 1400,
             ease: 'Power2'
         });
-        
+
         this.tweens.add({
             targets: inputLabel,
             alpha: 1,
@@ -3880,7 +3880,7 @@ class NameInputScene extends Phaser.Scene {
             delay: 1600,
             ease: 'Power2'
         });
-        
+
         this.tweens.add({
             targets: [cornerTL, cornerTR, cornerBL, cornerBR],
             alpha: 0.8,
@@ -3889,27 +3889,27 @@ class NameInputScene extends Phaser.Scene {
             delay: 1700,
             ease: 'Power2'
         });
-        
+
         // Create HTML input - USING GAME COORDINATES (1920x1080 system)
         let existingInput = document.getElementById('name-input-container');
         if (existingInput) existingInput.remove();
-        
+
         // Define position in GAME COORDINATES (Phaser's 1920x1080 world)
         const GAME_X = 960;  // Center X of 1920
         const GAME_Y = 540;  // Center Y of 1080  
         const GAME_WIDTH = 540;
         const GAME_HEIGHT = 70;
-        
+
         const updateInputPosition = () => {
             console.log('🔄 updateInputPosition called');
-            
+
             // Get the actual Phaser canvas element
             const canvas = this.game.canvas;
             if (!canvas) {
                 console.error('❌ Canvas not found');
                 return;
             }
-            
+
             // Get canvas position and size on screen
             const canvasRect = canvas.getBoundingClientRect();
             console.log('📐 Canvas rect:', {
@@ -3918,32 +3918,32 @@ class NameInputScene extends Phaser.Scene {
                 width: canvasRect.width,
                 height: canvasRect.height
             });
-            
+
             // Calculate scale from game coordinates (1920x1080) to actual canvas size
             const scaleX = canvasRect.width / 1920;
             const scaleY = canvasRect.height / 1080;
             console.log('📏 Scale factors:', { scaleX, scaleY });
-            
+
             // The Phaser inputBox is drawn at (width/2, height/2 + 60) = (960, 600)
             // Convert these game coordinates to screen pixels
             const gameBoxX = 960;  // Phaser box center X in game coords
             const gameBoxY = 600;  // Phaser box center Y in game coords (height/2 + 60)
             const gameBoxWidth = 580;  // Phaser box width
             const gameBoxHeight = 100; // Phaser box height
-            
+
             // Convert to screen coordinates
             const screenX = canvasRect.left + (gameBoxX * scaleX);
             const screenY = canvasRect.top + (gameBoxY * scaleY);
             const screenWidth = gameBoxWidth * scaleX;
             const screenHeight = gameBoxHeight * scaleY;
-            
+
             console.log('🎯 Target position:', {
                 screenX: screenX.toFixed(1),
                 screenY: screenY.toFixed(1),
                 screenWidth: screenWidth.toFixed(1),
                 screenHeight: screenHeight.toFixed(1)
             });
-            
+
             // Position HTML input to EXACTLY match the Phaser rectangle
             inputContainer.style.position = 'fixed';
             inputContainer.style.left = screenX + 'px';
@@ -3952,15 +3952,15 @@ class NameInputScene extends Phaser.Scene {
             inputContainer.style.height = screenHeight + 'px';
             inputContainer.style.transform = 'translate(-50%, -50%)'; // Center anchor like Phaser
             inputContainer.style.zIndex = '10001';  // Above canvas
-            
+
             // Scale font size proportionally
             const scaledFontSize = Math.max(16, 28 * Math.min(scaleX, scaleY));
             nameInput.style.fontSize = scaledFontSize + 'px';
-            
+
             console.log(`✓ Input positioned at (${screenX.toFixed(0)}, ${screenY.toFixed(0)}) size ${screenWidth.toFixed(0)}x${screenHeight.toFixed(0)}`);
             console.log(`   Font size: ${scaledFontSize.toFixed(0)}px`);
         };
-        
+
         const inputContainer = document.createElement('div');
         inputContainer.id = 'name-input-container';
         inputContainer.style.cssText = `
@@ -3969,7 +3969,7 @@ class NameInputScene extends Phaser.Scene {
             pointer-events: auto !important;
             display: block !important;
         `;
-        
+
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.id = 'name-input';
@@ -3994,18 +3994,18 @@ class NameInputScene extends Phaser.Scene {
             opacity: 1 !important;
             transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
         `;
-        
+
         nameInput.addEventListener('focus', () => {
             nameInput.style.borderColor = '#00FF88';
             nameInput.style.boxShadow = '0 0 25px rgba(0, 255, 136, 0.6)';
             if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.2);
         });
-        
+
         nameInput.addEventListener('blur', () => {
             nameInput.style.borderColor = '#0A66C2';
             nameInput.style.boxShadow = 'none';
         });
-        
+
         nameInput.addEventListener('keydown', (e) => {
             e.stopPropagation();
             if (e.key === 'Enter' && nameInput.value.trim()) {
@@ -4013,54 +4013,54 @@ class NameInputScene extends Phaser.Scene {
                 this.proceedToCustomization(nameInput.value.trim());
             }
         });
-        
+
         inputContainer.appendChild(nameInput);
         document.body.appendChild(inputContainer);
         this.nameInputElement = nameInput;
-        
+
         // Set initial position
         updateInputPosition();
-        
+
         // Auto-focus the input after a short delay (after animations)
         this.time.delayedCall(1500, () => {
             nameInput.focus();
             console.log('🎯 Name input focused');
         });
-        
+
         // Store update function for cleanup
         this.updateInputPosition = updateInputPosition;
-        
+
         // Modern Continue button with better design
         const continueY = height - 180;
-        
+
         // Button shadow
-        const btnShadow = this.add.rectangle(width/2, continueY + 4, 480, 75, 0x000000, 0.3);
+        const btnShadow = this.add.rectangle(width / 2, continueY + 4, 480, 75, 0x000000, 0.3);
         btnShadow.setAlpha(0);
-        
+
         // Main button background
-        const continueBtn = this.add.rectangle(width/2, continueY, 480, 75, 0x2A2A4A);
+        const continueBtn = this.add.rectangle(width / 2, continueY, 480, 75, 0x2A2A4A);
         continueBtn.setStrokeStyle(3, 0x555577);
         continueBtn.setInteractive();
         continueBtn.setAlpha(0);
-        
+
         // Button glow effect (hidden initially)
-        const btnGlow = this.add.rectangle(width/2, continueY, 480, 75, 0x00FF88, 0.15);
+        const btnGlow = this.add.rectangle(width / 2, continueY, 480, 75, 0x00FF88, 0.15);
         btnGlow.setAlpha(0);
-        
+
         // Button text (centered, no icon initially)
-        const continueText = this.add.text(width/2, continueY, 'CONTINUE TO CUSTOMIZATION', {
+        const continueText = this.add.text(width / 2, continueY, 'CONTINUE TO CUSTOMIZATION', {
             fontSize: '22px',
             color: '#666677',
             fontStyle: 'bold',
             letterSpacing: 1
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Arrow icon (appears when ready)
-        const continueIcon = this.add.text(width/2 + 160, continueY, '→', {
+        const continueIcon = this.add.text(width / 2 + 160, continueY, '→', {
             fontSize: '28px',
             color: '#00FF88'
         }).setOrigin(0.5).setAlpha(0);
-        
+
         // Animate button appearance
         this.tweens.add({
             targets: [btnShadow, continueBtn, continueText],
@@ -4069,14 +4069,14 @@ class NameInputScene extends Phaser.Scene {
             delay: 1900,
             ease: 'Power2'
         });
-        
+
         // Subtle hint text below button
-        const hintText = this.add.text(width/2, continueY + 55, 'Press ENTER or click to continue', {
+        const hintText = this.add.text(width / 2, continueY + 55, 'Press ENTER or click to continue', {
             fontSize: '14px',
             color: '#666677',
             fontStyle: 'italic'
         }).setOrigin(0.5).setAlpha(0);
-        
+
         this.tweens.add({
             targets: hintText,
             alpha: 0.6,
@@ -4084,18 +4084,18 @@ class NameInputScene extends Phaser.Scene {
             delay: 2200,
             ease: 'Power2'
         });
-        
+
         // Back button with minimal design
-        const backBtn = this.add.rectangle(width/2, continueY + 100, 180, 45, 0x1A1A2A, 0.5);
+        const backBtn = this.add.rectangle(width / 2, continueY + 100, 180, 45, 0x1A1A2A, 0.5);
         backBtn.setStrokeStyle(2, 0x333344);
         backBtn.setInteractive();
         backBtn.setAlpha(0);
-        
-        const backText = this.add.text(width/2, continueY + 100, '← BACK TO MENU', {
+
+        const backText = this.add.text(width / 2, continueY + 100, '← BACK TO MENU', {
             fontSize: '14px',
             color: '#777788'
         }).setOrigin(0.5).setAlpha(0);
-        
+
         this.tweens.add({
             targets: [backBtn, backText],
             alpha: { from: 0, to: [0.8, 1] },
@@ -4103,7 +4103,7 @@ class NameInputScene extends Phaser.Scene {
             delay: 1900,
             ease: 'Power2'
         });
-        
+
         // Button state management with modern styling
         const updateContinueButton = () => {
             const hasName = nameInput.value.trim().length > 0;
@@ -4114,7 +4114,7 @@ class NameInputScene extends Phaser.Scene {
                 continueText.setColor('#000000');
                 btnGlow.setAlpha(1);
                 continueIcon.setAlpha(1);
-                
+
                 // Pulsing glow animation
                 this.tweens.add({
                     targets: btnGlow,
@@ -4124,11 +4124,11 @@ class NameInputScene extends Phaser.Scene {
                     repeat: -1,
                     ease: 'Sine.easeInOut'
                 });
-                
+
                 // Subtle bounce on icon
                 this.tweens.add({
                     targets: continueIcon,
-                    x: width/2 + 165,
+                    x: width / 2 + 165,
                     duration: 800,
                     yoyo: true,
                     repeat: -1,
@@ -4141,44 +4141,44 @@ class NameInputScene extends Phaser.Scene {
                 continueText.setColor('#666677');
                 btnGlow.setAlpha(0);
                 continueIcon.setAlpha(0);
-                
+
                 // Stop animations
                 this.tweens.killTweensOf([btnGlow, continueIcon]);
             }
         };
-        
+
         nameInput.addEventListener('input', () => {
             updateContinueButton();
             if (nameInput.value.trim()) {
                 gameState.data.player.name = nameInput.value.trim();
             }
         });
-        
+
         updateContinueButton();
-        
+
         // Continue button interactions with smooth effects
         continueBtn.on('pointerover', () => {
             if (nameInput.value.trim()) {
                 continueBtn.setScale(1.03);
                 continueBtn.setFillStyle(0x00FFAA);
                 if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.15);
-                
+
                 this.tweens.add({
                     targets: continueIcon,
-                    x: width/2 + 170,
+                    x: width / 2 + 170,
                     duration: 200,
                     ease: 'Power2'
                 });
             }
         });
-        
+
         continueBtn.on('pointerout', () => {
             continueBtn.setScale(1);
             if (nameInput.value.trim()) {
                 continueBtn.setFillStyle(0x00FF88);
             }
         });
-        
+
         continueBtn.on('pointerdown', () => {
             if (nameInput.value.trim()) {
                 continueBtn.setScale(0.97);
@@ -4191,7 +4191,7 @@ class NameInputScene extends Phaser.Scene {
                 // Shake effect if no name
                 this.tweens.add({
                     targets: [continueBtn, continueText],
-                    x: width/2 + 10,
+                    x: width / 2 + 10,
                     duration: 50,
                     yoyo: true,
                     repeat: 3,
@@ -4200,8 +4200,8 @@ class NameInputScene extends Phaser.Scene {
                 if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.1);
             }
         });
-                continueBtn.setFillStyle(0x00CC66);
-        
+        continueBtn.setFillStyle(0x00CC66);
+
         // Back button interactions with hover effects
         backBtn.on('pointerover', () => {
             backBtn.setFillStyle(0x2A2A3A);
@@ -4210,14 +4210,14 @@ class NameInputScene extends Phaser.Scene {
             backBtn.setScale(1.03);
             if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.1);
         });
-        
+
         backBtn.on('pointerout', () => {
             backBtn.setFillStyle(0x1A1A2A);
             backBtn.setStrokeStyle(2, 0x333344);
             backText.setColor('#777788');
             backBtn.setScale(1);
         });
-        
+
         backBtn.on('pointerdown', () => {
             if (globalSoundManager) globalSoundManager.playSfx('button_press', 0.3);
             backBtn.setScale(0.97);
@@ -4226,44 +4226,44 @@ class NameInputScene extends Phaser.Scene {
             });
         });
     }
-    
+
     goBackToMenu() {
         // Clean up resize handler
         if (this.inputResizeHandler) {
             window.removeEventListener('resize', this.inputResizeHandler);
             this.scale.off('resize', this.inputResizeHandler);
         }
-        
+
         // Clean up input element
         const inputContainer = document.getElementById('name-input-container');
         if (inputContainer) inputContainer.remove();
-        
+
         // Fade out and return to MainMenuScene
         this.cameras.main.fadeOut(500, 0, 0, 0);
         this.time.delayedCall(500, () => {
             this.scene.start('MainMenuScene');
         });
     }
-    
+
     proceedToCustomization(name) {
         if (!name || !name.trim()) return;
-        
+
         // Save name
         gameState.data.player.name = name.trim();
         gameState.saveGame();
-        
+
         // Play success sound
         if (globalSoundManager) globalSoundManager.playSfx('success', 0.5);
-        
+
         // Unregister from coordinate system
         if (window.coordSystem) {
             window.coordSystem.unregister('name-input-container');
         }
-        
+
         // Remove HTML input
         const inputContainer = document.getElementById('name-input-container');
         if (inputContainer) inputContainer.remove();
-        
+
         // Transition to customization
         this.cameras.main.flash(300, 0, 255, 0);
         this.cameras.main.fadeOut(500);
@@ -4271,18 +4271,18 @@ class NameInputScene extends Phaser.Scene {
             this.scene.start('CharacterCustomizationScene');
         });
     }
-    
+
     shutdown() {
         // CRITICAL: Clean up HTML input when scene closes
         const inputContainer = document.getElementById('name-input-container');
         if (inputContainer) inputContainer.remove();
-        
+
         // Unregister from coordinate system
         if (window.coordSystem) {
             window.coordSystem.unregister('name-input-container');
         }
     }
-    
+
     hideAllUI() {
         const uiElements = [
             'ui-overlay',
@@ -4295,7 +4295,7 @@ class NameInputScene extends Phaser.Scene {
             'interaction-prompt',
             'notification'
         ];
-        
+
         uiElements.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
@@ -4312,23 +4312,23 @@ class CharacterCustomizationScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // HIDE ALL UI INCLUDING FULLSCREEN BUTTON
         this.hideAllUI();
         const fsButton = document.getElementById('fullscreen-toggle');
         if (fsButton) fsButton.style.display = 'none';
-        
+
         // Fade in from black (in case we're transitioning from another scene)
         this.cameras.main.fadeIn(500);
-        
+
         // Update sound manager and play customization theme music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
             globalSoundManager.playMusic('customization_theme', true);
         }
-        
+
         // Enhanced gradient background
-        const bgGradient = this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
+        const bgGradient = this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
         this.tweens.add({
             targets: bgGradient,
             alpha: 0.9,
@@ -4337,7 +4337,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         // Animated particles background
         this.particles = [];
         for (let i = 0; i < 50; i++) {
@@ -4349,7 +4349,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
                 Phaser.Math.FloatBetween(0.1, 0.3)
             );
             this.particles.push(particle);
-            
+
             this.tweens.add({
                 targets: particle,
                 x: particle.x + Phaser.Math.Between(-100, 100),
@@ -4362,9 +4362,9 @@ class CharacterCustomizationScene extends Phaser.Scene {
                 delay: Math.random() * 2000
             });
         }
-        
+
         // Title with animation
-        const title = this.add.text(width/2, 60, '👤 CREATE YOUR CHARACTER', {
+        const title = this.add.text(width / 2, 60, '👤 CREATE YOUR CHARACTER', {
             fontSize: '52px',
             color: '#0A66C2',
             fontStyle: 'bold',
@@ -4379,7 +4379,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
                 fill: true
             }
         }).setOrigin(0.5);
-        
+
         this.tweens.add({
             targets: title,
             scale: 1.05,
@@ -4388,7 +4388,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         // Load existing customization or use defaults
         const existing = gameState.data.player.customization || {};
         this.customization = {
@@ -4398,14 +4398,14 @@ class CharacterCustomizationScene extends Phaser.Scene {
             shirtColor: existing.shirtColor || 0,
             pantsColor: existing.pantsColor || 0
         };
-        
+
         // Check if coming from wardrobe
         const data = this.scene.settings.data;
         this.fromWardrobe = data && data.fromWardrobe;
-        
+
         // Store button references for updating
         this.buttonGroups = {};
-        
+
         // ============================================
         // LEFT PANEL: ALL Customization Options
         // ============================================
@@ -4413,11 +4413,11 @@ class CharacterCustomizationScene extends Phaser.Scene {
         // RESPONSIVE: Scale starting Y and spacing based on camera height
         const leftPanelStartY = height * 0.15; // 15% from top instead of fixed 160px
         const sectionSpacing = height * 0.18; // 18% of height instead of fixed 220px
-        
+
         // Create scrollable panel background
-        const leftPanelBg = this.add.rectangle(leftPanelX, height/2 + 50, 450, height - 180, 0x1A1A2E, 0.85);
+        const leftPanelBg = this.add.rectangle(leftPanelX, height / 2 + 50, 450, height - 180, 0x1A1A2E, 0.85);
         leftPanelBg.setStrokeStyle(3, 0x0A66C2);
-        
+
         // Skin Tone
         this.createOptionSection(leftPanelX, leftPanelStartY, '🎨 Skin Tone', [
             { name: 'Light', value: 0 },
@@ -4425,7 +4425,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             { name: 'Tan', value: 2 },
             { name: 'Dark', value: 3 }
         ], 'skinTone');
-        
+
         // Hair Color
         this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing, '💇 Hair Color', [
             { name: 'Black', value: 0 },
@@ -4435,7 +4435,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             { name: 'Gray', value: 4 },
             { name: 'Blue', value: 5 }
         ], 'hairColor');
-        
+
         // Hair Style
         this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing * 2, '✂️ Hair Style', [
             { name: 'Short', value: 0 },
@@ -4443,7 +4443,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             { name: 'Long', value: 2 },
             { name: 'Bald', value: 3 }
         ], 'hairStyle');
-        
+
         // Shirt Color
         this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing * 3, '👔 Shirt Color', [
             { name: 'LinkedIn Blue', value: 0 },
@@ -4454,7 +4454,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             { name: 'Orange', value: 5 },
             { name: 'White', value: 6 }
         ], 'shirtColor');
-        
+
         // Pants Color
         this.createOptionSection(leftPanelX, leftPanelStartY + sectionSpacing * 4, '👖 Pants Color', [
             { name: 'Navy', value: 0 },
@@ -4462,18 +4462,18 @@ class CharacterCustomizationScene extends Phaser.Scene {
             { name: 'Gray', value: 2 },
             { name: 'Brown', value: 3 }
         ], 'pantsColor');
-        
+
         // ============================================
         // RIGHT: Character Preview (LARGE & PROMINENT)
         // ============================================
         const previewX = width * 0.75;
-        const previewY = height/2 - 80;
+        const previewY = height / 2 - 80;
         const previewSize = 300;
-        
+
         // Preview background with glow effect
         const previewBg = this.add.rectangle(previewX, previewY, previewSize + 60, previewSize + 60, 0x0A66C2, 0.3);
         previewBg.setStrokeStyle(5, 0x00FF88);
-        
+
         // Glow effect
         this.tweens.add({
             targets: previewBg,
@@ -4483,19 +4483,19 @@ class CharacterCustomizationScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         // Inner preview background
         const previewInner = this.add.rectangle(previewX, previewY, previewSize + 20, previewSize + 20, 0x000000, 0.8);
         previewInner.setStrokeStyle(3, 0xFFFFFF);
-        
+
         // Initialize update flag
         this.isUpdatingPreview = false;
-        
+
         // CRITICAL: Create initial preview texture FIRST, then create sprite
         const initialPreviewKey = 'player_preview_initial';
         try {
             SpriteGenerator.createCustomPlayerSprite(this, this.customization, initialPreviewKey);
-            
+
             // Wait for initial texture to be ready before creating sprite
             this.time.delayedCall(100, () => {
                 if (this.textures.exists(initialPreviewKey)) {
@@ -4518,26 +4518,26 @@ class CharacterCustomizationScene extends Phaser.Scene {
             this.characterPreview.setScale(8);
             this.characterPreview.setDepth(10);
         }
-        
+
         // Preview label
-        this.add.text(previewX, previewY - previewSize/2 - 20, 'LIVE PREVIEW', {
+        this.add.text(previewX, previewY - previewSize / 2 - 20, 'LIVE PREVIEW', {
             fontSize: '18px',
             color: '#00FF88',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // ============================================
         // RIGHT: Character Name Display (BELOW PREVIEW)
         // ============================================
         const rightPanelX = width * 0.75;
-        const rightPanelY = previewY + previewSize/2 + 100;
-        
+        const rightPanelY = previewY + previewSize / 2 + 100;
+
         // Panel background
         const rightPanelBg = this.add.rectangle(rightPanelX, rightPanelY, 350, 180, 0x1A1A2E, 0.85);
         rightPanelBg.setStrokeStyle(3, 0x0A66C2);
-        
+
         // Name label
         this.add.text(rightPanelX, rightPanelY - 60, '👤 Your Name', {
             fontSize: '24px',
@@ -4546,7 +4546,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // Display name (read-only, already set in NameInputScene)
         const nameDisplay = this.add.text(rightPanelX, rightPanelY - 20, gameState.data.player.name || 'Alex Developer', {
             fontSize: '28px',
@@ -4555,37 +4555,37 @@ class CharacterCustomizationScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Info text
         this.add.text(rightPanelX, rightPanelY + 30, 'Name set! Focus on', {
             fontSize: '16px',
             color: '#888888',
             fontStyle: 'italic'
         }).setOrigin(0.5);
-        
+
         this.add.text(rightPanelX, rightPanelY + 50, 'customizing your character', {
             fontSize: '16px',
             color: '#888888',
             fontStyle: 'italic'
         }).setOrigin(0.5);
-        
+
         // ============================================
         // BOTTOM: Start/Save Button
         // ============================================
-        const startBtn = this.add.rectangle(width/2, height - 80, 450, 90, 0x00FF88);
+        const startBtn = this.add.rectangle(width / 2, height - 80, 450, 90, 0x00FF88);
         startBtn.setStrokeStyle(5, 0xFFFFFF);
         startBtn.setInteractive();
         startBtn.setDepth(100);
-        
+
         const buttonText = this.fromWardrobe ? '💾 SAVE CHANGES' : '✅ START GAME';
-        const startText = this.add.text(width/2, height - 80, buttonText, {
+        const startText = this.add.text(width / 2, height - 80, buttonText, {
             fontSize: '36px',
             color: '#000000',
             fontStyle: 'bold',
             stroke: '#FFFFFF',
             strokeThickness: 3
         }).setOrigin(0.5).setDepth(101);
-        
+
         // Button animations
         this.tweens.add({
             targets: startBtn,
@@ -4595,29 +4595,29 @@ class CharacterCustomizationScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         startBtn.on('pointerover', () => {
             startBtn.setFillStyle(0x00CC66);
             startBtn.setScale(1.08);
             startText.setScale(1.05);
             this.cameras.main.shake(100, 0.005);
         });
-        
+
         startBtn.on('pointerout', () => {
             startBtn.setFillStyle(0x00FF88);
             startBtn.setScale(1.02);
             startText.setScale(1);
         });
-        
+
         startBtn.on('pointerdown', () => {
             // Save customization (name already set in NameInputScene)
-            gameState.data.player.customization = {...this.customization};
-            
+            gameState.data.player.customization = { ...this.customization };
+
             // Regenerate player sprite with customization
             SpriteGenerator.createCustomPlayerSprite(this, this.customization);
-            
+
             gameState.saveGame();
-            
+
             this.cameras.main.flash(300, 0, 255, 0);
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -4636,10 +4636,10 @@ class CharacterCustomizationScene extends Phaser.Scene {
                 }
             });
         });
-        
+
         // REMOVED: Don't call updateCharacterPreview immediately - sprite creation handles initial texture
     }
-    
+
     createOptionSection(x, y, title, options, key) {
         // Get scale factor for responsive sizing
         const baseWidth = 1920; // Game's base internal width
@@ -4647,10 +4647,10 @@ class CharacterCustomizationScene extends Phaser.Scene {
         const scaleX = this.cameras.main.width / baseWidth;
         const scaleY = this.cameras.main.height / baseHeight;
         const scale = Math.min(scaleX, scaleY); // Use minimum to maintain aspect ratio
-        
+
         const fontSize = Math.max(14, 20 * scale); // Min 14px, scales with camera
         const buttonFontSize = Math.max(10, 13 * scale); // Min 10px for buttons
-        
+
         // Title at top
         const titleText = this.add.text(x, y, title, {
             fontSize: `${fontSize}px`,
@@ -4659,30 +4659,30 @@ class CharacterCustomizationScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: Math.max(2, 3 * scale)
         }).setOrigin(0.5).setDepth(6);
-        
+
         // Store buttons for this section
         if (!this.buttonGroups[key]) {
             this.buttonGroups[key] = [];
         }
-        
+
         // RESPONSIVE button sizing and spacing
         const buttonWidth = Math.max(90, 110 * scale);
         const buttonHeight = Math.max(35, 45 * scale);
         const buttonSpacingX = Math.max(100, 130 * scale);
         const buttonSpacingY = Math.max(48, 60 * scale);
         const buttonsPerRow = 3;
-        
+
         // RESPONSIVE horizontal centering offset
         const totalRowWidth = (buttonsPerRow - 1) * buttonSpacingX;
         const centerOffset = totalRowWidth / 2;
-        
+
         options.forEach((option, i) => {
             const col = i % buttonsPerRow;
             const row = Math.floor(i / buttonsPerRow);
             // FIXED: Center buttons properly by starting from left edge
             const btnX = x - centerOffset + col * buttonSpacingX;
             const btnY = y + (35 * scale) + row * buttonSpacingY; // Scale the 35px offset too
-            
+
             // Button background
             const isSelected = this.customization[key] === option.value;
             const btn = this.add.rectangle(btnX, btnY, buttonWidth, buttonHeight, isSelected ? 0x00FF88 : 0x0A66C2);
@@ -4691,13 +4691,13 @@ class CharacterCustomizationScene extends Phaser.Scene {
             btn.setData('value', option.value);
             btn.setData('key', key);
             btn.setDepth(6);
-            
+
             // Button text
             let displayName = option.name;
             if (displayName.length > 13) {
                 displayName = displayName.substring(0, 11) + '..';
             }
-            
+
             const btnText = this.add.text(btnX, btnY, displayName, {
                 fontSize: `${buttonFontSize}px`,
                 color: '#FFFFFF',
@@ -4706,10 +4706,10 @@ class CharacterCustomizationScene extends Phaser.Scene {
                 strokeThickness: Math.max(1, 2 * scale),
                 wordWrap: { width: buttonWidth - 10 }
             }).setOrigin(0.5).setDepth(7);
-            
+
             // Store button reference
             this.buttonGroups[key].push({ btn, btnText, value: option.value });
-            
+
             // Enhanced hover effects
             btn.on('pointerover', () => {
                 if (!isSelected) {
@@ -4725,7 +4725,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
                     ease: 'Power2'
                 });
             });
-            
+
             btn.on('pointerout', () => {
                 const currentSelected = this.customization[key] === option.value;
                 btn.setFillStyle(currentSelected ? 0x00FF88 : 0x0A66C2);
@@ -4734,17 +4734,17 @@ class CharacterCustomizationScene extends Phaser.Scene {
                 btnText.setScale(1);
                 btn.setAlpha(1);
             });
-            
+
             // Click handler with debounced preview update
             btn.on('pointerdown', () => {
                 // Prevent rapid clicking
                 if (this.isUpdatingPreview) {
                     return;
                 }
-                
+
                 // Update customization value
                 this.customization[key] = option.value;
-                
+
                 // Update ALL buttons in this section visually
                 this.buttonGroups[key].forEach(buttonData => {
                     const isNowSelected = buttonData.value === option.value;
@@ -4752,13 +4752,13 @@ class CharacterCustomizationScene extends Phaser.Scene {
                     buttonData.btn.setStrokeStyle(3, isNowSelected ? 0xFFFFFF : 0x4A90E2);
                     buttonData.btn.setScale(1);
                 });
-                
+
                 // Update character preview (debounced internally)
                 this.updateCharacterPreview();
-                
+
                 // Visual feedback
                 this.cameras.main.flash(100, 0, 255, 0, false, null, 0.2);
-                
+
                 // Button click animation
                 this.tweens.add({
                     targets: btn,
@@ -4770,34 +4770,34 @@ class CharacterCustomizationScene extends Phaser.Scene {
             });
         });
     }
-    
+
     updateCharacterPreview() {
         // SIMPLIFIED FIX: Direct texture update without complex verification
         if (this.isUpdatingPreview) {
             return;
         }
         this.isUpdatingPreview = true;
-        
+
         // Safety check
         if (!this.characterPreview || !this.characterPreview.active) {
             this.isUpdatingPreview = false;
             return;
         }
-        
+
         // Use unique texture key each time to avoid conflicts
         const previewKey = 'player_preview_' + Date.now();
-        
+
         try {
             // Create new texture
             SpriteGenerator.createCustomPlayerSprite(this, this.customization, previewKey);
-            
+
             // Wait one frame for texture to be ready
             this.time.delayedCall(16, () => {
                 try {
                     if (this.textures.exists(previewKey) && this.characterPreview && this.characterPreview.active) {
                         // Safely update sprite texture
                         this.characterPreview.setTexture(previewKey);
-                        
+
                         // Small scale animation for feedback
                         this.tweens.add({
                             targets: this.characterPreview,
@@ -4832,11 +4832,11 @@ class CharacterCustomizationScene extends Phaser.Scene {
             this.isUpdatingPreview = false;
         }
     }
-    
+
     shutdown() {
         // No cleanup needed - name input was removed from this scene
     }
-    
+
     hideAllUI() {
         const uiElements = [
             'ui-overlay',
@@ -4849,7 +4849,7 @@ class CharacterCustomizationScene extends Phaser.Scene {
             'interaction-prompt',
             'notification'
         ];
-        
+
         uiElements.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
@@ -4867,27 +4867,27 @@ class TutorialScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // SHOW UI - Game has started! NOW show fullscreen button
         showAllUI();
         const fsButton = document.getElementById('fullscreen-toggle');
         if (fsButton) fsButton.style.display = 'flex';
         updateUI();
-        
+
         // Tutorial stage
         this.tutorialStep = 0;
         this.hasMovedLeft = false;
         this.hasMovedRight = false;
         this.hasMovedUp = false;
         this.hasMovedDown = false;
-        
+
         // Simple room
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         // Walls
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -4898,11 +4898,11 @@ class TutorialScene extends Phaser.Scene {
             this.walls.create(0, y, 'wall').setOrigin(0).refreshBody();
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
-        
+
         // Tutorial helper NPC
         this.helper = this.add.sprite(320, 200, 'npc3');
         this.helper.setScale(2);
-        
+
         // Helper name
         this.add.text(320, 155, 'Tutorial Guide', {
             fontSize: '14px',
@@ -4911,34 +4911,34 @@ class TutorialScene extends Phaser.Scene {
             strokeThickness: 3,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 350, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         // Computer for final step
         this.computer = this.add.image(500, 150, 'computer');
         this.computer.setScale(2);
         this.computer.setAlpha(0);
-        
+
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         this.physics.add.collider(this.player, this.walls);
-        
+
         // Start tutorial
         this.showTutorialStep(0);
     }
-    
+
     showTutorialStep(step) {
         this.tutorialStep = step;
-        
+
         const steps = [
             {
                 text: "Welcome to LinkedIn Tycoon! I'm your guide. Let me show you how to build your professional empire. First, let's learn movement. Try pressing the W, A, S, D keys or Arrow keys to move around!",
@@ -4957,7 +4957,7 @@ class TutorialScene extends Phaser.Scene {
                 requirement: "Press E to start game"
             }
         ];
-        
+
         if (step < steps.length) {
             const currentStep = steps[step];
             dialogueManager.currentDialogue = 'tutorial';
@@ -4965,11 +4965,11 @@ class TutorialScene extends Phaser.Scene {
             const speaker = document.getElementById('dialogue-speaker');
             const text = document.getElementById('dialogue-text');
             const choices = document.getElementById('dialogue-choices');
-            
+
             speaker.textContent = '📚 Tutorial Guide';
             text.textContent = currentStep.text;
             choices.innerHTML = '';
-            
+
             if (step === 1 || step === 3) {
                 const btn = document.createElement('button');
                 btn.className = 'dialogue-choice';
@@ -4984,15 +4984,15 @@ class TutorialScene extends Phaser.Scene {
                 };
                 choices.appendChild(btn);
             }
-            
+
             box.style.display = 'block';
         }
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
-        
+
         if (this.cursors.left.isDown || this.wasd.A.isDown) {
             vX = -speed;
             this.hasMovedLeft = true;
@@ -5007,27 +5007,27 @@ class TutorialScene extends Phaser.Scene {
             vY = speed;
             this.hasMovedDown = true;
         }
-        
+
         this.player.setVelocity(vX, vY);
-        
+
         // Check if player moved in all directions
-        if (this.tutorialStep === 0 && this.hasMovedLeft && this.hasMovedRight && 
+        if (this.tutorialStep === 0 && this.hasMovedLeft && this.hasMovedRight &&
             this.hasMovedUp && this.hasMovedDown) {
             document.getElementById('dialogue-box').style.display = 'none';
             setTimeout(() => {
                 this.showTutorialStep(1);
             }, 500);
         }
-        
+
         // Show computer for step 2
         if (this.tutorialStep === 2) {
             this.computer.setAlpha(1);
-            
+
             // Check proximity to computer
             const dist = Phaser.Math.Distance.Between(
                 this.player.x, this.player.y, 500, 150
             );
-            
+
             if (dist < 60) {
                 showInteractionPrompt(true);
                 if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -5042,18 +5042,18 @@ class TutorialScene extends Phaser.Scene {
             }
         }
     }
-    
+
     completeTutorial() {
         console.log('🎓 Tutorial completed!');
         gameState.data.tutorialComplete = true;
         gameState.saveGame();
         document.getElementById('dialogue-box').style.display = 'none';
         showNotification('Tutorial complete! Welcome to LinkedIn Tycoon!');
-        
+
         // Show story overlay immediately (no camera fade that would cover the HTML overlay)
         console.log('📖 Showing Chapter 1 story...');
         storyManager.showStory(0);
-        
+
         console.log('🔘 Setting up continue button click handler...');
         document.getElementById('story-continue').onclick = () => {
             console.log('▶️ Continue button clicked, closing story and starting HomeScene');
@@ -5068,7 +5068,7 @@ class HomeScene extends Phaser.Scene {
     constructor() {
         super({ key: 'HomeScene' });
     }
-    
+
     init() {
         // CRITICAL: Reset all scene state on init (called before create)
         this.playerReady = false;
@@ -5085,7 +5085,7 @@ class HomeScene extends Phaser.Scene {
         // SHOW UI - Game has started!
         showAllUI();
         updateUI();
-        
+
         // Update sound manager and play home ambient music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
@@ -5112,19 +5112,19 @@ class HomeScene extends Phaser.Scene {
         // Determine spawn position based on where player came from BEFORE changing location
         let spawnX = 320;
         let spawnY = 240; // Default center position
-        
+
         // If coming from city, spawn near the door (bottom of room)
         if (gameState.data.location === 'city') {
             spawnX = 320;
             spawnY = 420; // Near the bottom door
         }
-        
+
         // NOW set location to home
         gameState.data.location = 'home';
 
         // Create room first
         this.createRoom();
-        
+
         // Create player sprite at appropriate position
         this.player = this.physics.add.sprite(spawnX, spawnY, 'player');
         this.player.setScale(1.5);
@@ -5133,24 +5133,24 @@ class HomeScene extends Phaser.Scene {
         // Setup player immediately
         this.setupPlayer();
     }
-    
+
     setupPlayer() {
         if (!this.player) return;
-        
+
         // Camera follows player
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         // ALWAYS create interactive objects when scene is created
         // This ensures the apartment is fully furnished every time
         this.createInteractiveObjects();
-        
+
         // Mark player as ready - now update() can run safely
         this.playerReady = true;
-        
+
         // Update UI
         updateUI();
-        
+
         // Energy regeneration
         this.time.addEvent({
             delay: 10000,
@@ -5162,12 +5162,12 @@ class HomeScene extends Phaser.Scene {
                     );
                     updateUI();
                 }
-                
+
                 // Progress game time
                 gameState.data.gameTime++;
                 if (gameState.data.gameTime % 6 === 0) {
                     this.cycleTimeOfDay();
-                    
+
                     // Collect salary if employed
                     if (gameState.data.player.job && gameState.data.player.salary > 0) {
                         gameState.data.player.coins += gameState.data.player.salary;
@@ -5187,10 +5187,10 @@ class HomeScene extends Phaser.Scene {
         });
 
         showNotification('Welcome home! Use WASD/Arrows to move, E to interact');
-        
+
         // Check quests
         questManager.checkAllQuests(gameState.data);
-        
+
         // Show controls hint for new players
         if (gameState.data.player.postsCount === 0) {
             const hint = document.getElementById('controls-hint');
@@ -5200,13 +5200,13 @@ class HomeScene extends Phaser.Scene {
             }, 8000);
         }
     }
-    
+
     cycleTimeOfDay() {
         const times = ['morning', 'afternoon', 'evening', 'night'];
         const currentIndex = times.indexOf(gameState.data.time);
         gameState.data.time = times[(currentIndex + 1) % times.length];
         updateUI();
-        
+
         // Chance to change weather
         if (Math.random() < 0.3) {
             const weathers = ['sunny', 'cloudy', 'rain'];
@@ -5218,9 +5218,9 @@ class HomeScene extends Phaser.Scene {
     createRoom() {
         const width = 640;  // MUCH smaller, more cozy
         const height = 480;
-        
+
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Floor
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
@@ -5230,25 +5230,25 @@ class HomeScene extends Phaser.Scene {
 
         // Walls
         this.walls = this.physics.add.staticGroup();
-        
+
         // Top wall
         for (let x = 0; x < width; x += 16) {
             const wall = this.walls.create(x, 0, 'wall').setOrigin(0);
             wall.refreshBody();
         }
-        
+
         // Bottom wall
         for (let x = 0; x < width; x += 16) {
             const wall = this.walls.create(x, height - 16, 'wall').setOrigin(0);
             wall.refreshBody();
         }
-        
+
         // Left wall
         for (let y = 16; y < height - 16; y += 16) {
             const wall = this.walls.create(0, y, 'wall').setOrigin(0);
             wall.refreshBody();
         }
-        
+
         // Right wall
         for (let y = 16; y < height - 16; y += 16) {
             const wall = this.walls.create(width - 16, y, 'wall').setOrigin(0);
@@ -5259,49 +5259,49 @@ class HomeScene extends Phaser.Scene {
     createInteractiveObjects() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup(); // NEW: For collision objects
-        
+
         // Add rug first (layer beneath everything)
         this.add.image(320, 250, 'rug');
-        
+
         // LIVING ROOM AREA (LEFT SIDE)
         // Bookshelf (LEFT WALL TOP)
         const bookshelf1 = this.obstacles.create(70, 120, 'bookshelf');
         bookshelf1.refreshBody();
-        
+
         // Bookshelf 2 (LEFT WALL BOTTOM)
         const bookshelf2 = this.obstacles.create(70, 240, 'bookshelf');
         bookshelf2.refreshBody();
-        
+
         // Couch (LEFT CENTER)
         const couch = this.obstacles.create(180, 200, 'couch');
         couch.refreshBody();
-        
+
         // TV (facing couch)
         const tv = this.obstacles.create(180, 300, 'tv');
         tv.refreshBody();
-        
+
         // Coffee table (in front of couch)
         this.add.image(180, 240, 'coffee');
-        
+
         // WORK AREA (TOP RIGHT)
         // Desk with computer
         const desk = this.obstacles.create(480, 100, 'desk');
         desk.refreshBody();
-        
+
         const computer = this.interactables.create(480, 80, 'computer');
         computer.setData('type', 'computer');
         computer.setData('name', 'Work Computer');
         computer.refreshBody();
-        
+
         // Add glow effect to computer
         this.addGlowEffect(computer, 0x00FF88);
-        
+
         // Laptop on desk
         this.add.image(460, 95, 'laptop');
-        
+
         // Coffee cup on desk
         this.add.image(500, 95, 'coffee');
-        
+
         // Desk lamp
         this.add.image(520, 85, 'lamp');
 
@@ -5310,30 +5310,30 @@ class HomeScene extends Phaser.Scene {
         bed.setData('type', 'bed');
         bed.setData('name', 'Bed');
         bed.refreshBody();
-        
+
         // Add glow effect to bed
         this.addGlowEffect(bed, 0xFFD700);
-        
+
         // Create collision body for bed
         const bedCollision = this.obstacles.create(520, 360, 'bed');
         bedCollision.setAlpha(0);
         bedCollision.refreshBody();
-        
+
         // Nightstand
         const nightstand = this.obstacles.create(580, 360, 'desk');
         nightstand.setScale(0.5);
         nightstand.refreshBody();
         this.add.image(580, 355, 'lamp');
-        
+
         // WARDROBE/CLOSET (for character customization) - BOTTOM LEFT
         const wardrobe = this.interactables.create(100, 400, 'door');
         wardrobe.setData('type', 'wardrobe');
         wardrobe.setData('name', 'Wardrobe');
         wardrobe.refreshBody();
-        
+
         // Add glow effect to wardrobe
         this.addGlowEffect(wardrobe, 0x00D9FF);
-        
+
         // Visual wardrobe (draw it)
         const wardrobeBg = this.add.rectangle(100, 400, 80, 100, 0x654321);
         wardrobeBg.setStrokeStyle(2, 0x8B4513);
@@ -5348,26 +5348,26 @@ class HomeScene extends Phaser.Scene {
         this.add.text(100, 360, '👔', {
             fontSize: '20px'
         }).setOrigin(0.5);
-        
+
         // Wardrobe collision
         const wardrobeCollision = this.obstacles.create(100, 400, null);
         wardrobeCollision.setSize(80, 100);
         wardrobeCollision.setAlpha(0);
         wardrobeCollision.refreshBody();
-        
+
         // Plants in corners (decorative, no collision)
         this.add.image(40, 50, 'plant');
         this.add.image(600, 50, 'plant');
         this.add.image(40, 430, 'plant');
         this.add.image(600, 430, 'plant');
-        
+
         // Windows (TOP WALL)
         this.add.image(260, 40, 'window');
         this.add.image(380, 40, 'window');
-        
+
         // Clock (TOP CENTER WALL)
         this.add.image(320, 50, 'clock');
-        
+
         // Pictures on walls
         this.add.image(150, 50, 'picture');
         this.add.image(490, 50, 'picture');
@@ -5385,11 +5385,11 @@ class HomeScene extends Phaser.Scene {
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
         this.physics.add.collider(this.player, this.interactables);
-        
+
         // Add ambient animations
         this.createAmbientAnimations();
     }
-    
+
     addGlowEffect(object, color = 0x00FF88) {
         // Create a circular glow graphic
         const graphics = this.add.graphics();
@@ -5397,12 +5397,12 @@ class HomeScene extends Phaser.Scene {
         graphics.fillCircle(0, 0, object.displayWidth * 0.8);
         graphics.generateTexture('glow_temp', object.displayWidth * 1.6, object.displayWidth * 1.6);
         graphics.destroy();
-        
+
         // Add glow sprite behind the object
         const glow = this.add.sprite(object.x, object.y, 'glow_temp');
         glow.setDepth(object.depth - 1);
         glow.setAlpha(0.3);
-        
+
         // Pulsing animation
         this.tweens.add({
             targets: glow,
@@ -5413,11 +5413,11 @@ class HomeScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-        
+
         // Store glow reference on object for potential cleanup
         object.setData('glowSprite', glow);
     }
-    
+
     createAmbientAnimations() {
         // Floating dust particles
         this.time.addEvent({
@@ -5430,7 +5430,7 @@ class HomeScene extends Phaser.Scene {
                     color: '#CCCCCC',
                     alpha: 0.3
                 });
-                
+
                 this.tweens.add({
                     targets: dust,
                     y: y - 50,
@@ -5447,7 +5447,7 @@ class HomeScene extends Phaser.Scene {
     update() {
         // Don't run update until player is ready
         if (!this.playerReady || !this.player) return;
-        
+
         this.handleMovement();
         this.checkInteractions();
     }
@@ -5455,7 +5455,7 @@ class HomeScene extends Phaser.Scene {
     handleMovement() {
         // Safety checks - ensure input exists
         if (!this.cursors || !this.wasd || !this.player) return;
-        
+
         const speed = 120;
         let velocityX = 0;
         let velocityY = 0;
@@ -5482,7 +5482,7 @@ class HomeScene extends Phaser.Scene {
         if (!this.interactables || !this.interactables.children || !this.interactables.children.entries) {
             return;
         }
-        
+
         let nearestObject = null;
         let minDistance = Infinity;
 
@@ -5500,7 +5500,7 @@ class HomeScene extends Phaser.Scene {
 
         if (nearestObject) {
             showInteractionPrompt(true);
-            
+
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                 this.interact(nearestObject);
             }
@@ -5511,12 +5511,12 @@ class HomeScene extends Phaser.Scene {
 
     interact(object) {
         const type = object.getData('type');
-        
+
         // Play interact sound
         if (globalSoundManager) {
             globalSoundManager.playSfx('interact', 0.4);
         }
-        
+
         switch (type) {
             case 'computer':
                 this.openComputerMenu();
@@ -5532,7 +5532,7 @@ class HomeScene extends Phaser.Scene {
                 break;
         }
     }
-    
+
     openWardrobe() {
         // Open character customization
         this.cameras.main.flash(100, 255, 215, 0, false, null, 0.3);
@@ -5552,7 +5552,7 @@ class HomeScene extends Phaser.Scene {
         if (globalSoundManager) {
             globalSoundManager.playSfx('sleep', 0.5);
         }
-        
+
         if (gameState.data.player.energy < gameState.data.player.maxEnergy) {
             gameState.data.player.energy = Math.min(
                 gameState.data.player.maxEnergy,
@@ -5560,11 +5560,11 @@ class HomeScene extends Phaser.Scene {
             );
             showNotification('💤 You slept and recovered 50 energy!');
             updateUI();
-            
+
             // Add particle effect
             this.createParticleEffect(this.player.x, this.player.y, '✨');
             this.createParticleEffect(this.player.x, this.player.y, '💤');
-            
+
             // Screen fade effect
             this.cameras.main.fade(1000, 0, 0, 0);
             this.time.delayedCall(1000, () => {
@@ -5580,7 +5580,7 @@ class HomeScene extends Phaser.Scene {
         if (globalSoundManager) {
             globalSoundManager.playSfx('door', 0.5);
         }
-        
+
         this.cameras.main.fadeOut(500);
         this.time.delayedCall(500, () => {
             this.scene.start(targetScene);
@@ -5592,7 +5592,7 @@ class HomeScene extends Phaser.Scene {
             const text = this.add.text(x + Phaser.Math.Between(-20, 20), y, emoji, {
                 fontSize: '16px'
             });
-            
+
             this.tweens.add({
                 targets: text,
                 y: y - 50,
@@ -5615,7 +5615,7 @@ class HomeScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         this.tweens.add({
             targets: xpText,
             y: xpText.y - 40,
@@ -5635,12 +5635,12 @@ class CityScene extends Phaser.Scene {
 
     create() {
         gameState.data.location = 'city';
-        
+
         // Initialize day/night cycle
         if (window.dayNightCycle) {
             window.dayNightCycle.init(this);
         }
-        
+
         // Update sound manager and play city daytime music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
@@ -5648,30 +5648,30 @@ class CityScene extends Phaser.Scene {
             const isNight = window.dayNightCycle && window.dayNightCycle.isNightTime();
             globalSoundManager.playMusic(isNight ? 'city_nighttime' : 'city_daytime', true);
         }
-        
+
         // Create outdoor environment
         this.createOutdoorArea();
-        
+
         // Create player
         this.player = this.physics.add.sprite(400, 500, 'player');
         this.player.setScale(2);
         this.player.setCollideWorldBounds(true);
-        
+
         // Camera
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         // Create locations
         this.createLocations();
-        
+
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('Welcome to the city! Find people to network with');
     }
-    
+
     createDetailedTree(x, y) {
         // Detailed tree with depth and shading
         // Trunk with texture
@@ -5679,7 +5679,7 @@ class CityScene extends Phaser.Scene {
         trunk.setStrokeStyle(2, 0x4A3010);
         this.add.rectangle(x - 3, y - 5, 3, 10, 0x8B4513); // Branch left
         this.add.rectangle(x + 3, y + 5, 3, 10, 0x8B4513); // Branch right
-        
+
         // Canopy - multiple layers for depth
         // Dark layer (back)
         this.add.circle(x, y - 30, 35, 0x1B5E20);
@@ -5693,45 +5693,45 @@ class CityScene extends Phaser.Scene {
         // Highlights
         this.add.circle(x - 8, y - 38, 12, 0x81C784);
         this.add.circle(x + 10, y - 40, 10, 0x81C784);
-        
+
         // Collision
         const treeCollision = this.obstacles.create(x, y, null);
         treeCollision.setSize(45, 50);
         treeCollision.setAlpha(0);
         treeCollision.refreshBody();
     }
-    
+
     createBuilding(x, y, width, height, color, label) {
         // Building body
         const building = this.add.rectangle(x, y, width, height, color);
         building.setStrokeStyle(4, 0x000000);
         this.physics.add.existing(building, true);
-        
+
         // Windows
         const windowColor = 0x87CEEB;
         const windowRows = Math.floor(height / 30);
         const windowCols = Math.floor(width / 30);
-        
+
         for (let row = 0; row < windowRows; row++) {
             for (let col = 0; col < windowCols; col++) {
-                const winX = x - width/2 + 15 + col * 30;
-                const winY = y - height/2 + 15 + row * 30;
+                const winX = x - width / 2 + 15 + col * 30;
+                const winY = y - height / 2 + 15 + row * 30;
                 this.add.rectangle(winX, winY, 15, 20, windowColor);
             }
         }
-        
+
         // Door area (darker)
-        this.add.rectangle(x, y + height/2 - 20, 30, 40, 0x654321);
-        
+        this.add.rectangle(x, y + height / 2 - 20, 30, 40, 0x654321);
+
         // Label
-        this.add.text(x, y - height/2 - 20, label, {
+        this.add.text(x, y - height / 2 - 20, label, {
             fontSize: '16px',
             color: '#FFD700',
             stroke: '#000000',
             strokeThickness: 3,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Add collision
         const collision = this.obstacles.create(x, y, null);
         collision.setSize(width, height);
@@ -5742,10 +5742,10 @@ class CityScene extends Phaser.Scene {
     createOutdoorArea() {
         const width = 1600;
         const height = 1200;
-        
+
         this.physics.world.setBounds(0, 0, width, height);
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Time-based lighting
         const timeColors = {
             morning: { bg: 0x87CEEB, grass: 0x4CAF50 },
@@ -5753,13 +5753,13 @@ class CityScene extends Phaser.Scene {
             evening: { bg: 0xFF6347, grass: 0x3A8A3E },
             night: { bg: 0x191970, grass: 0x2E7D32 }
         };
-        
+
         const currentTime = gameState.data.time || 'morning';
         const colors = timeColors[currentTime];
-        
+
         // Sky background
-        this.add.rectangle(width/2, height/2, width, height, colors.bg).setDepth(-1);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, colors.bg).setDepth(-1);
+
         // Grass ground with variation
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
@@ -5771,29 +5771,29 @@ class CityScene extends Phaser.Scene {
                 }
             }
         }
-        
+
         // Weather effects
         this.createWeatherEffects();
-        
+
         // PLANNED CITY LAYOUT - Main Boulevard
         for (let y = 450; y < 550; y += 16) {
             for (let x = 0; x < width; x += 16) {
                 const path = this.add.rectangle(x, y, 16, 16, 0x696969).setOrigin(0);
             }
         }
-        
+
         // Boulevard divider line
         for (let x = 0; x < width; x += 32) {
             this.add.rectangle(x, 498, 16, 4, 0xFFFF00).setOrigin(0);
         }
-        
+
         // North-South Avenue  
         for (let y = 0; y < height; y += 16) {
             for (let x = 350; x < 450; x += 16) {
                 const path = this.add.rectangle(x, y, 16, 16, 0x696969).setOrigin(0);
             }
         }
-        
+
         // Second North-South Avenue
         for (let y = 0; y < height; y += 16) {
             for (let x = 1100; x < 1200; x += 16) {
@@ -5802,20 +5802,20 @@ class CityScene extends Phaser.Scene {
         }
 
         // City sign with enhanced styling
-        this.add.text(width/2, 50, '🏙️ LINKEDIN CITY', {
+        this.add.text(width / 2, 50, '🏙️ LINKEDIN CITY', {
             fontSize: '36px',
             color: '#FFD700',
             stroke: '#000000',
             strokeThickness: 5,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        this.add.text(width/2, 85, 'Your Professional World Awaits', {
+        this.add.text(width / 2, 85, 'Your Professional World Awaits', {
             fontSize: '16px',
             color: '#FFFFFF',
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // BETTER TREES - Professional, detailed, planned placement
         // Trees lining Main Boulevard (north side)
         for (let x = 250; x < width - 250; x += 120) {
@@ -5839,44 +5839,44 @@ class CityScene extends Phaser.Scene {
         }
         // Park area trees (random organic placement)
         const parkTreeSpots = [
-            {x: 150, y: 200}, {x: 200, y: 250}, {x: 180, y: 150},
-            {x: width - 150, y: 200}, {x: width - 200, y: 250},
-            {x: 600, y: 150}, {x: 900, y: 150},
-            {x: 600, y: 750}, {x: 900, y: 750}
+            { x: 150, y: 200 }, { x: 200, y: 250 }, { x: 180, y: 150 },
+            { x: width - 150, y: 200 }, { x: width - 200, y: 250 },
+            { x: 600, y: 150 }, { x: 900, y: 150 },
+            { x: 600, y: 750 }, { x: 900, y: 750 }
         ];
         parkTreeSpots.forEach(pos => this.createDetailedTree(pos.x, pos.y));
-        
+
         // Benches
         const benchPositions = [
-            {x: 350, y: 420}, {x: 550, y: 460},
-            {x: 850, y: 420}, {x: 1050, y: 460}
+            { x: 350, y: 420 }, { x: 550, y: 460 },
+            { x: 850, y: 420 }, { x: 1050, y: 460 }
         ];
-        
+
         benchPositions.forEach(pos => {
             // Bench
             this.add.rectangle(pos.x, pos.y, 40, 20, 0x8B4513);
             this.add.rectangle(pos.x, pos.y - 15, 40, 5, 0xA0522D);
         });
-        
+
         // Street lamps
         const lampPositions = [
-            {x: 320, y: 380}, {x: 600, y: 380},
-            {x: 800, y: 380}, {x: 1080, y: 380}
+            { x: 320, y: 380 }, { x: 600, y: 380 },
+            { x: 800, y: 380 }, { x: 1080, y: 380 }
         ];
-        
+
         lampPositions.forEach(pos => {
             const streetLamp = this.add.image(pos.x, pos.y, 'lamp').setScale(2);
-            
+
             // Glow effect at night
             if (gameState.data.time === 'night' || gameState.data.time === 'evening') {
                 const glow = this.add.circle(pos.x, pos.y - 20, 30, 0xFFFF00, 0.3);
             }
         });
     }
-    
+
     createWeatherEffects() {
         const weather = gameState.data.weather || 'sunny';
-        
+
         if (weather === 'rain') {
             // Rain particles
             this.time.addEvent({
@@ -5886,7 +5886,7 @@ class CityScene extends Phaser.Scene {
                     const y = -10;
                     const raindrop = this.add.line(0, 0, 0, 0, 0, 15, 0x6B9BD1, 0.6);
                     raindrop.setPosition(x, y);
-                    
+
                     this.tweens.add({
                         targets: raindrop,
                         y: 1000,
@@ -5904,7 +5904,7 @@ class CityScene extends Phaser.Scene {
                     Phaser.Math.Between(50, 200),
                     80, 40, 0xFFFFFF, 0.7
                 );
-                
+
                 this.tweens.add({
                     targets: cloud,
                     x: cloud.x + 200,
@@ -5917,7 +5917,7 @@ class CityScene extends Phaser.Scene {
             // Sunny - Add sun
             const sun = this.add.circle(1300, 100, 40, 0xFFD700);
             const sunGlow = this.add.circle(1300, 100, 60, 0xFFFF00, 0.3);
-            
+
             this.tweens.add({
                 targets: [sun, sunGlow],
                 scale: 1.1,
@@ -5931,9 +5931,9 @@ class CityScene extends Phaser.Scene {
 
     createLocations() {
         this.interactables = this.physics.add.staticGroup();
-        
+
         // PLANNED CITY LAYOUT - Logical zoning
-        
+
         // RESIDENTIAL DISTRICT (Northwest)
         this.createBuilding(200, 250, 120, 160, 0x8B7355, '🏠 Your Apartment');
         const homeDoor = this.interactables.create(200, 325, 'door');
@@ -5954,7 +5954,7 @@ class CityScene extends Phaser.Scene {
         restaurantDoor.setData('type', 'location');
         restaurantDoor.setData('name', 'Restaurant');
         restaurantDoor.refreshBody();
-        
+
         this.createBuilding(950, 250, 110, 120, 0xFF1744, '🛍️ Shop');
         const shopDoor = this.interactables.create(950, 305, 'door');
         shopDoor.setData('type', 'location');
@@ -5967,7 +5967,7 @@ class CityScene extends Phaser.Scene {
         officeDoor.setData('type', 'location');
         officeDoor.setData('name', 'Office Building');
         officeDoor.refreshBody();
-        
+
         this.createBuilding(1300, 650, 150, 220, 0x1E3A8A, '🏦 LinkedIn HQ');
         const hqDoor = this.interactables.create(1300, 755, 'door');
         hqDoor.setData('type', 'location');
@@ -5980,39 +5980,39 @@ class CityScene extends Phaser.Scene {
         gymDoor.setData('type', 'location');
         gymDoor.setData('name', 'Gym');
         gymDoor.refreshBody();
-        
+
         this.createBuilding(200, 950, 110, 100, 0x9C27B0, '🧘 Yoga Studio');
         const yogaDoor = this.interactables.create(200, 995, 'door');
         yogaDoor.setData('type', 'location');
         yogaDoor.setData('name', 'Yoga Studio');
         yogaDoor.refreshBody();
-        
+
         // EVENT & NETWORKING DISTRICT (South Center)
         this.createBuilding(550, 700, 160, 150, 0x0A66C2, '🎯 Event Center');
         const conferenceDoor = this.interactables.create(550, 770, 'door');
         conferenceDoor.setData('type', 'location');
         conferenceDoor.setData('name', 'Conference Center');
         conferenceDoor.refreshBody();
-        
+
         this.createBuilding(750, 700, 140, 130, 0x2A9D8F, '💼 Co-Work Hub');
         const coworkDoor = this.interactables.create(750, 760, 'door');
         coworkDoor.setData('type', 'location');
         coworkDoor.setData('name', 'Co-working Space');
         coworkDoor.refreshBody();
-        
+
         // EDUCATION & CULTURE DISTRICT (Southeast)
         this.createBuilding(950, 850, 150, 180, 0x7B1FA2, '📚 Public Library');
         const libraryDoor = this.interactables.create(950, 935, 'door');
         libraryDoor.setData('type', 'location');
         libraryDoor.setData('name', 'Library');
         libraryDoor.refreshBody();
-        
+
         this.createBuilding(950, 1050, 140, 120, 0xE91E63, '🎓 Tech University');
         const uniDoor = this.interactables.create(950, 1105, 'door');
         uniDoor.setData('type', 'location');
         uniDoor.setData('name', 'University');
         uniDoor.refreshBody();
-        
+
         // RECREATION (West)
         this.createBuilding(550, 1000, 130, 110, 0x228B22, '🌳 City Park');
         const parkDoor = this.interactables.create(550, 1050, 'door');
@@ -6023,7 +6023,7 @@ class CityScene extends Phaser.Scene {
 
         // Spawn collectible items around city
         this.spawnCityItems();
-        
+
         // Named NPCs to network with (using new detailed sprites)
         const npcData = [
             { name: 'Sarah Chen', sprite: 'npc1', x: 300, y: 350 },
@@ -6041,7 +6041,7 @@ class CityScene extends Phaser.Scene {
             person.setData('type', 'person');
             person.setData('name', npc.name);
             person.setCollideWorldBounds(true);
-            
+
             // Add name label
             const label = this.add.text(npc.x, npc.y - 35, npc.name.split(' ')[0], {
                 fontSize: '12px',
@@ -6050,7 +6050,7 @@ class CityScene extends Phaser.Scene {
                 strokeThickness: 3,
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             // Store NPC data for AI
             this.npcs.push({
                 sprite: person,
@@ -6060,36 +6060,36 @@ class CityScene extends Phaser.Scene {
                 targetY: npc.y,
                 moveTimer: 0
             });
-            
+
             // Make them interactable
             this.interactables.add(person);
         });
-        
+
         // NPCs collide with obstacles
         this.npcs.forEach(npc => {
             this.physics.add.collider(npc.sprite, this.obstacles);
         });
     }
-    
+
     spawnCityItems() {
         this.cityItems = [];
-        
+
         // Spawn 10 random items around the city
         for (let i = 0; i < 10; i++) {
             const x = Phaser.Math.Between(200, 1400);
             const y = Phaser.Math.Between(150, 1000);
-            
+
             const itemId = itemManager.spawnRandomItem();
             const itemData = itemManager.getItem(itemId);
-            
+
             // Create visual item
             const itemSprite = this.add.text(x, y, itemData.icon, {
                 fontSize: '24px'
             });
-            
+
             // Add glow effect
             const glow = this.add.circle(x, y, 20, 0xFFFF00, 0.3);
-            
+
             // Bobbing animation
             this.tweens.add({
                 targets: [itemSprite, glow],
@@ -6099,7 +6099,7 @@ class CityScene extends Phaser.Scene {
                 repeat: -1,
                 ease: 'Sine.easeInOut'
             });
-            
+
             this.cityItems.push({
                 sprite: itemSprite,
                 glow: glow,
@@ -6109,27 +6109,27 @@ class CityScene extends Phaser.Scene {
             });
         }
     }
-    
+
     checkItemPickup() {
         if (!this.cityItems) return;
-        
+
         this.cityItems.forEach((item, index) => {
             const dist = Phaser.Math.Distance.Between(
                 this.player.x, this.player.y,
                 item.x, item.y
             );
-            
+
             if (dist < 40) {
                 // Pick up item
                 itemManager.addItemToInventory(item.itemId);
                 const itemData = itemManager.getItem(item.itemId);
                 showNotification(`Found ${itemData.name}! ${itemData.effect}`);
-                
+
                 // Remove from world
                 item.sprite.destroy();
                 item.glow.destroy();
                 this.cityItems.splice(index, 1);
-                
+
                 // Spawn new item elsewhere after 10 seconds
                 this.time.delayedCall(10000, () => {
                     if (this.scene.isActive()) {
@@ -6145,33 +6145,33 @@ class CityScene extends Phaser.Scene {
         if (window.dayNightCycle) {
             window.dayNightCycle.update(delta);
         }
-        
+
         this.handleMovement();
         this.checkInteractions();
         this.updateNPCAI();
         this.checkItemPickup();
         this.tryRandomEncounter();
     }
-    
+
     tryRandomEncounter() {
         if (encounterManager.tryTriggerEncounter()) {
             encounterManager.showRandomEncounter(this);
         }
     }
-    
+
     updateNPCAI() {
         if (!this.npcs) return;
-        
+
         this.npcs.forEach(npc => {
             npc.moveTimer++;
-            
+
             // Every 3 seconds, pick new random target
             if (npc.moveTimer >= 180) {
                 npc.moveTimer = 0;
                 npc.targetX = Phaser.Math.Between(300, 1100);
                 npc.targetY = Phaser.Math.Between(200, 800);
             }
-            
+
             // Move towards target
             const angle = Phaser.Math.Angle.Between(
                 npc.sprite.x, npc.sprite.y,
@@ -6181,7 +6181,7 @@ class CityScene extends Phaser.Scene {
                 npc.sprite.x, npc.sprite.y,
                 npc.targetX, npc.targetY
             );
-            
+
             if (distance > 20) {
                 const speed = 40;
                 npc.sprite.setVelocity(
@@ -6191,7 +6191,7 @@ class CityScene extends Phaser.Scene {
             } else {
                 npc.sprite.setVelocity(0, 0);
             }
-            
+
             // Update label position
             npc.label.setPosition(npc.sprite.x, npc.sprite.y - 35);
         });
@@ -6235,7 +6235,7 @@ class CityScene extends Phaser.Scene {
 
         if (nearestObject) {
             showInteractionPrompt(true);
-            
+
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                 this.interact(nearestObject);
             }
@@ -6247,7 +6247,7 @@ class CityScene extends Phaser.Scene {
     interact(object) {
         const type = object.getData('type');
         const name = object.getData('name');
-        
+
         switch (type) {
             case 'person':
                 // Show dialogue instead of instant connection
@@ -6258,7 +6258,7 @@ class CityScene extends Phaser.Scene {
                 if (globalSoundManager) {
                     globalSoundManager.playSfx('door', 0.5);
                 }
-                
+
                 // Handle location-specific interactions
                 const target = object.getData('target');
                 if (name === 'Coffee Shop') {
@@ -6298,33 +6298,33 @@ class CityScene extends Phaser.Scene {
     networkWithPerson(name, skipEnergyCost = false) {
         if (skipEnergyCost || gameState.useEnergy(10)) {
             const success = Math.random() > 0.2; // Increased success rate after dialogue
-            
+
             if (success) {
                 gameState.data.player.connections++;
                 gameState.data.player.networking += 5;
                 gameState.gainXP(15);
                 showNotification(`🤝 Connected with ${name}!`);
-                
+
                 // Play new connection sound
                 if (globalSoundManager) {
                     globalSoundManager.playSfx('new_connection', 0.6);
                 }
-                
+
                 // Camera shake
                 this.cameras.main.shake(200, 0.002);
-                
+
                 // Visual effects
                 this.createFloatingText(this.player.x, this.player.y - 30, '+15 XP', '#FFD700');
                 this.createParticleEffect(this.player.x, this.player.y, '🤝');
                 this.cameras.main.flash(100, 0, 200, 0, false, null, 0.2);
-                
+
                 // Check quests and achievements
                 questManager.checkAllQuests(gameState.data);
                 achievementManager.checkAll();
             } else {
                 showNotification(`❌ ${name} didn't respond`);
             }
-            
+
             updateUI();
         } else {
             showNotification('⚡ Not enough energy!');
@@ -6339,7 +6339,7 @@ class CityScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
+
         this.tweens.add({
             targets: floatingText,
             y: y - 50,
@@ -6356,7 +6356,7 @@ class CityScene extends Phaser.Scene {
             const text = this.add.text(x + Phaser.Math.Between(-20, 20), y, emoji, {
                 fontSize: '16px'
             });
-            
+
             this.tweens.add({
                 targets: text,
                 y: y - 40,
@@ -6397,18 +6397,18 @@ class CityScene extends Phaser.Scene {
             gameState.data.player.reputation += 10;
             gameState.gainXP(50);
             showNotification('🎯 Event completed! +100 coins, +10 reputation');
-            
+
             // Visual effects
             this.createFloatingText(this.player.x, this.player.y - 30, '+100 💰', '#FFD700');
             this.createFloatingText(this.player.x, this.player.y - 50, '+50 XP', '#00FF88');
             this.createConfetti();
             this.cameras.main.shake(300, 0.003);
             this.cameras.main.flash(200, 255, 215, 0, false, null, 0.3);
-            
+
             // Check quest
             questManager.checkQuest(3);
             questManager.checkAllQuests(gameState.data);
-            
+
             updateUI();
         } else {
             showNotification('⚡ Not enough energy!');
@@ -6421,9 +6421,9 @@ class CityScene extends Phaser.Scene {
             const x = this.player.x + Phaser.Math.Between(-50, 50);
             const y = this.player.y - 50;
             const emoji = Phaser.Math.RND.pick(emojis);
-            
+
             const text = this.add.text(x, y, emoji, { fontSize: '20px' });
-            
+
             this.tweens.add({
                 targets: text,
                 y: y + Phaser.Math.Between(50, 100),
@@ -6452,17 +6452,17 @@ class GymScene extends Phaser.Scene {
 
     create() {
         gameState.data.location = 'gym';
-        
+
         // Background
         for (let x = 0; x < 640; x += 16) {
             for (let y = 0; y < 480; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         // Walls
         this.createWalls();
-        
+
         // Title
         this.add.text(320, 30, '💪 FITNESS CENTER', {
             fontSize: '24px',
@@ -6471,33 +6471,33 @@ class GymScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Create player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         // Camera
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         // Equipment
         this.createGymEquipment();
-        
+
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('Work out to boost your skills!');
     }
-    
+
     createWalls() {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
         this.walls = this.physics.add.staticGroup();
-        
+
         for (let x = 0; x < width; x += 16) {
             this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
             this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
@@ -6507,53 +6507,53 @@ class GymScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createGymEquipment() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Treadmills (left side)
         for (let i = 0; i < 2; i++) {
             const treadmill = this.add.rectangle(100, 100 + i * 80, 60, 40, 0x4A4A4A);
             treadmill.setStrokeStyle(2, 0xFF0000);
             this.physics.add.existing(treadmill, true);
-            
+
             const interactive = this.interactables.create(100, 100 + i * 80, null);
             interactive.setSize(60, 40);
             interactive.setData('type', 'equipment');
             interactive.setData('name', 'Treadmill');
             interactive.setData('stat', 'energy');
             interactive.refreshBody();
-            
+
             const obstacle = this.obstacles.create(100, 100 + i * 80, null);
             obstacle.setSize(60, 40);
             obstacle.setAlpha(0);
             obstacle.refreshBody();
         }
-        
+
         // Weight benches (right side)
         for (let i = 0; i < 2; i++) {
             const bench = this.add.rectangle(540, 100 + i * 80, 60, 50, 0x8B4513);
             this.physics.add.existing(bench, true);
-            
+
             const interactive = this.interactables.create(540, 100 + i * 80, null);
             interactive.setSize(60, 50);
             interactive.setData('type', 'equipment');
             interactive.setData('name', 'Weight Bench');
             interactive.setData('stat', 'skills');
             interactive.refreshBody();
-            
+
             const obstacle = this.obstacles.create(540, 100 + i * 80, null);
             obstacle.setSize(60, 50);
             obstacle.setAlpha(0);
             obstacle.refreshBody();
         }
-        
+
         // Yoga mats (center)
         for (let i = 0; i < 3; i++) {
             this.add.rectangle(320, 150 + i * 60, 80, 30, 0x9D4EDD);
         }
-        
+
         // Trainer NPC
         const trainer = this.add.sprite(320, 280, 'npc4');
         trainer.setScale(1.5);
@@ -6563,24 +6563,24 @@ class GymScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Exit door
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('name', 'Exit');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         // Collisions
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         this.handleMovement();
         this.checkInteractions();
     }
-    
+
     handleMovement() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -6590,11 +6590,11 @@ class GymScene extends Phaser.Scene {
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
     }
-    
+
     checkInteractions() {
         let nearest = null;
         let minDist = Infinity;
-        
+
         this.interactables.children.entries.forEach(obj => {
             const dist = Phaser.Math.Distance.Between(
                 this.player.x, this.player.y, obj.x, obj.y
@@ -6604,7 +6604,7 @@ class GymScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -6614,7 +6614,7 @@ class GymScene extends Phaser.Scene {
             showInteractionPrompt(false);
         }
     }
-    
+
     interact(obj) {
         const type = obj.getData('type');
         if (type === 'door') {
@@ -6648,32 +6648,32 @@ class ParkScene extends Phaser.Scene {
 
     create() {
         gameState.data.location = 'park';
-        
+
         const width = 800;
         const height = 600;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Sky
-        this.add.rectangle(width/2, height/2, width, height, 0x87CEEB).setDepth(-2);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x87CEEB).setDepth(-2);
+
         // Grass everywhere
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'grass').setOrigin(0);
             }
         }
-        
+
         // Dirt path
         for (let y = 200; y < 400; y += 16) {
             for (let x = 0; x < width; x += 16) {
                 this.add.rectangle(x, y, 16, 16, 0x8B7355).setOrigin(0);
             }
         }
-        
+
         // Pond (center)
         const pond = this.add.ellipse(400, 300, 120, 80, 0x4682B4);
         pond.setStrokeStyle(4, 0x5F9EA0);
-        
+
         // Pond shimmer effect
         this.tweens.add({
             targets: pond,
@@ -6682,35 +6682,35 @@ class ParkScene extends Phaser.Scene {
             yoyo: true,
             repeat: -1
         });
-        
+
         // Trees around pond
         const treeSpots = [
-            {x: 300, y: 250}, {x: 500, y: 250},
-            {x: 300, y: 350}, {x: 500, y: 350},
-            {x: 150, y: 100}, {x: 650, y: 100},
-            {x: 150, y: 500}, {x: 650, y: 500}
+            { x: 300, y: 250 }, { x: 500, y: 250 },
+            { x: 300, y: 350 }, { x: 500, y: 350 },
+            { x: 150, y: 100 }, { x: 650, y: 100 },
+            { x: 150, y: 500 }, { x: 650, y: 500 }
         ];
-        
+
         this.obstacles = this.physics.add.staticGroup();
-        
+
         treeSpots.forEach(pos => {
             this.add.rectangle(pos.x, pos.y, 20, 30, 0x8B4513);
             this.add.circle(pos.x, pos.y - 25, 35, 0x228B22);
             this.add.circle(pos.x - 18, pos.y - 22, 28, 0x32CD32);
             this.add.circle(pos.x + 18, pos.y - 22, 28, 0x32CD32);
-            
+
             const treeCol = this.obstacles.create(pos.x, pos.y, null);
             treeCol.setSize(50, 50);
             treeCol.setAlpha(0);
             treeCol.refreshBody();
         });
-        
+
         // Benches
         for (let i = 0; i < 4; i++) {
             const x = 200 + i * 150;
             this.add.rectangle(x, 180, 50, 20, 0x8B4513);
         }
-        
+
         // Flowers
         const flowers = ['🌸', '🌺', '🌻', '🌷'];
         for (let i = 0; i < 20; i++) {
@@ -6721,18 +6721,18 @@ class ParkScene extends Phaser.Scene {
                 this.add.text(x, y, Phaser.Math.RND.pick(flowers), { fontSize: '16px' });
             }
         }
-        
+
         // Player
         this.player = this.physics.add.sprite(400, 500, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         // NPCs walking
         this.createParkNPCs();
-        
+
         // Exit
         this.interactables = this.physics.add.staticGroup();
         const door = this.interactables.create(400, 580, 'door');
@@ -6740,17 +6740,17 @@ class ParkScene extends Phaser.Scene {
         door.setData('name', 'Exit Park');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         this.physics.add.collider(this.player, this.obstacles);
-        
+
         showNotification('🌳 Relax in the park! Walk around to restore energy slowly');
     }
-    
+
     createParkNPCs() {
         // Joggers and people walking
         this.parkNPCs = [];
@@ -6758,22 +6758,22 @@ class ParkScene extends Phaser.Scene {
             const sprite = ['npc1', 'npc2', 'npc5'][i];
             const x = Phaser.Math.Between(200, 600);
             const y = Phaser.Math.Between(100, 500);
-            
+
             const npc = this.physics.add.sprite(x, y, sprite);
             npc.setScale(1.2);
             npc.setCollideWorldBounds(true);
-            
+
             this.parkNPCs.push({
                 sprite: npc,
                 targetX: x,
                 targetY: y,
                 speed: 50 + Math.random() * 30
             });
-            
+
             this.physics.add.collider(npc, this.obstacles);
         }
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -6782,21 +6782,21 @@ class ParkScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Park NPCs wander
         this.parkNPCs.forEach(npc => {
             if (Math.random() < 0.01) {
                 npc.targetX = Phaser.Math.Between(100, 700);
                 npc.targetY = Phaser.Math.Between(100, 500);
             }
-            
+
             const angle = Phaser.Math.Angle.Between(
                 npc.sprite.x, npc.sprite.y, npc.targetX, npc.targetY
             );
             const dist = Phaser.Math.Distance.Between(
                 npc.sprite.x, npc.sprite.y, npc.targetX, npc.targetY
             );
-            
+
             if (dist > 20) {
                 npc.sprite.setVelocity(
                     Math.cos(angle) * npc.speed,
@@ -6806,7 +6806,7 @@ class ParkScene extends Phaser.Scene {
                 npc.sprite.setVelocity(0, 0);
             }
         });
-        
+
         // Passive energy regen in park
         if (Math.random() < 0.02) {
             gameState.data.player.energy = Math.min(
@@ -6815,7 +6815,7 @@ class ParkScene extends Phaser.Scene {
             );
             updateUI();
         }
-        
+
         // Check interactions
         let nearest = null;
         let minDist = Infinity;
@@ -6828,7 +6828,7 @@ class ParkScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -6855,16 +6855,16 @@ class RestaurantScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(320, 30, '🍽️ RESTAURANT', {
             fontSize: '24px',
@@ -6873,24 +6873,24 @@ class RestaurantScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createRestaurant();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('🍽️ Grab a meal to restore energy and network!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -6902,57 +6902,57 @@ class RestaurantScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createRestaurant() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Tables (4x3 grid)
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 4; col++) {
                 const x = 120 + col * 130;
                 const y = 140 + row * 100;
-                
+
                 const table = this.add.circle(x, y, 30, 0xA0522D);
                 table.setStrokeStyle(2, 0x654321);
-                
+
                 const tableCol = this.obstacles.create(x, y, null);
                 tableCol.setSize(60, 60);
                 tableCol.setAlpha(0);
                 tableCol.refreshBody();
-                
+
                 // Plates on some tables
                 if (Math.random() > 0.5) {
                     this.add.circle(x, y, 10, 0xFFFFFF);
                 }
             }
         }
-        
+
         // NPCs at tables
         const dinerSpots = [
-            {x: 120, y: 140, sprite: 'npc1'},
-            {x: 380, y: 240, sprite: 'npc3'},
-            {x: 510, y: 340, sprite: 'npc5'}
+            { x: 120, y: 140, sprite: 'npc1' },
+            { x: 380, y: 240, sprite: 'npc3' },
+            { x: 510, y: 340, sprite: 'npc5' }
         ];
-        
+
         dinerSpots.forEach(spot => {
             this.add.sprite(spot.x, spot.y, spot.sprite).setScale(1.2);
         });
-        
+
         // Plants
         this.add.image(60, 80, 'plant');
         this.add.image(580, 80, 'plant');
-        
+
         // Exit
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -6961,7 +6961,7 @@ class RestaurantScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check door
         let nearest = null;
         let minDist = Infinity;
@@ -6974,7 +6974,7 @@ class RestaurantScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -6999,22 +6999,22 @@ class CoworkingScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Update sound manager and play office work music
         if (globalSoundManager) {
             globalSoundManager.scene = this;
             globalSoundManager.playMusic('office_work', true);
         }
-        
+
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(320, 30, '💼 CO-WORKING SPACE', {
             fontSize: '24px',
@@ -7023,24 +7023,24 @@ class CoworkingScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createCoworking();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('💼 Work and network with other professionals!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -7052,22 +7052,22 @@ class CoworkingScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createCoworking() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Work desks (grid of 3x2)
         for (let row = 0; row < 2; row++) {
             for (let col = 0; col < 3; col++) {
                 const x = 140 + col * 180;
                 const y = 130 + row * 140;
-                
+
                 const desk = this.obstacles.create(x, y, 'desk');
                 desk.refreshBody();
-                
+
                 this.add.image(x, y, 'laptop');
-                
+
                 // Some desks have people working
                 if (Math.random() > 0.4) {
                     const sprites = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'];
@@ -7075,7 +7075,7 @@ class CoworkingScene extends Phaser.Scene {
                 }
             }
         }
-        
+
         // Coffee station
         const coffeeStation = this.obstacles.create(550, 350, null);
         coffeeStation.setSize(60, 40);
@@ -7083,23 +7083,23 @@ class CoworkingScene extends Phaser.Scene {
         coffeeStation.refreshBody();
         this.add.rectangle(550, 350, 60, 40, 0x8B4513);
         this.add.image(550, 350, 'coffee').setScale(2);
-        
+
         // Plants
         this.add.image(50, 80, 'plant');
         this.add.image(590, 80, 'plant');
         this.add.image(50, 400, 'plant');
         this.add.image(590, 400, 'plant');
-        
+
         // Exit
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -7108,13 +7108,13 @@ class CoworkingScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Proximity networking boost
         if (Math.random() < 0.01) {
             gameState.data.player.networking += 1;
             updateUI();
         }
-        
+
         // Check door
         let nearest = null;
         let minDist = Infinity;
@@ -7127,7 +7127,7 @@ class CoworkingScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -7152,16 +7152,16 @@ class LibraryScene extends Phaser.Scene {
         const width = 800;
         const height = 600;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(400, 40, '📚 PUBLIC LIBRARY', {
             fontSize: '28px',
@@ -7170,7 +7170,7 @@ class LibraryScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         this.add.text(400, 70, '"Knowledge is Power"', {
             fontSize: '14px',
             color: '#FFFFFF',
@@ -7178,24 +7178,24 @@ class LibraryScene extends Phaser.Scene {
             strokeThickness: 2,
             fontStyle: 'italic'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(400, 500, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createLibrary();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('📚 Read books to gain skills and wisdom!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -7207,20 +7207,20 @@ class LibraryScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createLibrary() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Rows of bookshelves
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 5; col++) {
                 const x = 140 + col * 120;
                 const y = 150 + row * 120;
-                
+
                 const bookshelf = this.obstacles.create(x, y, 'bookshelf');
                 bookshelf.refreshBody();
-                
+
                 // Make some shelves interactive (reading spots)
                 if (col % 2 === 0) {
                     const readSpot = this.interactables.create(x, y + 40, null);
@@ -7231,26 +7231,26 @@ class LibraryScene extends Phaser.Scene {
                 }
             }
         }
-        
+
         // Reading tables
         const tablePositions = [
-            {x: 200, y: 480}, {x: 400, y: 480}, {x: 600, y: 480}
+            { x: 200, y: 480 }, { x: 400, y: 480 }, { x: 600, y: 480 }
         ];
-        
+
         tablePositions.forEach(pos => {
             const table = this.add.rectangle(pos.x, pos.y, 80, 50, 0x8B4513);
             table.setStrokeStyle(2, 0x654321);
-            
+
             const tableCol = this.obstacles.create(pos.x, pos.y, null);
             tableCol.setSize(80, 50);
             tableCol.setAlpha(0);
             tableCol.refreshBody();
-            
+
             // Books on table
             this.add.rectangle(pos.x - 15, pos.y, 20, 15, 0x8B0000);
             this.add.rectangle(pos.x + 15, pos.y, 20, 15, 0x0000CD);
         });
-        
+
         // Librarian NPC
         const librarian = this.add.sprite(400, 120, 'npc5');
         librarian.setScale(1.5);
@@ -7260,21 +7260,21 @@ class LibraryScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Plants
         this.add.image(60, 100, 'plant');
         this.add.image(740, 100, 'plant');
-        
+
         // Exit
         const door = this.interactables.create(400, 570, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -7283,7 +7283,7 @@ class LibraryScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check interactions
         let nearest = null;
         let minDist = Infinity;
@@ -7296,7 +7296,7 @@ class LibraryScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -7336,16 +7336,16 @@ class UniversityScene extends Phaser.Scene {
         const width = 800;
         const height = 600;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(400, 40, '🎓 TECH UNIVERSITY', {
             fontSize: '28px',
@@ -7354,24 +7354,24 @@ class UniversityScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(400, 500, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createUniversity();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('🎓 Enroll in courses to master new skills!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -7383,21 +7383,21 @@ class UniversityScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createUniversity() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Lecture hall desks
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 6; col++) {
                 const x = 120 + col * 100;
                 const y = 150 + row * 100;
-                
+
                 const desk = this.obstacles.create(x, y, 'desk');
                 desk.setScale(0.8);
                 desk.refreshBody();
-                
+
                 // Some seats have students
                 if (Math.random() > 0.4) {
                     const sprites = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'];
@@ -7405,7 +7405,7 @@ class UniversityScene extends Phaser.Scene {
                 }
             }
         }
-        
+
         // Professor at front
         const professor = this.add.sprite(400, 110, 'npc5');
         professor.setScale(1.8);
@@ -7416,31 +7416,31 @@ class UniversityScene extends Phaser.Scene {
             strokeThickness: 3,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Enrollment desk (interactive)
         const enrollDesk = this.interactables.create(400, 480, null);
         enrollDesk.setSize(100, 60);
         enrollDesk.setData('type', 'enroll');
         enrollDesk.setData('name', 'Course Enrollment');
         enrollDesk.refreshBody();
-        
+
         this.add.rectangle(400, 480, 100, 60, 0x8B4513);
         this.add.text(400, 480, 'ENROLL\nHERE', {
             fontSize: '12px',
             color: '#FFFFFF',
             align: 'center'
         }).setOrigin(0.5);
-        
+
         // Exit
         const door = this.interactables.create(400, 570, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -7449,7 +7449,7 @@ class UniversityScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check interactions
         let nearest = null;
         let minDist = Infinity;
@@ -7462,7 +7462,7 @@ class UniversityScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -7503,16 +7503,16 @@ class ShopScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(320, 40, '🛍️ PROFESSIONAL SHOP', {
             fontSize: '26px',
@@ -7521,31 +7521,31 @@ class ShopScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         this.add.text(320, 70, 'Gear Up for Success', {
             fontSize: '14px',
             color: '#FFFFFF',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createShop();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('🛍️ Shop for equipment to boost your stats!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -7557,11 +7557,11 @@ class ShopScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createShop() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Shop keeper
         const keeper = this.add.sprite(320, 120, 'npc4');
         keeper.setScale(1.6);
@@ -7571,7 +7571,7 @@ class ShopScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Counter
         const counter = this.add.rectangle(320, 150, 200, 50, 0x8B4513);
         counter.setStrokeStyle(3, 0x654321);
@@ -7579,7 +7579,7 @@ class ShopScene extends Phaser.Scene {
         counterCol.setSize(200, 50);
         counterCol.setAlpha(0);
         counterCol.refreshBody();
-        
+
         // Shop items on display
         const shopItems = [
             { icon: '💻', x: 150, y: 250, itemId: 'pro_laptop', price: 500 },
@@ -7590,13 +7590,13 @@ class ShopScene extends Phaser.Scene {
             { icon: '⭐', x: 320, y: 330, itemId: 'xp_boost', price: 75 },
             { icon: '🪙', x: 440, y: 330, itemId: 'lucky_coin', price: 80 }
         ];
-        
+
         shopItems.forEach(item => {
             // Display item
             const itemText = this.add.text(item.x, item.y, item.icon, {
                 fontSize: '32px'
             }).setOrigin(0.5);
-            
+
             // Price label
             this.add.text(item.x, item.y + 30, `${item.price} 💰`, {
                 fontSize: '12px',
@@ -7604,7 +7604,7 @@ class ShopScene extends Phaser.Scene {
                 stroke: '#000000',
                 strokeThickness: 2
             }).setOrigin(0.5);
-            
+
             // Create interactive zone
             const shopSpot = this.interactables.create(item.x, item.y, null);
             shopSpot.setSize(50, 50);
@@ -7613,21 +7613,21 @@ class ShopScene extends Phaser.Scene {
             shopSpot.setData('price', item.price);
             shopSpot.refreshBody();
         });
-        
+
         // Plants
         this.add.image(60, 200, 'plant');
         this.add.image(580, 200, 'plant');
-        
+
         // Exit
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -7636,7 +7636,7 @@ class ShopScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check interactions
         let nearest = null;
         let minDist = Infinity;
@@ -7649,7 +7649,7 @@ class ShopScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -7662,18 +7662,18 @@ class ShopScene extends Phaser.Scene {
                 } else if (type === 'shop_item') {
                     const itemId = nearest.getData('itemId');
                     const price = nearest.getData('price');
-                    
+
                     if (gameState.data.player.coins >= price) {
                         gameState.data.player.coins -= price;
                         itemManager.addItemToInventory(itemId);
                         const item = itemManager.getItem(itemId);
                         showNotification(`Purchased ${item.name}! Check inventory (I)`);
-                        
+
                         // Play purchase sound
                         if (globalSoundManager) {
                             globalSoundManager.playSfx('purchase', 0.5);
                         }
-                        
+
                         this.cameras.main.flash(200, 0, 255, 0, false, null, 0.3);
                         updateUI();
                     } else {
@@ -7696,37 +7696,40 @@ class JobInterviewScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Dark office setting
-        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x1A1A2E);
+
         // Conference table
-        this.add.rectangle(width/2, height/2, 400, 200, 0x8B4513);
-        
+        this.add.rectangle(width / 2, height / 2, 400, 200, 0x8B4513);
+
         // Interviewer
-        const interviewer = this.add.sprite(width/2, height/2 - 80, 'npc5');
+        const interviewer = this.add.sprite(width / 2, height / 2 - 80, 'npc5');
         interviewer.setScale(2.5);
-        
-        this.add.text(width/2, height/2 - 150, 'HR Manager', {
+
+        this.add.text(width / 2, height / 2 - 150, 'HR Manager', {
             fontSize: '20px',
             color: '#FFD700',
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Title
-        this.add.text(width/2, height/2 - 200, '💼 JOB INTERVIEW', {
+        this.add.text(width / 2, height / 2 - 200, '💼 JOB INTERVIEW', {
             fontSize: '32px',
             color: '#00FF88',
             stroke: '#000000',
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Interview questions
         this.currentQuestion = 0;
         this.correctAnswers = 0;
-        
+
         this.questions = [
             {
                 q: "What's your greatest strength?",
@@ -7753,29 +7756,29 @@ class JobInterviewScene extends Phaser.Scene {
                 ]
             }
         ];
-        
+
         this.showQuestion();
     }
-    
+
     showQuestion() {
         if (this.currentQuestion >= this.questions.length) {
             this.endInterview();
             return;
         }
-        
+
         const q = this.questions[this.currentQuestion];
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Question text
         if (this.questionText) this.questionText.destroy();
-        this.questionText = this.add.text(width/2, height/2 + 50, q.q, {
+        this.questionText = this.add.text(width / 2, height / 2 + 50, q.q, {
             fontSize: '20px',
             color: '#FFFFFF',
             align: 'center',
             wordWrap: { width: 500 }
         }).setOrigin(0.5);
-        
+
         // Answer buttons
         if (this.answerButtons) {
             this.answerButtons.forEach(btn => {
@@ -7783,30 +7786,30 @@ class JobInterviewScene extends Phaser.Scene {
                 btn.rect.destroy();
             });
         }
-        
+
         this.answerButtons = [];
         q.answers.forEach((answer, i) => {
-            const y = height/2 + 120 + i * 60;
-            
-            const rect = this.add.rectangle(width/2, y, 500, 50, 0x0A66C2);
+            const y = height / 2 + 120 + i * 60;
+
+            const rect = this.add.rectangle(width / 2, y, 500, 50, 0x0A66C2);
             rect.setStrokeStyle(2, 0x00FF88);
             rect.setInteractive();
-            
-            const text = this.add.text(width/2, y, answer.text, {
+
+            const text = this.add.text(width / 2, y, answer.text, {
                 fontSize: '16px',
                 color: '#FFFFFF'
             }).setOrigin(0.5);
-            
+
             rect.on('pointerover', () => {
                 rect.setFillStyle(0x0E7FE8);
                 rect.setScale(1.02);
             });
-            
+
             rect.on('pointerout', () => {
                 rect.setFillStyle(0x0A66C2);
                 rect.setScale(1);
             });
-            
+
             rect.on('pointerdown', () => {
                 if (answer.correct) {
                     this.correctAnswers++;
@@ -7816,21 +7819,21 @@ class JobInterviewScene extends Phaser.Scene {
                     this.cameras.main.shake(200, 0.003);
                     showNotification('✗ Could be better...');
                 }
-                
+
                 this.currentQuestion++;
                 this.time.delayedCall(800, () => {
                     this.showQuestion();
                 });
             });
-            
+
             this.answerButtons.push({ rect, text });
         });
     }
-    
+
     endInterview() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Clear everything
         if (this.questionText) this.questionText.destroy();
         if (this.answerButtons) {
@@ -7839,43 +7842,43 @@ class JobInterviewScene extends Phaser.Scene {
                 btn.rect.destroy();
             });
         }
-        
+
         const passed = this.correctAnswers >= 2;
-        
+
         if (passed) {
             // Hired!
             const jobTitles = ['Junior Dev', 'Software Engineer', 'Senior Dev', 'Lead Developer'];
             const salaries = [100, 200, 350, 500];
             const jobLevel = Math.min(3, Math.floor(gameState.data.player.level / 5));
-            
+
             gameState.data.player.job = jobTitles[jobLevel];
             gameState.data.player.salary = salaries[jobLevel];
             gameState.data.player.coins += 200; // Signing bonus
             gameState.gainXP(150);
-            
-            this.add.text(width/2, height/2, `🎉 YOU'RE HIRED!\n\nPosition: ${jobTitles[jobLevel]}\nSalary: ${salaries[jobLevel]} coins/day\nSigning Bonus: 200 coins`, {
+
+            this.add.text(width / 2, height / 2, `🎉 YOU'RE HIRED!\n\nPosition: ${jobTitles[jobLevel]}\nSalary: ${salaries[jobLevel]} coins/day\nSigning Bonus: 200 coins`, {
                 fontSize: '24px',
                 color: '#00FF88',
                 align: 'center',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             showAchievement(`Hired as ${jobTitles[jobLevel]}!`);
-            
+
             this.cameras.main.flash(500, 0, 255, 0);
-            
+
             // Confetti
             for (let i = 0; i < 30; i++) {
                 const confetti = this.add.text(
-                    Phaser.Math.Between(width/2 - 200, width/2 + 200),
-                    height/2 - 100,
+                    Phaser.Math.Between(width / 2 - 200, width / 2 + 200),
+                    height / 2 - 100,
                     Phaser.Math.RND.pick(['🎉', '⭐', '✨']),
                     { fontSize: '20px' }
                 );
-                
+
                 this.tweens.add({
                     targets: confetti,
-                    y: height/2 + 200,
+                    y: height / 2 + 200,
                     x: confetti.x + Phaser.Math.Between(-100, 100),
                     alpha: 0,
                     rotation: Phaser.Math.Between(-3, 3),
@@ -7885,18 +7888,18 @@ class JobInterviewScene extends Phaser.Scene {
             }
         } else {
             // Rejected
-            this.add.text(width/2, height/2, `Unfortunately, we've decided to go\nwith another candidate.\n\nKeep improving your skills!`, {
+            this.add.text(width / 2, height / 2, `Unfortunately, we've decided to go\nwith another candidate.\n\nKeep improving your skills!`, {
                 fontSize: '20px',
                 color: '#FF6B6B',
                 align: 'center'
             }).setOrigin(0.5);
-            
+
             gameState.data.player.coins += 25; // Consolation
             showNotification('Better luck next time! +25 coins for trying');
         }
-        
+
         updateUI();
-        
+
         // Return to city
         this.time.delayedCall(4000, () => {
             this.cameras.main.fadeOut(1000);
@@ -7916,49 +7919,49 @@ class EmailScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Background
-        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x1A1A2E);
+
         // Email interface
-        const emailBox = this.add.rectangle(width/2, height/2, 800, 600, 0x2C2C2C);
+        const emailBox = this.add.rectangle(width / 2, height / 2, 800, 600, 0x2C2C2C);
         emailBox.setStrokeStyle(4, 0x0A66C2);
-        
+
         // Title bar
-        this.add.rectangle(width/2, height/2 - 270, 800, 60, 0x0A66C2);
-        this.add.text(width/2, height/2 - 270, '📧 LINKEDIN MESSAGES', {
+        this.add.rectangle(width / 2, height / 2 - 270, 800, 60, 0x0A66C2);
+        this.add.text(width / 2, height / 2 - 270, '📧 LINKEDIN MESSAGES', {
             fontSize: '24px',
             color: '#FFFFFF',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Generate emails if empty
         if (gameState.data.emails.length === 0) {
             this.generateEmails();
         }
-        
+
         // Display emails
         this.displayEmails();
-        
+
         // Close button
-        const closeBtn = this.add.rectangle(width/2, height/2 + 270, 200, 50, 0xFF6B6B);
+        const closeBtn = this.add.rectangle(width / 2, height / 2 + 270, 200, 50, 0xFF6B6B);
         closeBtn.setStrokeStyle(2, 0xFFFFFF);
         closeBtn.setInteractive();
-        
-        const closeText = this.add.text(width/2, height/2 + 270, 'Close (ESC)', {
+
+        const closeText = this.add.text(width / 2, height / 2 + 270, 'Close (ESC)', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         closeBtn.on('pointerdown', () => {
             this.scene.stop();
         });
-        
+
         this.input.keyboard.on('keydown-ESC', () => {
             this.scene.stop();
         });
     }
-    
+
     generateEmails() {
         const emailTemplates = [
             {
@@ -7997,7 +8000,7 @@ class EmailScene extends Phaser.Scene {
                 reward: { followers: 10, coins: 50 }
             }
         ];
-        
+
         // Add 3-5 random emails
         const emailCount = Phaser.Math.Between(3, 5);
         for (let i = 0; i < emailCount; i++) {
@@ -8008,77 +8011,77 @@ class EmailScene extends Phaser.Scene {
                 read: false
             });
         }
-        
+
         gameState.saveGame();
     }
-    
+
     displayEmails() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
-        const startY = height/2 - 210;
-        
+
+        const startY = height / 2 - 210;
+
         gameState.data.emails.slice(0, 5).forEach((email, index) => {
             const y = startY + index * 100;
-            
+
             // Email item
-            const emailBg = this.add.rectangle(width/2, y, 750, 90, email.read ? 0x3A3A3A : 0x0A66C2);
+            const emailBg = this.add.rectangle(width / 2, y, 750, 90, email.read ? 0x3A3A3A : 0x0A66C2);
             emailBg.setStrokeStyle(2, email.read ? 0x5A5A5A : 0x00FF88);
             emailBg.setInteractive();
-            
+
             // From
-            this.add.text(width/2 - 360, y - 30, `From: ${email.from}`, {
+            this.add.text(width / 2 - 360, y - 30, `From: ${email.from}`, {
                 fontSize: '14px',
                 color: email.read ? '#999999' : '#FFD700',
                 fontStyle: 'bold'
             });
-            
+
             // Subject
-            this.add.text(width/2 - 360, y - 5, email.subject, {
+            this.add.text(width / 2 - 360, y - 5, email.subject, {
                 fontSize: '16px',
                 color: '#FFFFFF'
             });
-            
+
             // Action button
-            const actionBtn = this.add.rectangle(width/2 + 300, y, 100, 40, 0x00FF88);
+            const actionBtn = this.add.rectangle(width / 2 + 300, y, 100, 40, 0x00FF88);
             actionBtn.setInteractive();
-            
-            const actionText = this.add.text(width/2 + 300, y, email.action.toUpperCase(), {
+
+            const actionText = this.add.text(width / 2 + 300, y, email.action.toUpperCase(), {
                 fontSize: '12px',
                 color: '#000000',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             actionBtn.on('pointerdown', () => {
                 this.handleEmailAction(email);
             });
-            
+
             emailBg.on('pointerover', () => {
                 emailBg.setFillStyle(email.read ? 0x4A4A4A : 0x0E7FE8);
             });
-            
+
             emailBg.on('pointerout', () => {
                 emailBg.setFillStyle(email.read ? 0x3A3A3A : 0x0A66C2);
             });
         });
-        
+
         if (gameState.data.emails.length === 0) {
-            this.add.text(width/2, height/2, 'No new messages', {
+            this.add.text(width / 2, height / 2, 'No new messages', {
                 fontSize: '18px',
                 color: '#666666'
             }).setOrigin(0.5);
         }
     }
-    
+
     handleEmailAction(email) {
         email.read = true;
-        
+
         if (email.action === 'interview') {
             this.scene.stop();
             this.scene.start('JobInterviewScene');
             return;
         }
-        
+
         // Apply rewards
         const reward = email.reward;
         if (reward.xp) gameState.gainXP(reward.xp);
@@ -8086,14 +8089,14 @@ class EmailScene extends Phaser.Scene {
         if (reward.reputation) gameState.data.player.reputation += reward.reputation;
         if (reward.skills) gameState.data.player.skills += reward.skills;
         if (reward.followers) gameState.data.player.followers += reward.followers;
-        
+
         showNotification(`Email responded! Rewards received!`);
         updateUI();
         gameState.saveGame();
-        
+
         // Remove email
         gameState.data.emails = gameState.data.emails.filter(e => e.id !== email.id);
-        
+
         // Refresh display
         this.scene.restart();
     }
@@ -8108,30 +8111,33 @@ class MentorScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Office background
-        this.add.rectangle(width/2, height/2, width, height, 0x2C2C2C);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x2C2C2C);
+
         // Title
-        this.add.text(width/2, 100, '🎓 MENTORSHIP SESSION', {
+        this.add.text(width / 2, 100, '🎓 MENTORSHIP SESSION', {
             fontSize: '32px',
             color: '#FFD700',
             stroke: '#000000',
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Mentor
-        const mentor = this.add.sprite(width/2, height/2 - 50, 'npc2');
+        const mentor = this.add.sprite(width / 2, height / 2 - 50, 'npc2');
         mentor.setScale(3);
-        
-        this.add.text(width/2, height/2 - 140, 'Senior Mentor', {
+
+        this.add.text(width / 2, height / 2 - 140, 'Senior Mentor', {
             fontSize: '20px',
             color: '#00FF88',
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Mentorship options
         const options = [
             { text: '💼 Career Advice', cost: 100, reward: { reputation: 25, xp: 75 } },
@@ -8139,39 +8145,39 @@ class MentorScene extends Phaser.Scene {
             { text: '🤝 Network Introduction', cost: 200, reward: { networking: 30, connections: 3, xp: 125 } },
             { text: '🎯 Job Referral', cost: 300, reward: { coins: 500, reputation: 40, xp: 200 } }
         ];
-        
+
         options.forEach((option, i) => {
-            const y = height/2 + 80 + i * 70;
-            
-            const btn = this.add.rectangle(width/2, y, 500, 60, 0x0A66C2);
+            const y = height / 2 + 80 + i * 70;
+
+            const btn = this.add.rectangle(width / 2, y, 500, 60, 0x0A66C2);
             btn.setStrokeStyle(3, 0xFFD700);
             btn.setInteractive();
-            
-            const text = this.add.text(width/2, y - 10, option.text, {
+
+            const text = this.add.text(width / 2, y - 10, option.text, {
                 fontSize: '18px',
                 color: '#FFFFFF',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
-            const cost = this.add.text(width/2, y + 15, `Cost: ${option.cost} 💰`, {
+
+            const cost = this.add.text(width / 2, y + 15, `Cost: ${option.cost} 💰`, {
                 fontSize: '14px',
                 color: '#FFD700'
             }).setOrigin(0.5);
-            
+
             btn.on('pointerover', () => {
                 btn.setFillStyle(0x0E7FE8);
                 btn.setScale(1.02);
             });
-            
+
             btn.on('pointerout', () => {
                 btn.setFillStyle(0x0A66C2);
                 btn.setScale(1);
             });
-            
+
             btn.on('pointerdown', () => {
                 if (gameState.data.player.coins >= option.cost) {
                     gameState.data.player.coins -= option.cost;
-                    
+
                     // Apply rewards
                     const r = option.reward;
                     if (r.reputation) gameState.data.player.reputation += r.reputation;
@@ -8180,12 +8186,12 @@ class MentorScene extends Phaser.Scene {
                     if (r.connections) gameState.data.player.connections += r.connections;
                     if (r.coins) gameState.data.player.coins += r.coins;
                     if (r.xp) gameState.gainXP(r.xp);
-                    
+
                     showNotification(`✨ Mentorship completed! Rewards received`);
                     showAchievement('Mentored by Expert!');
                     this.cameras.main.flash(300, 255, 215, 0, false, null, 0.4);
                     updateUI();
-                    
+
                     this.time.delayedCall(2000, () => {
                         this.cameras.main.fadeOut(1000);
                         this.time.delayedCall(1000, () => {
@@ -8197,17 +8203,17 @@ class MentorScene extends Phaser.Scene {
                 }
             });
         });
-        
+
         // Cancel button
-        const cancelBtn = this.add.rectangle(width/2, height/2 + 380, 200, 50, 0xFF6B6B);
+        const cancelBtn = this.add.rectangle(width / 2, height / 2 + 380, 200, 50, 0xFF6B6B);
         cancelBtn.setStrokeStyle(2, 0xFFFFFF);
         cancelBtn.setInteractive();
-        
-        this.add.text(width/2, height/2 + 380, 'Leave', {
+
+        this.add.text(width / 2, height / 2 + 380, 'Leave', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         cancelBtn.on('pointerdown', () => {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -8226,11 +8232,14 @@ class DatingScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Romantic setting
-        this.add.rectangle(width/2, height/2, width, height, 0xFF6B9D, 0.3);
-        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E, 0.7);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0xFF6B9D, 0.3);
+        this.add.rectangle(width / 2, height / 2, width, height, 0x1A1A2E, 0.7);
+
         // Hearts floating
         for (let i = 0; i < 20; i++) {
             const heart = this.add.text(
@@ -8239,7 +8248,7 @@ class DatingScene extends Phaser.Scene {
                 '💕',
                 { fontSize: '24px', alpha: 0.3 }
             );
-            
+
             this.tweens.add({
                 targets: heart,
                 y: heart.y - 100,
@@ -8249,47 +8258,47 @@ class DatingScene extends Phaser.Scene {
                 delay: Math.random() * 2000
             });
         }
-        
+
         // Title
-        this.add.text(width/2, 100, '💕 SOCIAL CONNECTION', {
+        this.add.text(width / 2, 100, '💕 SOCIAL CONNECTION', {
             fontSize: '32px',
             color: '#FF69B4',
             stroke: '#000000',
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 140, 'Build meaningful relationships', {
+
+        this.add.text(width / 2, 140, 'Build meaningful relationships', {
             fontSize: '16px',
             color: '#FFFFFF',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // Potential connections
         const people = [
             { name: 'Sarah Chen', sprite: 'npc1', bio: 'Product Manager who loves hiking' },
             { name: 'David Park', sprite: 'npc4', bio: 'Content creator and coffee enthusiast' }
         ];
-        
+
         people.forEach((person, i) => {
-            const x = width/2 - 200 + i * 400;
-            const y = height/2;
-            
+            const x = width / 2 - 200 + i * 400;
+            const y = height / 2;
+
             // Card
             const card = this.add.rectangle(x, y, 300, 400, 0x2C2C2C);
             card.setStrokeStyle(4, 0xFF69B4);
-            
+
             // Profile pic
             this.add.sprite(x, y - 100, person.sprite).setScale(2.5);
-            
+
             // Name
             this.add.text(x, y + 20, person.name, {
                 fontSize: '20px',
                 color: '#FFD700',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             // Bio
             this.add.text(x, y + 60, person.bio, {
                 fontSize: '14px',
@@ -8297,40 +8306,40 @@ class DatingScene extends Phaser.Scene {
                 align: 'center',
                 wordWrap: { width: 260 }
             }).setOrigin(0.5);
-            
+
             // Connect button
             const connectBtn = this.add.rectangle(x, y + 140, 200, 50, 0xFF69B4);
             connectBtn.setStrokeStyle(2, 0xFFFFFF);
             connectBtn.setInteractive();
-            
+
             const btnText = this.add.text(x, y + 140, '💬 Start Chat', {
                 fontSize: '16px',
                 color: '#FFFFFF',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             connectBtn.on('pointerover', () => {
                 connectBtn.setFillStyle(0xFF8AC0);
                 connectBtn.setScale(1.05);
             });
-            
+
             connectBtn.on('pointerout', () => {
                 connectBtn.setFillStyle(0xFF69B4);
                 connectBtn.setScale(1);
             });
-            
+
             connectBtn.on('pointerdown', () => {
                 // Start relationship
                 gameState.data.player.connections++;
                 gameState.data.player.networking += 10;
                 gameState.data.player.reputation += 15;
                 gameState.gainXP(50);
-                
+
                 showNotification(`💕 Started relationship with ${person.name}!`);
                 showAchievement('Social Butterfly 💕');
                 this.cameras.main.flash(500, 255, 105, 180, false, null, 0.5);
                 updateUI();
-                
+
                 // Hearts explosion
                 for (let j = 0; j < 20; j++) {
                     const heart = this.add.text(x, y - 100, '💕', { fontSize: '20px' });
@@ -8344,7 +8353,7 @@ class DatingScene extends Phaser.Scene {
                         onComplete: () => heart.destroy()
                     });
                 }
-                
+
                 this.time.delayedCall(2000, () => {
                     this.cameras.main.fadeOut(1000);
                     this.time.delayedCall(1000, () => {
@@ -8353,17 +8362,17 @@ class DatingScene extends Phaser.Scene {
                 });
             });
         });
-        
+
         // Back button
-        const backBtn = this.add.rectangle(width/2, height - 100, 200, 50, 0x4A4A4A);
+        const backBtn = this.add.rectangle(width / 2, height - 100, 200, 50, 0x4A4A4A);
         backBtn.setStrokeStyle(2, 0xFFFFFF);
         backBtn.setInteractive();
-        
-        this.add.text(width/2, height - 100, 'Back to City', {
+
+        this.add.text(width / 2, height - 100, 'Back to City', {
             fontSize: '16px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         backBtn.on('pointerdown', () => {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -8383,16 +8392,16 @@ class ConferenceRoomScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Background
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(320, 40, '📊 CONFERENCE ROOM', {
             fontSize: '24px',
@@ -8401,24 +8410,24 @@ class ConferenceRoomScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createConferenceRoom();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('📊 Attend meetings and give presentations!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -8430,11 +8439,11 @@ class ConferenceRoomScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createConferenceRoom() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Conference table (large, center)
         const table = this.add.ellipse(320, 240, 280, 150, 0x654321);
         table.setStrokeStyle(4, 0x8B4513);
@@ -8442,7 +8451,7 @@ class ConferenceRoomScene extends Phaser.Scene {
         tableCol.setSize(280, 150);
         tableCol.setAlpha(0);
         tableCol.refreshBody();
-        
+
         // Chairs around table with attendees
         const chairPositions = [
             { x: 320, y: 180, hasAttendee: true, sprite: 'npc1' },
@@ -8453,21 +8462,21 @@ class ConferenceRoomScene extends Phaser.Scene {
             { x: 280, y: 300, hasAttendee: false },
             { x: 360, y: 300, hasAttendee: false }
         ];
-        
+
         chairPositions.forEach(chair => {
             // Chair
             this.add.rectangle(chair.x, chair.y, 30, 30, 0x8B4513);
-            
+
             // Attendee
             if (chair.hasAttendee) {
                 this.add.sprite(chair.x, chair.y, chair.sprite).setScale(1.3);
             }
         });
-        
+
         // Presentation screen
         const screen = this.add.rectangle(320, 100, 200, 120, 0xFFFFFF);
         screen.setStrokeStyle(4, 0x000000);
-        
+
         // Projector content
         this.add.text(320, 100, '📊 Q4 Results\n+350% Growth', {
             fontSize: '16px',
@@ -8475,29 +8484,29 @@ class ConferenceRoomScene extends Phaser.Scene {
             align: 'center',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Podium (interactive - present)
         const podium = this.interactables.create(320, 340, null);
         podium.setSize(60, 40);
         podium.setData('type', 'podium');
         podium.setData('name', 'Present');
         podium.refreshBody();
-        
+
         this.add.rectangle(320, 340, 60, 40, 0x8B4513);
         this.add.text(320, 340, '🎤', {
             fontSize: '24px'
         }).setOrigin(0.5);
-        
+
         // Exit
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -8506,7 +8515,7 @@ class ConferenceRoomScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check interactions
         let nearest = null;
         let minDist = Infinity;
@@ -8519,7 +8528,7 @@ class ConferenceRoomScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -8535,15 +8544,15 @@ class ConferenceRoomScene extends Phaser.Scene {
                         const quality = Phaser.Math.Between(50, 100);
                         const coins = quality * 2;
                         const rep = quality / 5;
-                        
+
                         gameState.data.player.coins += coins;
                         gameState.data.player.reputation += rep;
                         gameState.data.player.followers += Math.floor(quality / 10);
                         gameState.gainXP(quality);
-                        
+
                         showNotification(`📊 Presentation success! +${coins} coins, +${rep} reputation`);
                         showAchievement('Public Speaker 🎤');
-                        
+
                         // Applause effect
                         this.cameras.main.flash(500, 255, 255, 255, false, null, 0.3);
                         for (let i = 0; i < 15; i++) {
@@ -8553,7 +8562,7 @@ class ConferenceRoomScene extends Phaser.Scene {
                                 '👏',
                                 { fontSize: '20px' }
                             );
-                            
+
                             this.tweens.add({
                                 targets: applause,
                                 scale: 1.5,
@@ -8562,7 +8571,7 @@ class ConferenceRoomScene extends Phaser.Scene {
                                 onComplete: () => applause.destroy()
                             });
                         }
-                        
+
                         updateUI();
                     } else {
                         showNotification('⚡ Need 25 energy to present!');
@@ -8583,16 +8592,16 @@ class CoffeeShopScene extends Phaser.Scene {
 
     create() {
         gameState.data.location = 'coffee';
-        
+
         // Background
         for (let x = 0; x < 640; x += 16) {
             for (let y = 0; y < 480; y += 16) {
                 this.add.image(x, y, 'floor').setOrigin(0);
             }
         }
-        
+
         this.createWalls();
-        
+
         // Title
         this.add.text(320, 30, '☕ COFFEE SHOP', {
             fontSize: '24px',
@@ -8601,30 +8610,30 @@ class CoffeeShopScene extends Phaser.Scene {
             strokeThickness: 4,
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createCoffeeShop();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('Buy coffee to restore energy!');
     }
-    
+
     createWalls() {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
         this.walls = this.physics.add.staticGroup();
-        
+
         for (let x = 0; x < width; x += 16) {
             this.walls.create(x, 0, 'wall').setOrigin(0).refreshBody();
             this.walls.create(x, height - 16, 'wall').setOrigin(0).refreshBody();
@@ -8634,11 +8643,11 @@ class CoffeeShopScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createCoffeeShop() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Counter (top center)
         const counter = this.add.rectangle(320, 120, 200, 60, 0x8B4513);
         counter.setStrokeStyle(3, 0x654321);
@@ -8646,7 +8655,7 @@ class CoffeeShopScene extends Phaser.Scene {
         counterCol.setSize(200, 60);
         counterCol.setAlpha(0);
         counterCol.refreshBody();
-        
+
         // Barista
         const barista = this.add.sprite(320, 100, 'npc3');
         barista.setScale(1.5);
@@ -8656,40 +8665,40 @@ class CoffeeShopScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 3
         }).setOrigin(0.5);
-        
+
         // Cash register (interactive)
         const register = this.interactables.create(320, 150, null);
         register.setSize(40, 40);
         register.setData('type', 'register');
         register.setData('name', 'Order Coffee');
         register.refreshBody();
-        
+
         // Tables with chairs
         const tables = [
-            {x: 150, y: 240}, {x: 490, y: 240},
-            {x: 150, y: 340}, {x: 490, y: 340}
+            { x: 150, y: 240 }, { x: 490, y: 240 },
+            { x: 150, y: 340 }, { x: 490, y: 340 }
         ];
-        
+
         tables.forEach(pos => {
             this.add.circle(pos.x, pos.y, 25, 0xA0522D);
             this.add.image(pos.x, pos.y, 'coffee').setScale(0.8);
         });
-        
+
         // Plants
         this.add.image(80, 80, 'plant');
         this.add.image(560, 80, 'plant');
-        
+
         // Exit
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('name', 'Exit');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -8698,7 +8707,7 @@ class CoffeeShopScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         let nearest = null;
         let minDist = Infinity;
         this.interactables.children.entries.forEach(obj => {
@@ -8710,7 +8719,7 @@ class CoffeeShopScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -8749,37 +8758,42 @@ class ComputerMenuScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Calculate scale factor for responsive sizing
         const baseWidth = 1920;
         const scaleX = width / baseWidth;
-        
+
         // Fullscreen dark overlay
-        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.85);
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.85);
         overlay.setScrollFactor(0);
-        
+
         // Main menu container (centered, fullscreen-friendly)
         const menuWidth = Math.min(900, width - 100);
         const menuHeight = Math.min(700, height - 100);
-        const menuBg = this.add.rectangle(width/2, height/2, menuWidth, menuHeight, 0x0A66C2);
+        const menuBg = this.add.rectangle(width / 2, height / 2, menuWidth, menuHeight, 0x0A66C2);
         menuBg.setStrokeStyle(Math.max(3, 5 * scaleX), 0xFFFFFF);
         menuBg.setScrollFactor(0);
-        
-        // Title with scaled font
+
+        // Title with scaled font - Use player's name
+        const playerName = gameState.data.player.name || 'Alex Developer';
         const titleFontSize = Math.max(20, 36 * scaleX);
-        const title = this.add.text(width/2, height/2 - menuHeight/2 + 50, '💻 LINKEDIN DASHBOARD', {
+        const title = this.add.text(width / 2, height / 2 - menuHeight / 2 + 50, `💻 ${playerName.toUpperCase()}'S COMPUTER`, {
             fontSize: `${titleFontSize}px`,
             color: '#FFFFFF',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: Math.max(2, 4 * scaleX)
         }).setOrigin(0.5).setScrollFactor(0);
-        
-        // Create scrollable button area
-        const buttonAreaY = height/2 - menuHeight/2 + 120;
-        const buttonSpacing = Math.max(40, 55 * scaleX);
-        const buttonWidth = menuWidth - 80;
-        
+
+        // Create scrollable button area with better spacing
+        const buttonAreaY = height / 2 - menuHeight / 2 + 120;
+        const buttonSpacingY = Math.max(45, 60 * scaleX);
+        const columnGap = Math.max(15, 25 * scaleX);
+        const buttonWidth = (menuWidth - 60 - columnGap) / 2; // Divide space evenly between 2 columns
+
         // Create buttons in a grid layout (2 columns)
         const buttons = [
             { text: '✍️ Create Post (15⚡)', action: () => this.createPost(), col: 0, row: 0 },
@@ -8795,12 +8809,15 @@ class ComputerMenuScene extends Phaser.Scene {
             { text: '⚙️ Customize', action: () => this.customize(), col: 0, row: 5 },
             { text: '❌ Close', action: () => this.closeMenu(), col: 1, row: 5 }
         ];
-        
+
         buttons.forEach(btn => {
-            const x = width/2 - menuWidth/2 + 50 + (btn.col * (buttonWidth/2 + 20));
-            const y = buttonAreaY + (btn.row * buttonSpacing);
-            
-            this.createButton(x, y, btn.text, btn.action, buttonWidth/2 - 10, scaleX);
+            // Calculate X position based on column (0 = left, 1 = right)
+            const leftColumnX = width / 2 - menuWidth / 2 + 30 + buttonWidth / 2;
+            const rightColumnX = width / 2 - menuWidth / 2 + 30 + buttonWidth + columnGap + buttonWidth / 2;
+            const x = btn.col === 0 ? leftColumnX : rightColumnX;
+            const y = buttonAreaY + (btn.row * buttonSpacingY);
+
+            this.createButton(x, y, btn.text, btn.action, buttonWidth, scaleX);
         });
 
         // ESC to close
@@ -8813,7 +8830,7 @@ class ComputerMenuScene extends Phaser.Scene {
         button.setStrokeStyle(Math.max(1, 2 * scale), 0xFFFFFF);
         button.setInteractive();
         button.setScrollFactor(0);
-        
+
         const fontSize = Math.max(12, 16 * scale);
         const buttonText = this.add.text(x, y, text, {
             fontSize: `${fontSize}px`,
@@ -8849,18 +8866,18 @@ class ComputerMenuScene extends Phaser.Scene {
         if (gameState.useEnergy(15)) {
             const likes = Phaser.Math.Between(10, 100);
             const viral = likes > 80;
-            
+
             gameState.data.player.postsCount++;
             gameState.data.player.reputation += viral ? 20 : 5;
             gameState.data.player.followers += Math.floor(likes / 10);
             gameState.data.player.coins += likes;
             gameState.gainXP(viral ? 100 : 20);
-            
+
             // Play coin sound for earnings
             if (globalSoundManager) {
                 globalSoundManager.playSfx('coin', 0.4);
             }
-            
+
             if (viral) {
                 showNotification(`🔥 Your post went VIRAL! ${likes} likes!`);
                 this.cameras.main.shake(400, 0.005);
@@ -8870,11 +8887,11 @@ class ComputerMenuScene extends Phaser.Scene {
                 showNotification(`✍️ Post published! ${likes} likes`);
                 this.cameras.main.flash(200, 10, 102, 194, false, null, 0.3);
             }
-            
+
             // Check quests and achievements
             questManager.checkAllQuests(gameState.data);
             achievementManager.checkAll();
-            
+
             // Story progression
             if (gameState.data.player.postsCount === 1) {
                 setTimeout(() => {
@@ -8884,7 +8901,7 @@ class ComputerMenuScene extends Phaser.Scene {
                     };
                 }, 2000);
             }
-            
+
             // More story triggers
             if (gameState.data.player.connections >= 5 && gameState.data.player.postsCount >= 3) {
                 setTimeout(() => {
@@ -8894,11 +8911,11 @@ class ComputerMenuScene extends Phaser.Scene {
                     };
                 }, 2000);
             }
-            
+
             if (gameState.data.player.level >= 5) {
                 storyManager.triggerChapter(4);
             }
-            
+
             updateUI();
             this.closeMenu();
         } else {
@@ -8924,31 +8941,31 @@ class ComputerMenuScene extends Phaser.Scene {
         const p = gameState.data.player;
         showNotification(`${p.name} | ${p.title} | Lvl ${p.level} | ${p.connections} connections`);
     }
-    
+
     startMinigame() {
         this.closeMenu();
         this.scene.launch('SkillMinigameScene');
     }
-    
+
     startMemoryGame() {
         this.closeMenu();
         this.scene.launch('MemoryGameScene');
     }
-    
+
     startReactionGame() {
         this.closeMenu();
         this.scene.launch('ReactionGameScene');
     }
-    
+
     startQuizGame() {
         this.closeMenu();
         this.scene.launch('QuizGameScene');
     }
-    
+
     customize() {
         document.getElementById('customization-menu').style.display = 'block';
     }
-    
+
     showSkillTree() {
         document.getElementById('skill-tree-menu').style.display = 'block';
         // Update skill levels based on player stats
@@ -8960,7 +8977,7 @@ class ComputerMenuScene extends Phaser.Scene {
             content: Math.floor(gameState.data.player.postsCount / 2),
             seo: Math.floor(gameState.data.player.followers / 20)
         };
-        
+
         Object.keys(skillLevels).forEach(skill => {
             const lvl = Math.min(10, skillLevels[skill]);
             const elem = document.getElementById(`skill-${skill}`);
@@ -8969,53 +8986,53 @@ class ComputerMenuScene extends Phaser.Scene {
             if (bar) bar.style.width = `${lvl * 10}%`;
         });
     }
-    
+
     showStats() {
         this.closeMenu();
         this.scene.launch('StatsDashboardScene');
     }
-    
+
     showCertifications() {
         // Close menu first
         this.closeMenu();
-        
+
         // Create a new scene overlay for certifications
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Dim background
-        const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
         overlay.setDepth(2000);
         overlay.setScrollFactor(0);
-        
+
         // Menu box
-        const box = this.add.rectangle(width/2, height/2, 900, 600, 0x1E3A8A);
+        const box = this.add.rectangle(width / 2, height / 2, 900, 600, 0x1E3A8A);
         box.setStrokeStyle(4, 0xFFD700);
         box.setDepth(2001);
         box.setScrollFactor(0);
-        
+
         // Title
-        const title = this.add.text(width/2, height/2 - 240, '🎓 CERTIFICATIONS', {
+        const title = this.add.text(width / 2, height / 2 - 240, '🎓 CERTIFICATIONS', {
             fontSize: '32px',
             color: '#FFD700',
             fontStyle: 'bold'
         }).setOrigin(0.5).setDepth(2002).setScrollFactor(0);
-        
+
         // Store elements for cleanup
         const elements = [overlay, box, title];
-        
+
         // List certifications
         certificationManager.certifications.forEach((cert, i) => {
-            const y = height/2 - 160 + i * 60;
+            const y = height / 2 - 160 + i * 60;
             const eligible = certificationManager.checkEligible(cert.id);
             const earned = (gameState.data.player.certificationsEarned || []).includes(cert.id);
-            
-            const certBox = this.add.rectangle(width/2, y, 800, 50, earned ? 0x00FF88 : eligible ? 0x0A66C2 : 0x4A4A4A);
+
+            const certBox = this.add.rectangle(width / 2, y, 800, 50, earned ? 0x00FF88 : eligible ? 0x0A66C2 : 0x4A4A4A);
             certBox.setStrokeStyle(2, 0xFFFFFF);
             certBox.setDepth(2002);
             certBox.setScrollFactor(0);
             elements.push(certBox);
-            
+
             if (eligible && !earned) {
                 certBox.setInteractive();
                 certBox.on('pointerdown', () => {
@@ -9024,63 +9041,63 @@ class ComputerMenuScene extends Phaser.Scene {
                     elements.forEach(el => el.destroy());
                 });
             }
-            
-            const certText = this.add.text(width/2 - 350, y, `${cert.icon} ${cert.name}`, {
+
+            const certText = this.add.text(width / 2 - 350, y, `${cert.icon} ${cert.name}`, {
                 fontSize: '16px',
                 color: '#FFFFFF'
             }).setOrigin(0, 0.5).setDepth(2003).setScrollFactor(0);
             elements.push(certText);
-            
+
             const status = earned ? '✓ EARNED' : eligible ? '→ CLICK TO EARN' : '✗ Locked';
-            const statusText = this.add.text(width/2 + 340, y, status, {
+            const statusText = this.add.text(width / 2 + 340, y, status, {
                 fontSize: '14px',
                 color: earned ? '#00FF88' : eligible ? '#FFD700' : '#666666'
             }).setOrigin(1, 0.5).setDepth(2003).setScrollFactor(0);
             elements.push(statusText);
         });
-        
+
         // Close button
-        const closeBtn = this.add.rectangle(width/2, height/2 + 220, 200, 50, 0xFF6B6B);
+        const closeBtn = this.add.rectangle(width / 2, height / 2 + 220, 200, 50, 0xFF6B6B);
         closeBtn.setStrokeStyle(2, 0xFFFFFF);
         closeBtn.setInteractive();
         closeBtn.setDepth(2002);
         closeBtn.setScrollFactor(0);
         elements.push(closeBtn);
-        
-        const closeText = this.add.text(width/2, height/2 + 220, 'Close', {
+
+        const closeText = this.add.text(width / 2, height / 2 + 220, 'Close', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5).setDepth(2003).setScrollFactor(0);
         elements.push(closeText);
-        
+
         closeBtn.on('pointerdown', () => {
             elements.forEach(el => el.destroy());
         });
-        
+
         // ESC to close
         const escKey = this.input.keyboard.addKey('ESC');
         escKey.on('down', () => {
             elements.forEach(el => el.destroy());
         });
     }
-    
+
     upgradeApartment() {
         const currentLevel = gameState.data.player.apartmentLevel;
         const upgradeCost = currentLevel * 500;
-        
+
         if (currentLevel >= 5) {
             showNotification('🏠 Apartment is fully upgraded!');
             achievementManager.check('investor', currentLevel >= 5);
             return;
         }
-        
+
         if (gameState.data.player.coins >= upgradeCost) {
             gameState.data.player.coins -= upgradeCost;
             gameState.data.player.apartmentLevel++;
             gameState.data.player.maxEnergy += 20;
             gameState.data.player.reputation += 10;
             gameState.gainXP(100);
-            
+
             showNotification(`🏠 Apartment upgraded to Level ${gameState.data.player.apartmentLevel}! +20 max energy`);
             showAchievement(`Apartment Level ${gameState.data.player.apartmentLevel}`);
             this.cameras.main.flash(500, 0, 200, 255, false, null, 0.4);
@@ -9108,21 +9125,24 @@ class StatsDashboardScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Background
-        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x1A1A2E);
+
         // Title
-        this.add.text(width/2, 80, '📊 YOUR STATS', {
+        this.add.text(width / 2, 80, '📊 YOUR STATS', {
             fontSize: '40px',
             color: '#00FF88',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
+
         const p = gameState.data.player;
-        
+
         // Create stat categories
         const categories = [
             {
@@ -9176,32 +9196,32 @@ class StatsDashboardScene extends Phaser.Scene {
                 ]
             }
         ];
-        
+
         // Display in grid
         categories.forEach((cat, catIndex) => {
             const x = 200 + (catIndex % 3) * 450;
             const y = 200 + Math.floor(catIndex / 3) * 300;
-            
+
             // Category box
             const box = this.add.rectangle(x, y, 400, 250, 0x2C2C2C);
             box.setStrokeStyle(3, 0x0A66C2);
-            
+
             // Category title
             this.add.text(x, y - 100, cat.title, {
                 fontSize: '22px',
                 color: '#FFD700',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             // Stats
             cat.stats.forEach((stat, i) => {
                 const statY = y - 60 + i * 30;
-                
+
                 this.add.text(x - 180, statY, stat.label + ':', {
                     fontSize: '14px',
                     color: '#AAAAAA'
                 });
-                
+
                 this.add.text(x + 180, statY, stat.value.toString(), {
                     fontSize: '14px',
                     color: '#00FF88',
@@ -9209,22 +9229,22 @@ class StatsDashboardScene extends Phaser.Scene {
                 }).setOrigin(1, 0);
             });
         });
-        
+
         // Close button
-        const closeBtn = this.add.rectangle(width/2, height - 80, 250, 60, 0xFF6B6B);
+        const closeBtn = this.add.rectangle(width / 2, height - 80, 250, 60, 0xFF6B6B);
         closeBtn.setStrokeStyle(3, 0xFFFFFF);
         closeBtn.setInteractive();
-        
-        this.add.text(width/2, height - 80, 'Close (ESC)', {
+
+        this.add.text(width / 2, height - 80, 'Close (ESC)', {
             fontSize: '20px',
             color: '#FFFFFF',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         closeBtn.on('pointerdown', () => {
             this.scene.stop();
         });
-        
+
         this.input.keyboard.on('keydown-ESC', () => {
             this.scene.stop();
         });
@@ -9240,31 +9260,34 @@ class LeaderboardScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Background
-        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
+
         // Title
-        this.add.text(width/2, 100, '🏆 GLOBAL LEADERBOARD', {
+        this.add.text(width / 2, 100, '🏆 GLOBAL LEADERBOARD', {
             fontSize: '40px',
             color: '#FFD700',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 5
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 150, 'Top LinkedIn Tycoons Worldwide', {
+
+        this.add.text(width / 2, 150, 'Top LinkedIn Tycoons Worldwide', {
             fontSize: '18px',
             color: '#FFFFFF',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // Generate leaderboard data
         const players = [
             { name: gameState.data.player.name, level: gameState.data.player.level, connections: gameState.data.player.connections, isPlayer: true }
         ];
-        
+
         // Add AI players
         const aiNames = [
             'TechGuru_Mike', 'LinkedInPro_Sarah', 'NetworkKing_David', 'CodeMaster_Emma',
@@ -9273,7 +9296,7 @@ class LeaderboardScene extends Phaser.Scene {
             'TechWhiz_Riley', 'LinkedInStar_Sam', 'ProfessionalPro_Avery', 'CareerWin_Quinn',
             'SkillMaster_Drew', 'NetGenius_Blake', 'TechTitan_Skyler', 'LinkedInLegend_Parker'
         ];
-        
+
         aiNames.forEach(name => {
             players.push({
                 name: name,
@@ -9283,86 +9306,86 @@ class LeaderboardScene extends Phaser.Scene {
                 isPlayer: false
             });
         });
-        
+
         // Sort by connections
         players.sort((a, b) => b.connections - a.connections);
-        
+
         // Find player rank
         const playerRank = players.findIndex(p => p.isPlayer) + 1;
-        
+
         // Display top 10
         const startY = 220;
         players.slice(0, 10).forEach((player, index) => {
             const y = startY + index * 50;
             const rank = index + 1;
-            
+
             // Rank background
             const bgColor = player.isPlayer ? 0x0A66C2 : 0x2C2C2C;
-            const box = this.add.rectangle(width/2, y, 900, 45, bgColor);
+            const box = this.add.rectangle(width / 2, y, 900, 45, bgColor);
             box.setStrokeStyle(2, player.isPlayer ? 0x00FF88 : 0x4A4A4A);
-            
+
             // Rank
             const rankColor = rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#FFFFFF';
-            this.add.text(width/2 - 420, y, `#${rank}`, {
+            this.add.text(width / 2 - 420, y, `#${rank}`, {
                 fontSize: '20px',
                 color: rankColor,
                 fontStyle: 'bold'
             }).setOrigin(0, 0.5);
-            
+
             // Name
-            this.add.text(width/2 - 350, y, player.name, {
+            this.add.text(width / 2 - 350, y, player.name, {
                 fontSize: '18px',
                 color: player.isPlayer ? '#00FF88' : '#FFFFFF',
                 fontStyle: player.isPlayer ? 'bold' : 'normal'
             }).setOrigin(0, 0.5);
-            
+
             // Level
-            this.add.text(width/2 + 50, y, `Lvl ${player.level}`, {
+            this.add.text(width / 2 + 50, y, `Lvl ${player.level}`, {
                 fontSize: '16px',
                 color: '#FFD700'
             }).setOrigin(0, 0.5);
-            
+
             // Connections
-            this.add.text(width/2 + 200, y, `${player.connections} 🤝`, {
+            this.add.text(width / 2 + 200, y, `${player.connections} 🤝`, {
                 fontSize: '16px',
                 color: '#00D9FF'
             }).setOrigin(0, 0.5);
-            
+
             // Trophy for top 3
             if (rank <= 3) {
                 const trophy = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
-                this.add.text(width/2 + 400, y, trophy, {
+                this.add.text(width / 2 + 400, y, trophy, {
                     fontSize: '24px'
                 }).setOrigin(0.5);
             }
         });
-        
+
         // Player rank display if not in top 10
         if (playerRank > 10) {
-            const yourRankBox = this.add.rectangle(width/2, height - 150, 900, 60, 0x0A66C2);
+            const yourRankBox = this.add.rectangle(width / 2, height - 150, 900, 60, 0x0A66C2);
             yourRankBox.setStrokeStyle(3, 0x00FF88);
-            
-            this.add.text(width/2, height - 150, `Your Rank: #${playerRank} | Keep climbing!`, {
+
+            this.add.text(width / 2, height - 150, `Your Rank: #${playerRank} | Keep climbing!`, {
                 fontSize: '20px',
                 color: '#FFFFFF',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
         }
-        
+
         // Close button
-        const closeBtn = this.add.rectangle(width/2, height - 80, 250, 50, 0xFF6B6B);
+        const closeBtn = this.add.rectangle(width / 2, height - 80, 250, 50, 0xFF6B6B);
         closeBtn.setStrokeStyle(2, 0xFFFFFF);
         closeBtn.setInteractive();
-        
-        this.add.text(width/2, height - 80, 'Close (ESC)', {
+
+        this.add.text(width / 2, height - 80, 'Close (ESC)', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         closeBtn.on('pointerdown', () => {
             this.scene.stop();
         });
-        
+
         this.input.keyboard.on('keydown-ESC', () => {
             this.scene.stop();
         });
@@ -9378,53 +9401,56 @@ class PetShopScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Background
-        this.add.rectangle(width/2, height/2, width, height, 0xFFE4B5);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0xFFE4B5);
+
         // Title
-        this.add.text(width/2, 100, '🐾 PET ADOPTION CENTER', {
+        this.add.text(width / 2, 100, '🐾 PET ADOPTION CENTER', {
             fontSize: '36px',
             color: '#FF6B6B',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 150, 'Choose your professional companion!', {
+
+        this.add.text(width / 2, 150, 'Choose your professional companion!', {
             fontSize: '18px',
             color: '#654321',
             stroke: '#FFFFFF',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // Pet options
         const pets = [
             { name: 'Office Cat', emoji: '🐱', cost: 500, bonus: { networking: 10, happiness: 'Daily motivation boost' } },
             { name: 'Business Dog', emoji: '🐶', cost: 500, bonus: { skills: 15, happiness: 'Loyal companion' } },
             { name: 'Coding Parrot', emoji: '🦜', cost: 750, bonus: { reputation: 20, happiness: 'Tech wisdom' } }
         ];
-        
+
         pets.forEach((pet, i) => {
-            const x = width/2 - 400 + i * 400;
-            const y = height/2;
-            
+            const x = width / 2 - 400 + i * 400;
+            const y = height / 2;
+
             // Pet card
             const card = this.add.rectangle(x, y, 350, 450, 0xFFFFFF);
             card.setStrokeStyle(4, 0xFF6B6B);
-            
+
             // Pet image
             this.add.text(x, y - 120, pet.emoji, {
                 fontSize: '120px'
             }).setOrigin(0.5);
-            
+
             // Name
             this.add.text(x, y + 20, pet.name, {
                 fontSize: '24px',
                 color: '#FF6B6B',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             // Bonus text
             const bonusKey = Object.keys(pet.bonus)[0];
             const bonusValue = pet.bonus[bonusKey];
@@ -9433,61 +9459,61 @@ class PetShopScene extends Phaser.Scene {
                 color: '#00AA00',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             this.add.text(x, y + 90, pet.bonus.happiness, {
                 fontSize: '14px',
                 color: '#666666',
                 align: 'center',
                 wordWrap: { width: 300 }
             }).setOrigin(0.5);
-            
+
             // Adopt button
             const adoptBtn = this.add.rectangle(x, y + 160, 200, 60, 0xFF6B6B);
             adoptBtn.setStrokeStyle(3, 0xFFFFFF);
             adoptBtn.setInteractive();
-            
+
             this.add.text(x, y + 140, `Adopt`, {
                 fontSize: '20px',
                 color: '#FFFFFF',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             this.add.text(x, y + 170, `${pet.cost} 💰`, {
                 fontSize: '16px',
                 color: '#FFD700'
             }).setOrigin(0.5);
-            
+
             adoptBtn.on('pointerover', () => {
                 adoptBtn.setFillStyle(0xFF8A8A);
                 adoptBtn.setScale(1.05);
             });
-            
+
             adoptBtn.on('pointerout', () => {
                 adoptBtn.setFillStyle(0xFF6B6B);
                 adoptBtn.setScale(1);
             });
-            
+
             adoptBtn.on('pointerdown', () => {
                 if (gameState.data.player.pet) {
                     showNotification('You already have a pet!');
                     return;
                 }
-                
+
                 if (gameState.data.player.coins >= pet.cost) {
                     gameState.data.player.coins -= pet.cost;
                     gameState.data.player.pet = pet.name;
                     gameState.data.player.petStats = { happiness: 100, hunger: 100 };
-                    
+
                     // Apply bonus
                     if (pet.bonus.networking) gameState.data.player.networking += pet.bonus.networking;
                     if (pet.bonus.skills) gameState.data.player.skills += pet.bonus.skills;
                     if (pet.bonus.reputation) gameState.data.player.reputation += pet.bonus.reputation;
-                    
+
                     showNotification(`🐾 Adopted ${pet.name}! Welcome to your new companion!`);
                     showAchievement('Pet Owner 🐾');
                     this.cameras.main.flash(500, 255, 182, 193, false, null, 0.5);
                     updateUI();
-                    
+
                     // Hearts
                     for (let j = 0; j < 20; j++) {
                         const heart = this.add.text(x, y - 120, '💕', { fontSize: '24px' });
@@ -9501,7 +9527,7 @@ class PetShopScene extends Phaser.Scene {
                             onComplete: () => heart.destroy()
                         });
                     }
-                    
+
                     this.time.delayedCall(2000, () => {
                         this.cameras.main.fadeOut(1000);
                         this.time.delayedCall(1000, () => {
@@ -9513,17 +9539,17 @@ class PetShopScene extends Phaser.Scene {
                 }
             });
         });
-        
+
         // Back button
-        const backBtn = this.add.rectangle(width/2, height - 100, 250, 60, 0x654321);
+        const backBtn = this.add.rectangle(width / 2, height - 100, 250, 60, 0x654321);
         backBtn.setStrokeStyle(3, 0xFFFFFF);
         backBtn.setInteractive();
-        
-        this.add.text(width/2, height - 100, 'Back to City', {
+
+        this.add.text(width / 2, height - 100, 'Back to City', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         backBtn.on('pointerdown', () => {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -9543,7 +9569,7 @@ class MusicVenueScene extends Phaser.Scene {
         const width = 640;
         const height = 480;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Dark club atmosphere
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
@@ -9551,9 +9577,9 @@ class MusicVenueScene extends Phaser.Scene {
                 tile.setTint(0x2C1B47);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title with lights
         this.add.text(320, 40, '🎵 MUSIC VENUE', {
             fontSize: '26px',
@@ -9562,7 +9588,7 @@ class MusicVenueScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
+
         // Pulsing lights
         for (let i = 0; i < 8; i++) {
             const light = this.add.circle(
@@ -9571,7 +9597,7 @@ class MusicVenueScene extends Phaser.Scene {
                 15,
                 Phaser.Math.RND.pick([0xFF00FF, 0x00FFFF, 0xFFFF00, 0xFF0000])
             );
-            
+
             this.tweens.add({
                 targets: light,
                 alpha: 0.3,
@@ -9582,24 +9608,24 @@ class MusicVenueScene extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             });
         }
-        
+
         // Player
         this.player = this.physics.add.sprite(320, 400, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createVenue();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('🎵 Enjoy music and network!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -9611,11 +9637,11 @@ class MusicVenueScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createVenue() {
         this.interactables = this.physics.add.staticGroup();
         this.obstacles = this.physics.add.staticGroup();
-        
+
         // Stage
         const stage = this.add.rectangle(320, 150, 200, 80, 0x654321);
         stage.setStrokeStyle(3, 0xFFD700);
@@ -9623,11 +9649,11 @@ class MusicVenueScene extends Phaser.Scene {
         stageCol.setSize(200, 80);
         stageCol.setAlpha(0);
         stageCol.refreshBody();
-        
+
         // Performers
         this.add.text(280, 140, '🎤', { fontSize: '32px' });
         this.add.text(360, 140, '🎸', { fontSize: '32px' });
-        
+
         // Dancing NPCs
         for (let i = 0; i < 6; i++) {
             const x = 150 + Math.random() * 340;
@@ -9635,7 +9661,7 @@ class MusicVenueScene extends Phaser.Scene {
             const npcSprite = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'][Math.floor(Math.random() * 5)];
             const npc = this.add.sprite(x, y, npcSprite);
             npc.setScale(1.2);
-            
+
             // Make them bounce
             this.tweens.add({
                 targets: npc,
@@ -9646,7 +9672,7 @@ class MusicVenueScene extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             });
         }
-        
+
         // Bar
         const bar = this.add.rectangle(100, 300, 120, 60, 0x8B4513);
         bar.setStrokeStyle(2, 0x654321);
@@ -9654,34 +9680,34 @@ class MusicVenueScene extends Phaser.Scene {
         barCol.setSize(120, 60);
         barCol.setAlpha(0);
         barCol.refreshBody();
-        
+
         // Bartender
         const bartender = this.add.sprite(100, 280, 'npc4');
         bartender.setScale(1.4);
-        
+
         // Dance floor (interactive)
         const danceFloor = this.interactables.create(400, 320, null);
         danceFloor.setSize(180, 120);
         danceFloor.setData('type', 'dance');
         danceFloor.setData('name', 'Dance Floor');
         danceFloor.refreshBody();
-        
+
         this.add.text(400, 280, '💃 DANCE FLOOR 🕺', {
             fontSize: '16px',
             color: '#FF00FF',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Exit
         const door = this.interactables.create(320, 450, 'door');
         door.setData('type', 'door');
         door.setData('target', 'CityScene');
         door.refreshBody();
-        
+
         this.physics.add.collider(this.player, this.walls);
         this.physics.add.collider(this.player, this.obstacles);
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -9690,7 +9716,7 @@ class MusicVenueScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check interactions
         let nearest = null;
         let minDist = Infinity;
@@ -9703,7 +9729,7 @@ class MusicVenueScene extends Phaser.Scene {
                 nearest = obj;
             }
         });
-        
+
         if (nearest) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
@@ -9720,10 +9746,10 @@ class MusicVenueScene extends Phaser.Scene {
                         gameState.data.player.reputation += 10;
                         gameState.data.player.connections += 2;
                         gameState.gainXP(60);
-                        
+
                         showNotification('💃 Danced and made 2 new connections!');
                         this.cameras.main.flash(300, 255, 0, 255, false, null, 0.5);
-                        
+
                         // Dancing emojis
                         for (let i = 0; i < 15; i++) {
                             const emoji = Phaser.Math.RND.pick(['💃', '🕺', '🎵', '🎶', '⭐']);
@@ -9733,7 +9759,7 @@ class MusicVenueScene extends Phaser.Scene {
                                 emoji,
                                 { fontSize: '24px' }
                             );
-                            
+
                             this.tweens.add({
                                 targets: text,
                                 y: 220,
@@ -9744,7 +9770,7 @@ class MusicVenueScene extends Phaser.Scene {
                                 onComplete: () => text.destroy()
                             });
                         }
-                        
+
                         updateUI();
                     }
                 }
@@ -9764,66 +9790,66 @@ class FitnessMinigameScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
-        this.add.rectangle(width/2, height/2, width, height, 0x1A1A2E);
-        
+
+        this.add.rectangle(width / 2, height / 2, width, height, 0x1A1A2E);
+
         // Title
-        this.add.text(width/2, 100, '💪 FITNESS CHALLENGE', {
+        this.add.text(width / 2, 100, '💪 FITNESS CHALLENGE', {
             fontSize: '36px',
             color: '#FF6B6B',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 150, 'Tap SPACE as fast as you can for 10 seconds!', {
+
+        this.add.text(width / 2, 150, 'Tap SPACE as fast as you can for 10 seconds!', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         this.taps = 0;
         this.startTime = Date.now();
         this.timeLimit = 10000;
         this.gameActive = true;
-        
+
         // Counter
-        this.tapCounter = this.add.text(width/2, height/2, '0 REPS', {
+        this.tapCounter = this.add.text(width / 2, height / 2, '0 REPS', {
             fontSize: '80px',
             color: '#00FF88',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Timer
-        this.timer = this.add.text(width/2, height/2 + 100, '10s', {
+        this.timer = this.add.text(width / 2, height / 2 + 100, '10s', {
             fontSize: '40px',
             color: '#FFD700'
         }).setOrigin(0.5);
-        
+
         // Instructions
-        this.add.text(width/2, height/2 + 180, 'Press SPACE repeatedly!', {
+        this.add.text(width / 2, height / 2 + 180, 'Press SPACE repeatedly!', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         // Spacebar listener
         this.spaceKey = this.input.keyboard.addKey('SPACE');
     }
-    
+
     update() {
         if (!this.gameActive) return;
-        
+
         const elapsed = Date.now() - this.startTime;
         const remaining = Math.max(0, Math.ceil((this.timeLimit - elapsed) / 1000));
-        
+
         this.timer.setText(`${remaining}s`);
-        
+
         if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
             this.taps++;
             this.tapCounter.setText(`${this.taps} REPS`);
-            
+
             // Flash effect
             this.cameras.main.flash(50, 255, 100, 100, false, null, 0.2);
-            
+
             // Scale animation
             this.tweens.add({
                 targets: this.tapCounter,
@@ -9833,18 +9859,18 @@ class FitnessMinigameScene extends Phaser.Scene {
                 ease: 'Power2'
             });
         }
-        
+
         if (elapsed >= this.timeLimit) {
             this.gameActive = false;
             this.endGame();
         }
     }
-    
+
     endGame() {
         // Calculate performance
         let performance = 'Average';
         let bonus = 0;
-        
+
         if (this.taps >= 80) {
             performance = 'LEGENDARY!';
             bonus = 200;
@@ -9858,23 +9884,23 @@ class FitnessMinigameScene extends Phaser.Scene {
             performance = 'Good!';
             bonus = 50;
         }
-        
+
         gameState.data.player.maxEnergy += Math.floor(this.taps / 20);
         gameState.data.player.skills += 10 + bonus;
         gameState.data.player.coins += 50 + bonus;
         gameState.gainXP(40 + bonus);
-        
-        this.add.text(this.cameras.main.width/2, this.cameras.main.height/2 - 100, `${performance}\n\n${this.taps} reps completed!\n+${Math.floor(this.taps / 20)} max energy`, {
+
+        this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 2 - 100, `${performance}\n\n${this.taps} reps completed!\n+${Math.floor(this.taps / 20)} max energy`, {
             fontSize: '28px',
             color: '#00FF88',
             align: 'center',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         showNotification(`💪 Workout complete! Stamina increased!`);
         showAchievement('Fitness Enthusiast 💪');
         updateUI();
-        
+
         this.time.delayedCall(3000, () => {
             this.scene.stop();
             this.scene.start('CityScene');
@@ -9891,69 +9917,72 @@ class CookingScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Kitchen background
-        this.add.rectangle(width/2, height/2, width, height, 0xFFE4B5);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0xFFE4B5);
+
         // Title
-        this.add.text(width/2, 100, '🍳 HOME COOKING', {
+        this.add.text(width / 2, 100, '🍳 HOME COOKING', {
             fontSize: '36px',
             color: '#FF6B6B',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 150, 'Cook meals for powerful buffs!', {
+
+        this.add.text(width / 2, 150, 'Cook meals for powerful buffs!', {
             fontSize: '18px',
             color: '#654321'
         }).setOrigin(0.5);
-        
+
         // Recipe options
         const recipes = [
-            { 
-                name: 'Power Breakfast', 
-                emoji: '🍳', 
-                cost: 50, 
+            {
+                name: 'Power Breakfast',
+                emoji: '🍳',
+                cost: 50,
                 effect: { energy: 40, skills: 10 },
                 desc: '+40 Energy, +10 Skills'
             },
-            { 
-                name: 'Brain Food Salad', 
-                emoji: '🥗', 
-                cost: 75, 
+            {
+                name: 'Brain Food Salad',
+                emoji: '🥗',
+                cost: 75,
                 effect: { skills: 20, reputation: 5 },
                 desc: '+20 Skills, +5 Reputation'
             },
-            { 
-                name: 'Victory Steak', 
-                emoji: '🥩', 
-                cost: 150, 
+            {
+                name: 'Victory Steak',
+                emoji: '🥩',
+                cost: 150,
                 effect: { energy: 60, networking: 15, reputation: 10 },
                 desc: '+60 Energy, +15 Networking, +10 Reputation'
             },
-            { 
-                name: 'Success Smoothie', 
-                emoji: '🥤', 
-                cost: 40, 
+            {
+                name: 'Success Smoothie',
+                emoji: '🥤',
+                cost: 40,
                 effect: { energy: 30, followers: 5 },
                 desc: '+30 Energy, +5 Followers'
             }
         ];
-        
+
         recipes.forEach((recipe, i) => {
-            const x = width/2 - 450 + i * 300;
-            const y = height/2 + 50;
-            
+            const x = width / 2 - 450 + i * 300;
+            const y = height / 2 + 50;
+
             // Recipe card
             const card = this.add.rectangle(x, y, 250, 350, 0xFFFFFF);
             card.setStrokeStyle(4, 0xFF6B6B);
-            
+
             // Food emoji
             this.add.text(x, y - 100, recipe.emoji, {
                 fontSize: '80px'
             }).setOrigin(0.5);
-            
+
             // Name
             this.add.text(x, y, recipe.name, {
                 fontSize: '18px',
@@ -9962,7 +9991,7 @@ class CookingScene extends Phaser.Scene {
                 align: 'center',
                 wordWrap: { width: 220 }
             }).setOrigin(0.5);
-            
+
             // Effect
             this.add.text(x, y + 50, recipe.desc, {
                 fontSize: '12px',
@@ -9970,37 +9999,37 @@ class CookingScene extends Phaser.Scene {
                 align: 'center',
                 wordWrap: { width: 220 }
             }).setOrigin(0.5);
-            
+
             // Cook button
             const cookBtn = this.add.rectangle(x, y + 120, 180, 50, 0xFF6B6B);
             cookBtn.setStrokeStyle(2, 0xFFFFFF);
             cookBtn.setInteractive();
-            
+
             this.add.text(x, y + 105, 'Cook', {
                 fontSize: '18px',
                 color: '#FFFFFF',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             this.add.text(x, y + 130, `${recipe.cost} 💰`, {
                 fontSize: '14px',
                 color: '#FFD700'
             }).setOrigin(0.5);
-            
+
             cookBtn.on('pointerover', () => {
                 cookBtn.setFillStyle(0xFF8A8A);
                 cookBtn.setScale(1.05);
             });
-            
+
             cookBtn.on('pointerout', () => {
                 cookBtn.setFillStyle(0xFF6B6B);
                 cookBtn.setScale(1);
             });
-            
+
             cookBtn.on('pointerdown', () => {
                 if (gameState.data.player.coins >= recipe.cost) {
                     gameState.data.player.coins -= recipe.cost;
-                    
+
                     // Apply effects
                     const e = recipe.effect;
                     if (e.energy) {
@@ -10013,12 +10042,12 @@ class CookingScene extends Phaser.Scene {
                     if (e.networking) gameState.data.player.networking += e.networking;
                     if (e.reputation) gameState.data.player.reputation += e.reputation;
                     if (e.followers) gameState.data.player.followers += e.followers;
-                    
+
                     gameState.gainXP(30);
-                    
+
                     showNotification(`🍳 Cooked ${recipe.name}! Buffs applied!`);
                     this.cameras.main.flash(300, 255, 215, 0, false, null, 0.3);
-                    
+
                     // Cooking effects
                     for (let j = 0; j < 10; j++) {
                         const spark = this.add.text(x, y - 100, '✨', { fontSize: '20px' });
@@ -10031,24 +10060,24 @@ class CookingScene extends Phaser.Scene {
                             onComplete: () => spark.destroy()
                         });
                     }
-                    
+
                     updateUI();
                 } else {
                     showNotification(`💰 Need ${recipe.cost} coins!`);
                 }
             });
         });
-        
+
         // Back button
-        const backBtn = this.add.rectangle(width/2, height - 80, 200, 50, 0x654321);
+        const backBtn = this.add.rectangle(width / 2, height - 80, 200, 50, 0x654321);
         backBtn.setStrokeStyle(2, 0xFFFFFF);
         backBtn.setInteractive();
-        
-        this.add.text(width/2, height - 80, 'Back', {
+
+        this.add.text(width / 2, height - 80, 'Back', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         backBtn.on('pointerdown', () => {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -10068,7 +10097,7 @@ class NetworkingEventScene extends Phaser.Scene {
         const width = 800;
         const height = 600;
         this.physics.world.setBounds(0, 0, width, height);
-        
+
         // Elegant venue
         for (let x = 0; x < width; x += 16) {
             for (let y = 0; y < height; y += 16) {
@@ -10076,9 +10105,9 @@ class NetworkingEventScene extends Phaser.Scene {
                 tile.setTint(0x4A4A6A);
             }
         }
-        
+
         this.createWalls(width, height);
-        
+
         // Title
         this.add.text(400, 40, '🎭 NETWORKING EVENT', {
             fontSize: '28px',
@@ -10087,31 +10116,31 @@ class NetworkingEventScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
+
         this.add.text(400, 75, '15+ Professionals Attending', {
             fontSize: '14px',
             color: '#00FF88',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         // Player
         this.player = this.physics.add.sprite(400, 500, 'player');
         this.player.setScale(1.5);
         this.player.setCollideWorldBounds(true);
-        
+
         this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
         this.cameras.main.setZoom(2);
-        
+
         this.createEvent();
-        
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
         this.eKey = this.input.keyboard.addKey('E');
-        
+
         showNotification('🎭 Network with everyone! Massive opportunity!');
     }
-    
+
     createWalls(width, height) {
         this.walls = this.physics.add.staticGroup();
         for (let x = 0; x < width; x += 16) {
@@ -10123,35 +10152,35 @@ class NetworkingEventScene extends Phaser.Scene {
             this.walls.create(width - 16, y, 'wall').setOrigin(0).refreshBody();
         }
     }
-    
+
     createEvent() {
         this.interactables = [];
         this.networkedWith = new Set();
-        
+
         // Spawn 15 professionals around the room
         const names = [
             'Alex Tech', 'Jordan Dev', 'Taylor PM', 'Morgan CEO', 'Casey Designer',
             'Riley Engineer', 'Drew Marketer', 'Quinn Analyst', 'Jamie Founder', 'Avery CTO',
             'Parker COO', 'Skyler VP', 'Blake Director', 'Sage Manager', 'River Lead'
         ];
-        
+
         const sprites = ['npc1', 'npc2', 'npc3', 'npc4', 'npc5'];
-        
+
         for (let i = 0; i < 15; i++) {
             const x = Phaser.Math.Between(100, 700);
             const y = Phaser.Math.Between(120, 450);
-            
+
             const sprite = Phaser.Math.RND.pick(sprites);
             const npc = this.add.sprite(x, y, sprite);
             npc.setScale(1.3);
-            
+
             const label = this.add.text(x, y - 30, names[i].split(' ')[0], {
                 fontSize: '11px',
                 color: '#FFD700',
                 stroke: '#000000',
                 strokeThickness: 2
             }).setOrigin(0.5);
-            
+
             this.interactables.push({
                 sprite: npc,
                 label: label,
@@ -10160,11 +10189,11 @@ class NetworkingEventScene extends Phaser.Scene {
                 y: y
             });
         }
-        
+
         // Exit
         this.exitDoor = { x: 400, y: 570, type: 'exit' };
     }
-    
+
     update() {
         const speed = 120;
         let vX = 0, vY = 0;
@@ -10173,42 +10202,42 @@ class NetworkingEventScene extends Phaser.Scene {
         if (this.cursors.up.isDown || this.wasd.W.isDown) vY = -speed;
         else if (this.cursors.down.isDown || this.wasd.S.isDown) vY = speed;
         this.player.setVelocity(vX, vY);
-        
+
         // Check for nearby NPCs
         let nearest = null;
         let minDist = Infinity;
-        
+
         this.interactables.forEach((npc, index) => {
             const dist = Phaser.Math.Distance.Between(
                 this.player.x, this.player.y, npc.x, npc.y
             );
-            
+
             if (dist < 50 && dist < minDist) {
                 minDist = dist;
                 nearest = { npc, index };
             }
         });
-        
+
         // Check exit
         const exitDist = Phaser.Math.Distance.Between(
             this.player.x, this.player.y, this.exitDoor.x, this.exitDoor.y
         );
-        
+
         if (exitDist < 60) {
             showInteractionPrompt(true);
             if (Phaser.Input.Keyboard.JustDown(this.eKey)) {
                 // Leave event
                 const networked = this.networkedWith.size;
                 const bonus = networked * 20;
-                
+
                 showNotification(`🎭 Event complete! Networked with ${networked} people`);
                 gameState.data.player.coins += bonus * 2;
                 gameState.gainXP(bonus * 3);
-                
+
                 if (networked >= 10) {
                     showAchievement('Networking Champion 🏆');
                 }
-                
+
                 updateUI();
                 this.cameras.main.fadeOut(1000);
                 this.time.delayedCall(1000, () => {
@@ -10224,10 +10253,10 @@ class NetworkingEventScene extends Phaser.Scene {
                         gameState.data.player.connections++;
                         gameState.data.player.networking += 8;
                         gameState.gainXP(25);
-                        
+
                         this.networkedWith.add(nearest.index);
                         nearest.npc.sprite.setTint(0x00FF88);
-                        
+
                         showNotification(`🤝 Connected with ${nearest.npc.name}!`);
                         this.cameras.main.flash(100, 0, 200, 0, false, null, 0.2);
                         updateUI();
@@ -10251,71 +10280,71 @@ class VehicleShopScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Showroom
-        this.add.rectangle(width/2, height/2, width, height, 0xF5F5F5);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0xF5F5F5);
+
         // Title
-        this.add.text(width/2, 100, '🚗 VEHICLE DEALERSHIP', {
+        this.add.text(width / 2, 100, '🚗 VEHICLE DEALERSHIP', {
             fontSize: '40px',
             color: '#FF6B6B',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 150, 'Upgrade your commute, save time!', {
+
+        this.add.text(width / 2, 150, 'Upgrade your commute, save time!', {
             fontSize: '18px',
             color: '#666666'
         }).setOrigin(0.5);
-        
+
         // Vehicle options
         const vehicles = [
-            { 
-                name: 'Electric Bike', 
-                emoji: '🚲', 
-                cost: 800, 
+            {
+                name: 'Electric Bike',
+                emoji: '🚲',
+                cost: 800,
                 benefit: '15% faster city travel',
                 speedBoost: 1.15
             },
-            { 
-                name: 'Hybrid Car', 
-                emoji: '🚗', 
-                cost: 2000, 
+            {
+                name: 'Hybrid Car',
+                emoji: '🚗',
+                cost: 2000,
                 benefit: '30% faster city travel + style bonus',
                 speedBoost: 1.30,
                 repBonus: 25
             },
-            { 
-                name: 'Tesla Model S', 
-                emoji: '🚘', 
-                cost: 5000, 
+            {
+                name: 'Tesla Model S',
+                emoji: '🚘',
+                cost: 5000,
                 benefit: '50% faster travel + major reputation',
                 speedBoost: 1.50,
                 repBonus: 50
             }
         ];
-        
+
         vehicles.forEach((vehicle, i) => {
-            const x = width/2 - 450 + i * 450;
-            const y = height/2 + 50;
-            
+            const x = width / 2 - 450 + i * 450;
+            const y = height / 2 + 50;
+
             // Vehicle card
             const card = this.add.rectangle(x, y, 400, 500, 0xFFFFFF);
             card.setStrokeStyle(5, 0x0A66C2);
-            
+
             // Vehicle
             this.add.text(x, y - 150, vehicle.emoji, {
                 fontSize: '140px'
             }).setOrigin(0.5);
-            
+
             // Name
             this.add.text(x, y + 40, vehicle.name, {
                 fontSize: '26px',
                 color: '#0A66C2',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             // Benefit
             this.add.text(x, y + 90, vehicle.benefit, {
                 fontSize: '14px',
@@ -10323,49 +10352,49 @@ class VehicleShopScene extends Phaser.Scene {
                 align: 'center',
                 wordWrap: { width: 350 }
             }).setOrigin(0.5);
-            
+
             // Buy button
             const buyBtn = this.add.rectangle(x, y + 180, 300, 70, 0xFF6B6B);
             buyBtn.setStrokeStyle(3, 0xFFFFFF);
             buyBtn.setInteractive();
-            
+
             this.add.text(x, y + 160, 'Purchase', {
                 fontSize: '22px',
                 color: '#FFFFFF',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             this.add.text(x, y + 195, `${vehicle.cost} 💰`, {
                 fontSize: '18px',
                 color: '#FFD700'
             }).setOrigin(0.5);
-            
+
             buyBtn.on('pointerover', () => {
                 buyBtn.setFillStyle(0xFF8A8A);
                 buyBtn.setScale(1.05);
             });
-            
+
             buyBtn.on('pointerout', () => {
                 buyBtn.setFillStyle(0xFF6B6B);
                 buyBtn.setScale(1);
             });
-            
+
             buyBtn.on('pointerdown', () => {
                 if (gameState.data.player.coins >= vehicle.cost) {
                     gameState.data.player.coins -= vehicle.cost;
                     gameState.data.player.vehicle = vehicle.name;
-                    
+
                     if (vehicle.repBonus) {
                         gameState.data.player.reputation += vehicle.repBonus;
                     }
-                    
+
                     gameState.gainXP(vehicle.cost / 2);
-                    
+
                     showNotification(`🚗 Purchased ${vehicle.name}!`);
                     showAchievement(`Vehicle Owner: ${vehicle.name}`);
                     this.cameras.main.flash(500, 0, 200, 255, false, null, 0.4);
                     updateUI();
-                    
+
                     this.time.delayedCall(2000, () => {
                         this.cameras.main.fadeOut(1000);
                         this.time.delayedCall(1000, () => {
@@ -10377,17 +10406,17 @@ class VehicleShopScene extends Phaser.Scene {
                 }
             });
         });
-        
+
         // Back button
-        const backBtn = this.add.rectangle(width/2, height - 80, 250, 60, 0x4A4A4A);
+        const backBtn = this.add.rectangle(width / 2, height - 80, 250, 60, 0x4A4A4A);
         backBtn.setStrokeStyle(3, 0xFFFFFF);
         backBtn.setInteractive();
-        
-        this.add.text(width/2, height - 80, 'Back to City', {
+
+        this.add.text(width / 2, height - 80, 'Back to City', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         backBtn.on('pointerdown', () => {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -10406,10 +10435,13 @@ class PrestigeScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Epic background
-        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
+
         // Stars/particles
         for (let i = 0; i < 100; i++) {
             const star = this.add.circle(
@@ -10419,7 +10451,7 @@ class PrestigeScene extends Phaser.Scene {
                 0xFFFFFF,
                 Phaser.Math.FloatBetween(0.3, 1)
             );
-            
+
             this.tweens.add({
                 targets: star,
                 alpha: 0.2,
@@ -10428,26 +10460,26 @@ class PrestigeScene extends Phaser.Scene {
                 repeat: -1
             });
         }
-        
+
         // Title
-        this.add.text(width/2, 150, '✨ PRESTIGE MODE ✨', {
+        this.add.text(width / 2, 150, '✨ PRESTIGE MODE ✨', {
             fontSize: '48px',
             color: '#FFD700',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 6
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 220, 'Transcend to the next level', {
+
+        this.add.text(width / 2, 220, 'Transcend to the next level', {
             fontSize: '20px',
             color: '#FFFFFF',
             stroke: '#000000',
             strokeThickness: 2
         }).setOrigin(0.5);
-        
+
         const p = gameState.data.player;
         const canPrestige = p.level >= 50;
-        
+
         if (canPrestige) {
             // Show prestige benefits
             const benefits = [
@@ -10460,35 +10492,35 @@ class PrestigeScene extends Phaser.Scene {
                 '• Prestige level counter',
                 '• Bragging rights!'
             ];
-            
-            this.add.text(width/2, 300, 'PRESTIGE BENEFITS:', {
+
+            this.add.text(width / 2, 300, 'PRESTIGE BENEFITS:', {
                 fontSize: '24px',
                 color: '#00FF88',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             benefits.forEach((benefit, i) => {
-                this.add.text(width/2, 350 + i * 35, benefit, {
+                this.add.text(width / 2, 350 + i * 35, benefit, {
                     fontSize: '16px',
                     color: '#FFFFFF'
                 }).setOrigin(0.5);
             });
-            
+
             // Prestige button
-            const prestigeBtn = this.add.rectangle(width/2, height - 180, 400, 80, 0xFFD700);
+            const prestigeBtn = this.add.rectangle(width / 2, height - 180, 400, 80, 0xFFD700);
             prestigeBtn.setStrokeStyle(5, 0xFFFFFF);
             prestigeBtn.setInteractive();
-            
-            this.add.text(width/2, height - 180, '✨ PRESTIGE NOW ✨', {
+
+            this.add.text(width / 2, height - 180, '✨ PRESTIGE NOW ✨', {
                 fontSize: '28px',
                 color: '#000000',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
+
             prestigeBtn.on('pointerover', () => {
                 prestigeBtn.setFillStyle(0xFFE44D);
                 prestigeBtn.setScale(1.05);
-                
+
                 // Glow effect
                 this.tweens.add({
                     targets: prestigeBtn,
@@ -10497,39 +10529,39 @@ class PrestigeScene extends Phaser.Scene {
                     yoyo: true
                 });
             });
-            
+
             prestigeBtn.on('pointerout', () => {
                 prestigeBtn.setFillStyle(0xFFD700);
                 prestigeBtn.setScale(1);
             });
-            
+
             prestigeBtn.on('pointerdown', () => {
                 // Confirm prestige
                 const confirm = window.confirm('Are you sure you want to PRESTIGE? This will reset your level and stats but grant permanent bonuses!');
-                
+
                 if (confirm) {
                     // Keep achievements and add prestige bonuses
                     const achievements = achievementManager.unlocked;
                     const prestigeLevel = (gameState.data.prestigeLevel || 0) + 1;
-                    
+
                     // Reset but with bonuses
                     gameState.data = gameState.createNewGame();
                     gameState.data.prestigeLevel = prestigeLevel;
                     gameState.data.xpMultiplier = 1 + (prestigeLevel * 0.5);
                     gameState.data.player.maxEnergy += 100;
                     gameState.data.player.badges.push('✨ Prestige ' + prestigeLevel);
-                    
+
                     // Restore achievements
                     achievementManager.unlocked = achievements;
-                    
+
                     gameState.saveGame();
-                    
+
                     showNotification(`✨ PRESTIGE ${prestigeLevel} ACTIVATED! You are reborn!`);
                     showAchievement(`Prestige Level ${prestigeLevel}!`);
-                    
+
                     // Epic animation
                     this.cameras.main.flash(2000, 255, 215, 0);
-                    
+
                     this.time.delayedCall(3000, () => {
                         this.cameras.main.fadeOut(2000);
                         this.time.delayedCall(2000, () => {
@@ -10540,24 +10572,24 @@ class PrestigeScene extends Phaser.Scene {
             });
         } else {
             // Not eligible yet
-            this.add.text(width/2, 350, `You need to reach Level 50 to Prestige\n\nCurrent Level: ${p.level}\nLevels to go: ${50 - p.level}`, {
+            this.add.text(width / 2, 350, `You need to reach Level 50 to Prestige\n\nCurrent Level: ${p.level}\nLevels to go: ${50 - p.level}`, {
                 fontSize: '24px',
                 color: '#FF6B6B',
                 align: 'center',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
         }
-        
+
         // Back button
-        const backBtn = this.add.rectangle(width/2, height - 80, 250, 60, 0xFF6B6B);
+        const backBtn = this.add.rectangle(width / 2, height - 80, 250, 60, 0xFF6B6B);
         backBtn.setStrokeStyle(3, 0xFFFFFF);
         backBtn.setInteractive();
-        
-        this.add.text(width/2, height - 80, 'Back', {
+
+        this.add.text(width / 2, height - 80, 'Back', {
             fontSize: '20px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         backBtn.on('pointerdown', () => {
             this.cameras.main.fadeOut(500);
             this.time.delayedCall(500, () => {
@@ -10576,27 +10608,27 @@ class SkillMinigameScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Dark overlay
-        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
+
         // Game background
-        const bg = this.add.rectangle(width/2, height/2, 600, 400, 0x1E3A8A);
+        const bg = this.add.rectangle(width / 2, height / 2, 600, 400, 0x1E3A8A);
         bg.setStrokeStyle(4, 0x00FF88);
-        
+
         // Title
-        this.add.text(width/2, height/2 - 150, '⚡ CODING CHALLENGE', {
+        this.add.text(width / 2, height / 2 - 150, '⚡ CODING CHALLENGE', {
             fontSize: '32px',
             color: '#00FF88',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Instructions
-        this.add.text(width/2, height/2 - 100, 'Type the code snippet correctly!', {
+        this.add.text(width / 2, height / 2 - 100, 'Type the code snippet correctly!', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         // Code to type
         const codeSnippets = [
             'function hello()',
@@ -10605,62 +10637,62 @@ class SkillMinigameScene extends Phaser.Scene {
             'if (x > 0) {}',
             'let count = 0'
         ];
-        
+
         this.targetCode = Phaser.Math.RND.pick(codeSnippets);
         this.typedCode = '';
         this.startTime = Date.now();
-        
+
         // Display target
-        this.add.text(width/2, height/2 - 40, 'Type This:', {
+        this.add.text(width / 2, height / 2 - 40, 'Type This:', {
             fontSize: '14px',
             color: '#FFD700'
         }).setOrigin(0.5);
-        
-        this.targetText = this.add.text(width/2, height/2, this.targetCode, {
+
+        this.targetText = this.add.text(width / 2, height / 2, this.targetCode, {
             fontSize: '24px',
             color: '#00FF88',
             fontFamily: 'Courier New'
         }).setOrigin(0.5);
-        
+
         // Your input
-        this.add.text(width/2, height/2 + 60, 'Your Input:', {
+        this.add.text(width / 2, height / 2 + 60, 'Your Input:', {
             fontSize: '14px',
             color: '#FFD700'
         }).setOrigin(0.5);
-        
-        this.inputText = this.add.text(width/2, height/2 + 90, '', {
+
+        this.inputText = this.add.text(width / 2, height / 2 + 90, '', {
             fontSize: '24px',
             color: '#FFFFFF',
             fontFamily: 'Courier New'
         }).setOrigin(0.5);
-        
+
         // Listen for typing
         this.input.keyboard.on('keydown', (event) => {
             if (event.key === 'Escape') {
                 this.closeMinigame();
                 return;
             }
-            
+
             if (event.key === 'Backspace') {
                 this.typedCode = this.typedCode.slice(0, -1);
             } else if (event.key.length === 1) {
                 this.typedCode += event.key;
             }
-            
+
             this.inputText.setText(this.typedCode);
-            
+
             // Check if correct
             if (this.typedCode === this.targetCode) {
                 this.completeMinigame();
             }
         });
-        
+
         // Time remaining
-        this.timerText = this.add.text(width/2, height/2 + 140, 'Time: 10s', {
+        this.timerText = this.add.text(width / 2, height / 2 + 140, 'Time: 10s', {
             fontSize: '18px',
             color: '#FF6B6B'
         }).setOrigin(0.5);
-        
+
         this.timeLimit = 10000;
         this.time.delayedCall(this.timeLimit, () => {
             if (this.scene.isActive()) {
@@ -10669,27 +10701,27 @@ class SkillMinigameScene extends Phaser.Scene {
             }
         });
     }
-    
+
     update() {
         const elapsed = Date.now() - this.startTime;
         const remaining = Math.max(0, Math.ceil((this.timeLimit - elapsed) / 1000));
         this.timerText.setText(`Time: ${remaining}s`);
     }
-    
+
     completeMinigame() {
         const elapsed = Date.now() - this.startTime;
         const timeBonus = Math.floor((10000 - elapsed) / 100);
-        
+
         gameState.data.player.skills += 15 + timeBonus;
         gameState.data.player.coins += 50 + timeBonus;
         gameState.gainXP(30 + timeBonus);
-        
+
         showNotification(`🎮 Challenge Complete! +${15 + timeBonus} skills, +${50 + timeBonus} coins!`);
         updateUI();
-        
+
         this.closeMinigame();
     }
-    
+
     closeMinigame() {
         this.input.keyboard.off('keydown');
         this.scene.stop();
@@ -10705,26 +10737,29 @@ class MemoryGameScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Dark overlay
-        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
+
         // Game background
-        const bg = this.add.rectangle(width/2, height/2, 700, 500, 0x2A9D8F);
+        const bg = this.add.rectangle(width / 2, height / 2, 700, 500, 0x2A9D8F);
         bg.setStrokeStyle(4, 0x00FF88);
-        
+
         // Title
-        this.add.text(width/2, height/2 - 220, '🧠 MEMORY MATCH', {
+        this.add.text(width / 2, height / 2 - 220, '🧠 MEMORY MATCH', {
             fontSize: '32px',
             color: '#00FF88',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, height/2 - 180, 'Match the LinkedIn skill pairs!', {
+
+        this.add.text(width / 2, height / 2 - 180, 'Match the LinkedIn skill pairs!', {
             fontSize: '16px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         // Create cards
         this.symbols = ['💻', '📱', '🎯', '💼', '📊', '🚀', '💡', '⭐'];
         this.cards = [];
@@ -10732,31 +10767,31 @@ class MemoryGameScene extends Phaser.Scene {
         this.matchedPairs = 0;
         this.moves = 0;
         this.startTime = Date.now();
-        
+
         // Shuffle symbols
         const gameSymbols = [...this.symbols, ...this.symbols];
         Phaser.Utils.Array.Shuffle(gameSymbols);
-        
+
         // Create 4x4 grid
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 4; col++) {
-                const x = width/2 - 180 + col * 120;
-                const y = height/2 - 100 + row * 110;
+                const x = width / 2 - 180 + col * 120;
+                const y = height / 2 - 100 + row * 110;
                 const symbol = gameSymbols[row * 4 + col];
-                
+
                 const card = this.add.rectangle(x, y, 90, 90, 0x0A66C2);
                 card.setStrokeStyle(3, 0x00FF88);
                 card.setInteractive();
-                
+
                 const cardText = this.add.text(x, y, '?', {
                     fontSize: '40px',
                     color: '#FFFFFF'
                 }).setOrigin(0.5);
-                
+
                 const symbolText = this.add.text(x, y, symbol, {
                     fontSize: '40px'
                 }).setOrigin(0.5).setAlpha(0);
-                
+
                 const cardData = {
                     rect: card,
                     questionMark: cardText,
@@ -10765,66 +10800,66 @@ class MemoryGameScene extends Phaser.Scene {
                     flipped: false,
                     matched: false
                 };
-                
+
                 card.on('pointerdown', () => {
                     if (!cardData.flipped && !cardData.matched && this.flippedCards.length < 2) {
                         this.flipCard(cardData);
                     }
                 });
-                
+
                 card.on('pointerover', () => {
                     if (!cardData.matched) {
                         card.setFillStyle(0x0E7FE8);
                     }
                 });
-                
+
                 card.on('pointerout', () => {
                     if (!cardData.matched) {
                         card.setFillStyle(0x0A66C2);
                     }
                 });
-                
+
                 this.cards.push(cardData);
             }
         }
-        
+
         // Moves counter
-        this.movesText = this.add.text(width/2, height/2 + 220, 'Moves: 0', {
+        this.movesText = this.add.text(width / 2, height / 2 + 220, 'Moves: 0', {
             fontSize: '18px',
             color: '#FFD700'
         }).setOrigin(0.5);
-        
+
         // Timer
-        this.timerText = this.add.text(width/2 + 200, height/2 - 220, 'Time: 0s', {
+        this.timerText = this.add.text(width / 2 + 200, height / 2 - 220, 'Time: 0s', {
             fontSize: '16px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
     }
-    
+
     update() {
         const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
         this.timerText.setText(`Time: ${elapsed}s`);
     }
-    
+
     flipCard(card) {
         card.flipped = true;
         card.questionMark.setAlpha(0);
         card.symbolText.setAlpha(1);
         this.flippedCards.push(card);
-        
+
         if (this.flippedCards.length === 2) {
             this.moves++;
             this.movesText.setText(`Moves: ${this.moves}`);
-            
+
             this.time.delayedCall(500, () => {
                 this.checkMatch();
             });
         }
     }
-    
+
     checkMatch() {
         const [card1, card2] = this.flippedCards;
-        
+
         if (card1.symbol === card2.symbol) {
             // Match!
             card1.matched = true;
@@ -10832,7 +10867,7 @@ class MemoryGameScene extends Phaser.Scene {
             card1.rect.setFillStyle(0x00FF88);
             card2.rect.setFillStyle(0x00FF88);
             this.matchedPairs++;
-            
+
             if (this.matchedPairs === 8) {
                 this.completeGame();
             }
@@ -10845,23 +10880,23 @@ class MemoryGameScene extends Phaser.Scene {
             card2.questionMark.setAlpha(1);
             card2.symbolText.setAlpha(0);
         }
-        
+
         this.flippedCards = [];
     }
-    
+
     completeGame() {
         const timeBonus = Math.max(0, 60 - Math.floor((Date.now() - this.startTime) / 1000));
         const moveBonus = Math.max(0, 50 - this.moves);
         const totalBonus = timeBonus * 5 + moveBonus * 10;
-        
+
         gameState.data.player.skills += 20 + totalBonus;
         gameState.data.player.coins += 100 + totalBonus * 2;
         gameState.gainXP(50 + totalBonus);
-        
+
         showNotification(`🧠 Memory Perfect! +${20 + totalBonus} skills, +${100 + totalBonus * 2} coins!`);
         showAchievement('Memory Master 🧠');
         updateUI();
-        
+
         this.time.delayedCall(2000, () => {
             this.scene.stop();
         });
@@ -10877,60 +10912,63 @@ class ReactionGameScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Dark overlay
-        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
+
         // Game background
-        const bg = this.add.rectangle(width/2, height/2, 600, 400, 0xFF6B6B);
+        const bg = this.add.rectangle(width / 2, height / 2, 600, 400, 0xFF6B6B);
         bg.setStrokeStyle(4, 0xFFFF00);
-        
+
         // Title
-        this.add.text(width/2, height/2 - 150, '⚡ REACTION TEST', {
+        this.add.text(width / 2, height / 2 - 150, '⚡ REACTION TEST', {
             fontSize: '32px',
             color: '#FFFF00',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, height/2 - 110, 'Click the green button as fast as you can!', {
+
+        this.add.text(width / 2, height / 2 - 110, 'Click the green button as fast as you can!', {
             fontSize: '14px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         this.round = 0;
         this.maxRounds = 5;
         this.reactions = [];
         this.waitingForClick = false;
-        
+
         // Create target button
-        this.targetButton = this.add.rectangle(width/2, height/2 + 20, 150, 150, 0xFF0000);
+        this.targetButton = this.add.rectangle(width / 2, height / 2 + 20, 150, 150, 0xFF0000);
         this.targetButton.setStrokeStyle(4, 0x000000);
         this.targetButton.setInteractive();
-        
-        this.targetText = this.add.text(width/2, height/2 + 20, 'WAIT...', {
+
+        this.targetText = this.add.text(width / 2, height / 2 + 20, 'WAIT...', {
             fontSize: '24px',
             color: '#FFFFFF',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         // Stats
-        this.statsText = this.add.text(width/2, height/2 + 130, `Round: ${this.round}/${this.maxRounds}`, {
+        this.statsText = this.add.text(width / 2, height / 2 + 130, `Round: ${this.round}/${this.maxRounds}`, {
             fontSize: '16px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         this.targetButton.on('pointerdown', () => {
             if (this.waitingForClick) {
                 const reactionTime = Date.now() - this.clickStartTime;
                 this.reactions.push(reactionTime);
                 this.round++;
-                
+
                 this.targetButton.setFillStyle(0xFF0000);
                 this.targetText.setText('WAIT...');
                 this.waitingForClick = false;
-                
+
                 if (this.round >= this.maxRounds) {
                     this.completeGame();
                 } else {
@@ -10939,11 +10977,11 @@ class ReactionGameScene extends Phaser.Scene {
                 }
             }
         });
-        
+
         // Start first round
         this.scheduleNextRound();
     }
-    
+
     scheduleNextRound() {
         const delay = Phaser.Math.Between(1000, 3000);
         this.time.delayedCall(delay, () => {
@@ -10953,14 +10991,14 @@ class ReactionGameScene extends Phaser.Scene {
             this.waitingForClick = true;
         });
     }
-    
+
     completeGame() {
         const avgReaction = this.reactions.reduce((a, b) => a + b, 0) / this.reactions.length;
         const bestReaction = Math.min(...this.reactions);
-        
+
         let rating = 'Average';
         let bonus = 0;
-        
+
         if (avgReaction < 300) {
             rating = 'AMAZING!';
             bonus = 150;
@@ -10971,16 +11009,16 @@ class ReactionGameScene extends Phaser.Scene {
             rating = 'Good!';
             bonus = 50;
         }
-        
+
         gameState.data.player.skills += 15 + bonus;
         gameState.data.player.coins += 75 + bonus;
         gameState.gainXP(40 + bonus);
-        
+
         this.targetText.setText(`${rating}\nAvg: ${Math.floor(avgReaction)}ms`);
         showNotification(`⚡ Reaction Test Complete! +${15 + bonus} skills!`);
         showAchievement('Lightning Fast ⚡');
         updateUI();
-        
+
         this.time.delayedCall(3000, () => {
             this.scene.stop();
         });
@@ -10996,31 +11034,34 @@ class QuizGameScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Dark overlay
-        this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.9);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
+
         // Game background
-        const bg = this.add.rectangle(width/2, height/2, 700, 500, 0x7B1FA2);
+        const bg = this.add.rectangle(width / 2, height / 2, 700, 500, 0x7B1FA2);
         bg.setStrokeStyle(4, 0xFFD700);
-        
+
         // Title
-        this.add.text(width/2, height/2 - 220, '❓ TECH QUIZ', {
+        this.add.text(width / 2, height / 2 - 220, '❓ TECH QUIZ', {
             fontSize: '32px',
             color: '#FFD700',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, height/2 - 180, 'Test your technical knowledge!', {
+
+        this.add.text(width / 2, height / 2 - 180, 'Test your technical knowledge!', {
             fontSize: '16px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         this.currentQuestion = 0;
         this.score = 0;
-        
+
         this.quizQuestions = [
             {
                 q: "What does HTML stand for?",
@@ -11073,40 +11114,40 @@ class QuizGameScene extends Phaser.Scene {
                 correct: 0
             }
         ];
-        
+
         // Shuffle questions
         Phaser.Utils.Array.Shuffle(this.quizQuestions);
         this.quizQuestions = this.quizQuestions.slice(0, 5); // Use 5 questions
-        
+
         this.showQuestion();
     }
-    
+
     showQuestion() {
         if (this.currentQuestion >= this.quizQuestions.length) {
             this.endQuiz();
             return;
         }
-        
+
         const q = this.quizQuestions[this.currentQuestion];
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Question number
         if (this.questionNum) this.questionNum.destroy();
-        this.questionNum = this.add.text(width/2, height/2 - 130, `Question ${this.currentQuestion + 1}/${this.quizQuestions.length}`, {
+        this.questionNum = this.add.text(width / 2, height / 2 - 130, `Question ${this.currentQuestion + 1}/${this.quizQuestions.length}`, {
             fontSize: '16px',
             color: '#FFD700'
         }).setOrigin(0.5);
-        
+
         // Question text
         if (this.questionText) this.questionText.destroy();
-        this.questionText = this.add.text(width/2, height/2 - 80, q.q, {
+        this.questionText = this.add.text(width / 2, height / 2 - 80, q.q, {
             fontSize: '20px',
             color: '#FFFFFF',
             align: 'center',
             wordWrap: { width: 600 }
         }).setOrigin(0.5);
-        
+
         // Answer buttons
         if (this.answerButtons) {
             this.answerButtons.forEach(btn => {
@@ -11114,33 +11155,33 @@ class QuizGameScene extends Phaser.Scene {
                 btn.text.destroy();
             });
         }
-        
+
         this.answerButtons = [];
         q.answers.forEach((answer, i) => {
-            const y = height/2 + 20 + i * 70;
-            
-            const rect = this.add.rectangle(width/2, y, 600, 60, 0x4A4A4A);
+            const y = height / 2 + 20 + i * 70;
+
+            const rect = this.add.rectangle(width / 2, y, 600, 60, 0x4A4A4A);
             rect.setStrokeStyle(3, 0xFFD700);
             rect.setInteractive();
-            
-            const text = this.add.text(width/2, y, answer, {
+
+            const text = this.add.text(width / 2, y, answer, {
                 fontSize: '16px',
                 color: '#FFFFFF'
             }).setOrigin(0.5);
-            
+
             rect.on('pointerover', () => {
                 rect.setFillStyle(0x6A6A6A);
                 rect.setScale(1.02);
             });
-            
+
             rect.on('pointerout', () => {
                 rect.setFillStyle(0x4A4A4A);
                 rect.setScale(1);
             });
-            
+
             rect.on('pointerdown', () => {
                 const isCorrect = i === q.correct;
-                
+
                 if (isCorrect) {
                     this.score++;
                     rect.setFillStyle(0x00FF88);
@@ -11151,21 +11192,21 @@ class QuizGameScene extends Phaser.Scene {
                     this.cameras.main.shake(150, 0.002);
                     showNotification('✗ Incorrect');
                 }
-                
+
                 this.time.delayedCall(1000, () => {
                     this.currentQuestion++;
                     this.showQuestion();
                 });
             });
-            
+
             this.answerButtons.push({ rect, text });
         });
     }
-    
+
     endQuiz() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
         // Clear
         if (this.questionText) this.questionText.destroy();
         if (this.questionNum) this.questionNum.destroy();
@@ -11175,28 +11216,28 @@ class QuizGameScene extends Phaser.Scene {
                 btn.text.destroy();
             });
         }
-        
+
         const percentage = (this.score / this.quizQuestions.length) * 100;
         const bonus = this.score * 25;
-        
+
         gameState.data.player.skills += 10 + bonus;
         gameState.data.player.reputation += this.score * 5;
         gameState.data.player.coins += 50 + bonus;
         gameState.gainXP(30 + bonus);
-        
-        this.add.text(width/2, height/2, `Quiz Complete!\n\nScore: ${this.score}/${this.quizQuestions.length} (${Math.floor(percentage)}%)\n\n+${10 + bonus} Skills\n+${50 + bonus} Coins`, {
+
+        this.add.text(width / 2, height / 2, `Quiz Complete!\n\nScore: ${this.score}/${this.quizQuestions.length} (${Math.floor(percentage)}%)\n\n+${10 + bonus} Skills\n+${50 + bonus} Coins`, {
             fontSize: '24px',
             color: '#00FF88',
             align: 'center',
             fontStyle: 'bold'
         }).setOrigin(0.5);
-        
+
         if (this.score === this.quizQuestions.length) {
             showAchievement('Perfect Score! 🎯');
         }
-        
+
         updateUI();
-        
+
         this.time.delayedCall(4000, () => {
             this.scene.stop();
         });
@@ -11212,10 +11253,13 @@ class HackathonScene extends Phaser.Scene {
     create() {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        
+
+        // Hide interaction prompt in this modal scene
+        showInteractionPrompt(false);
+
         // Tech background
-        this.add.rectangle(width/2, height/2, width, height, 0x0D1B2A);
-        
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0D1B2A);
+
         // Matrix effect
         for (let i = 0; i < 30; i++) {
             const x = Phaser.Math.Between(0, width);
@@ -11225,7 +11269,7 @@ class HackathonScene extends Phaser.Scene {
                 alpha: 0.3,
                 fontFamily: 'Courier New'
             });
-            
+
             this.tweens.add({
                 targets: code,
                 y: height + 50,
@@ -11234,106 +11278,106 @@ class HackathonScene extends Phaser.Scene {
                 delay: Math.random() * 5000
             });
         }
-        
+
         // Title
-        this.add.text(width/2, 120, '💻 24-HOUR HACKATHON', {
+        this.add.text(width / 2, 120, '💻 24-HOUR HACKATHON', {
             fontSize: '36px',
             color: '#00FF00',
             fontStyle: 'bold',
             stroke: '#000000',
             strokeThickness: 4
         }).setOrigin(0.5);
-        
-        this.add.text(width/2, 170, 'Build something amazing in 60 seconds!', {
+
+        this.add.text(width / 2, 170, 'Build something amazing in 60 seconds!', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         // Project options
         const projects = [
             { name: '🤖 AI Chatbot', difficulty: 'Hard', reward: { xp: 200, coins: 400, skills: 50 } },
             { name: '📱 Mobile App', difficulty: 'Medium', reward: { xp: 150, coins: 300, skills: 35 } },
             { name: '🌐 Website', difficulty: 'Easy', reward: { xp: 100, coins: 200, skills: 25 } }
         ];
-        
+
         projects.forEach((project, i) => {
-            const y = height/2 + 50 + i * 100;
-            
-            const card = this.add.rectangle(width/2, y, 500, 90, 0x1E3A8A);
+            const y = height / 2 + 50 + i * 100;
+
+            const card = this.add.rectangle(width / 2, y, 500, 90, 0x1E3A8A);
             card.setStrokeStyle(3, 0x00FF00);
             card.setInteractive();
-            
-            this.add.text(width/2, y - 20, project.name, {
+
+            this.add.text(width / 2, y - 20, project.name, {
                 fontSize: '22px',
                 color: '#00FF00',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
-            this.add.text(width/2, y + 10, `Difficulty: ${project.difficulty}`, {
+
+            this.add.text(width / 2, y + 10, `Difficulty: ${project.difficulty}`, {
                 fontSize: '14px',
                 color: '#FFD700'
             }).setOrigin(0.5);
-            
+
             const rewardText = `XP: +${project.reward.xp} | Coins: +${project.reward.coins} | Skills: +${project.reward.skills}`;
-            this.add.text(width/2, y + 30, rewardText, {
+            this.add.text(width / 2, y + 30, rewardText, {
                 fontSize: '12px',
                 color: '#FFFFFF'
             }).setOrigin(0.5);
-            
+
             card.on('pointerover', () => {
                 card.setFillStyle(0x2E5AAA);
                 card.setScale(1.02);
             });
-            
+
             card.on('pointerout', () => {
                 card.setFillStyle(0x1E3A8A);
                 card.setScale(1);
             });
-            
+
             card.on('pointerdown', () => {
                 this.startHackathon(project);
             });
         });
-        
+
         // Cancel button
-        const cancelBtn = this.add.rectangle(width/2, height - 120, 200, 50, 0xFF6B6B);
+        const cancelBtn = this.add.rectangle(width / 2, height - 120, 200, 50, 0xFF6B6B);
         cancelBtn.setStrokeStyle(2, 0xFFFFFF);
         cancelBtn.setInteractive();
-        
-        this.add.text(width/2, height - 120, 'Leave', {
+
+        this.add.text(width / 2, height - 120, 'Leave', {
             fontSize: '18px',
             color: '#FFFFFF'
         }).setOrigin(0.5);
-        
+
         cancelBtn.on('pointerdown', () => {
             this.scene.stop();
             this.scene.start('CityScene');
         });
     }
-    
+
     startHackathon(project) {
         if (gameState.useEnergy(40)) {
             const width = this.cameras.main.width;
             const height = this.cameras.main.height;
-            
+
             // Clear scene
             this.children.removeAll();
-            
+
             // Progress bar
-            this.add.rectangle(width/2, height/2, width, height, 0x000000);
-            
-            this.add.text(width/2, height/2 - 100, 'BUILDING PROJECT...', {
+            this.add.rectangle(width / 2, height / 2, width, height, 0x000000);
+
+            this.add.text(width / 2, height / 2 - 100, 'BUILDING PROJECT...', {
                 fontSize: '32px',
                 color: '#00FF00',
                 fontStyle: 'bold'
             }).setOrigin(0.5);
-            
-            const progressBg = this.add.rectangle(width/2, height/2, 600, 50, 0x2C2C2C);
+
+            const progressBg = this.add.rectangle(width / 2, height / 2, 600, 50, 0x2C2C2C);
             progressBg.setStrokeStyle(3, 0x00FF00);
-            
-            const progressBar = this.add.rectangle(width/2 - 297, height/2, 0, 44, 0x00FF00);
+
+            const progressBar = this.add.rectangle(width / 2 - 297, height / 2, 0, 44, 0x00FF00);
             progressBar.setOrigin(0, 0.5);
-            
+
             // Simulate building
             this.tweens.add({
                 targets: progressBar,
@@ -11346,23 +11390,23 @@ class HackathonScene extends Phaser.Scene {
                     gameState.data.player.coins += project.reward.coins;
                     gameState.data.player.skills += project.reward.skills;
                     gameState.data.player.reputation += 30;
-                    
+
                     showNotification(`💻 Project complete! Massive rewards!`);
                     showAchievement('Hackathon Winner 🏆');
                     updateUI();
-                    
+
                     // Confetti
                     for (let i = 0; i < 40; i++) {
                         const confetti = this.add.text(
-                            width/2 + Phaser.Math.Between(-200, 200),
-                            height/2 - 100,
+                            width / 2 + Phaser.Math.Between(-200, 200),
+                            height / 2 - 100,
                             Phaser.Math.RND.pick(['🎉', '⭐', '💻', '🚀']),
                             { fontSize: '24px' }
                         );
-                        
+
                         this.tweens.add({
                             targets: confetti,
-                            y: height/2 + 200,
+                            y: height / 2 + 200,
                             x: confetti.x + Phaser.Math.Between(-150, 150),
                             alpha: 0,
                             rotation: Phaser.Math.Between(-4, 4),
@@ -11370,7 +11414,7 @@ class HackathonScene extends Phaser.Scene {
                             onComplete: () => confetti.destroy()
                         });
                     }
-                    
+
                     this.time.delayedCall(3000, () => {
                         this.scene.stop();
                         this.scene.start('CityScene');
@@ -11486,7 +11530,7 @@ function createGame() {
 
         // Keep HTML loading screen visible until LoadingScene is ready
         // LoadingScene will handle hiding it via its own UI hiding method
-        
+
     } catch (error) {
         console.error('Failed to create Phaser game:', error);
         const loading = document.getElementById('loading');
@@ -11497,7 +11541,7 @@ function createGame() {
 }
 
 // Start with LoadingScene instead of IntroScene
-const originalConfig = {...config};
+const originalConfig = { ...config };
 originalConfig.scene = config.scene;
 
 // Initialize game
@@ -11509,7 +11553,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (storyOverlay) {
         storyOverlay.style.display = 'none';
     }
-    
+
     // Add global Q key handler for dialogue system (changed from ESC to Q)
     document.addEventListener('keydown', (event) => {
         if (event.key === 'q' || event.key === 'Q') {
@@ -11536,21 +11580,21 @@ function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         if (!window.game) return;
-        
+
         const width = window.innerWidth;
         const height = window.innerHeight;
-        
+
         // Resize the game canvas directly
         if (window.game.canvas) {
             window.game.canvas.style.width = width + 'px';
             window.game.canvas.style.height = height + 'px';
         }
-        
+
         // Update Phaser game scale
         if (window.game.scale) {
             window.game.scale.resize(width, height);
         }
-        
+
         // Update all active scene cameras to match new dimensions
         if (window.game.scene && window.game.scene.scenes) {
             window.game.scene.scenes.forEach(scene => {
@@ -11561,7 +11605,7 @@ function handleResize() {
                 }
             });
         }
-        
+
         console.log(`✓ Game resized: ${width}x${height}`);
     }, 100);
 }
@@ -11574,12 +11618,12 @@ window.addEventListener('orientationchange', handleResize);
 function toggleFullscreen() {
     const container = document.getElementById('game-container');
     if (!container) return;
-    
-    const isFullscreen = document.fullscreenElement || 
-                         document.webkitFullscreenElement || 
-                         document.mozFullScreenElement || 
-                         document.msFullscreenElement;
-    
+
+    const isFullscreen = document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement;
+
     if (isFullscreen) {
         // Exit fullscreen
         if (document.exitFullscreen) {
@@ -11608,19 +11652,19 @@ function toggleFullscreen() {
 // Handle fullscreen state changes
 function handleFullscreenChange() {
     console.log('🔄 Global fullscreen change detected');
-    
+
     // Use global coordinate system
     if (window.coordSystem) {
         window.coordSystem.handleFullscreenChange();
     }
-    
+
     // Trigger Phaser resize
     setTimeout(() => {
         handleResize();
-        
+
         // Dispatch resize event
         window.dispatchEvent(new Event('resize'));
-        
+
         // Trigger Phaser's scale manager resize event
         if (window.game && window.game.scale) {
             window.game.scale.emit('resize', window.game.scale);
