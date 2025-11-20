@@ -178,7 +178,7 @@ class SoundManager {
     }
     
     loadSounds() {
-        const soundPath = '/Sounds for LinkedIn Tycoon/';
+        const soundPath = import.meta.env.BASE_URL + 'Sounds for LinkedIn Tycoon/';
         
         // Background Music (themes)
         this.sounds.menu_theme = { key: 'menu_theme', path: soundPath + 'menu_theme.mp3', type: 'music' };
@@ -2874,7 +2874,7 @@ class LoadingScene extends Phaser.Scene {
     
     preload() {
         // Preload all sounds
-        const soundPath = '/Sounds for LinkedIn Tycoon/';
+        const soundPath = import.meta.env.BASE_URL + 'Sounds for LinkedIn Tycoon/';
         
         // Background Music (themes)
         this.load.audio('menu_theme', soundPath + 'menu_theme.mp3');
