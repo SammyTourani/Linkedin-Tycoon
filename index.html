@@ -247,6 +247,7 @@
 
         #story-overlay.show {
             display: flex;
+            opacity: 1;
         }
 
         #story-content {
@@ -591,6 +592,73 @@
             color: #00ff88;
         }
 
+        #encounter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 16000;
+            animation: fadeIn 0.5s;
+        }
+
+        #encounter-overlay.show {
+            display: flex;
+        }
+
+        #encounter-content {
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+            text-align: center;
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        #encounter-title {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        #encounter-text {
+            color: white;
+            line-height: 1.8;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        #encounter-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .encounter-choice-btn {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .encounter-choice-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            background: #fff;
+        }
+
         @media (max-width: 768px) {
             #ui-overlay {
                 padding: 0.5vh 0.5vw;
@@ -678,6 +746,14 @@
                 <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
                 <p id="story-text">Your journey begins here...</p>
                 <button id="story-continue">Continue</button>
+            </div>
+        </div>
+
+        <div id="encounter-overlay">
+            <div id="encounter-content">
+                <h2 id="encounter-title">⚡ Random Encounter</h2>
+                <p id="encounter-text">Something happened...</p>
+                <div id="encounter-choices"></div>
             </div>
         </div>
 
@@ -769,6 +845,18 @@
             <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px; font-size: 24px;">🌳 Skill Tree</h2>
             <div id="skill-tree-content"></div>
             <button class="menu-button" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close</button>
+        </div>
+
+        <div id="encounter-overlay">
+            <div id="encounter-content">
+                <div id="encounter-title">⚔️ Wild Encounter!</div>
+                <div id="encounter-text">You've encountered a wild creature! What will you do?</div>
+                <div id="encounter-choices">
+                    <button class="encounter-choice-btn" id="fight-btn">Fight</button>
+                    <button class="encounter-choice-btn" id="flee-btn">Flee</button>
+                    <button class="encounter-choice-btn" id="befriend-btn">Befriend</button>
+                </div>
+            </div>
         </div>
     </div>
 
