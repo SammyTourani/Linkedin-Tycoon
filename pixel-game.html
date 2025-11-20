@@ -241,14 +241,12 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 99999;
-            pointer-events: none;
+            z-index: 15000;
+            animation: fadeIn 0.5s;
         }
-        
+
         #story-overlay.show {
             display: flex;
-            pointer-events: auto;
-            animation: fadeIn 0.3s ease-in-out;
         }
 
         #story-content {
@@ -256,122 +254,7 @@
             text-align: center;
             border: 4px solid #00ff88;
             box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-            max-width: 600px;
-            width: 90%;
-            padding: 40px;
-            border-radius: 16px;
-            pointer-events: auto;
-        }
-
-        #story-content h2 {
-            color: #00ff88;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
-
-        #story-content p {
-            color: white;
-            font-size: 16px;
-            line-height: 1.8;
-            margin-bottom: 20px;
-        }
-
-        #story-content button {
-            background: #00ff88;
-            color: #000;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            padding: 12px 32px;
-            font-size: 16px;
-            border-radius: 8px;
-            position: relative;
-            z-index: 1;
-            pointer-events: auto;
-        }
-
-        #story-content button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
-        }
-
-        /* Random Encounter Overlay - Full screen centered */
-        #encounter-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 16000;
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
-        
-        #encounter-overlay.show {
-            visibility: visible;
-            opacity: 1;
-        }
-        
-        #encounter-content {
-            background: linear-gradient(135deg, #1E3A8A 0%, #0F2557 100%);
-            border: 4px solid #00FF88;
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 700px;
-            width: 90%;
-            box-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
-            text-align: center;
-        }
-        
-        #encounter-title {
-            color: #FFD700;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
-        
-        #encounter-text {
-            color: #FFFFFF;
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        
-        #encounter-choices {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .encounter-choice-btn {
-            background: #0A66C2;
-            color: white;
-            border: 2px solid #FFFFFF;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .encounter-choice-btn:hover {
-            background: #0E7FE8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(14, 127, 232, 0.5);
-        }
-        
-        .encounter-choice-btn:active {
-            transform: translateY(0);
+            /* Padding, border-radius, max-width will be set dynamically */
         }
 
         #story-content h2 {
@@ -790,10 +673,18 @@
             <small>Build Your Professional Empire</small>
         </div>
 
+        <div id="story-overlay">
+            <div id="story-content">
+                <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
+                <p id="story-text">Your journey begins here...</p>
+                <button id="story-continue">Continue</button>
+            </div>
+        </div>
+
         <div id="dialogue-box">
             <div id="dialogue-speaker">NPC Name</div>
             <div id="dialogue-text">Dialogue text goes here...</div>
-            <div id="dialogue-skip-hint">Press Q to skip typing</div>
+            <div id="dialogue-skip-hint">Press ESC to skip typing</div>
             <div id="dialogue-choices"></div>
         </div>
 
@@ -878,23 +769,6 @@
             <h2 style="color: #00ff88; text-align: center; margin-bottom: 20px; font-size: 24px;">🌳 Skill Tree</h2>
             <div id="skill-tree-content"></div>
             <button class="menu-button" onclick="document.getElementById('skill-tree-menu').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- Story and Encounter overlays OUTSIDE game-container to prevent clipping -->
-    <div id="story-overlay">
-        <div id="story-content">
-            <h2 id="story-title">Welcome to LinkedIn Tycoon</h2>
-            <p id="story-text">Your journey begins here...</p>
-            <button id="story-continue">Continue</button>
-        </div>
-    </div>
-
-    <div id="encounter-overlay">
-        <div id="encounter-content">
-            <h2 id="encounter-title">Random Event</h2>
-            <p id="encounter-text">Something happened...</p>
-            <div id="encounter-choices"></div>
         </div>
     </div>
 
@@ -1006,24 +880,26 @@
                 updateAchievementPosition();
                 popup.classList.add('show');
                 popup.style.display = 'block';
-                
-                // Register with global coordinate system while visible
-                if (window.coordSystem) {
-                    window.coordSystem.register('achievement-popup', 960, 540, 400, 150, updateAchievementPosition);
-                }
-                
                 setTimeout(() => {
                     popup.classList.remove('show');
-                    setTimeout(() => {
-                        popup.style.display = 'none';
-                        // Unregister when hidden
-                        if (window.coordSystem) {
-                            window.coordSystem.unregister('achievement-popup');
-                        }
-                    }, 600);
+                    setTimeout(() => popup.style.display = 'none', 600);
                 }, 3000);
             }
         }
+
+        // Add resize listeners for achievement popup
+        window.addEventListener('resize', updateAchievementPosition);
+        window.addEventListener('orientationchange', updateAchievementPosition);
+        
+        // Add fullscreen listeners for achievement popup
+        const achievementFullscreenHandler = () => {
+            setTimeout(updateAchievementPosition, 50);
+            setTimeout(updateAchievementPosition, 150);
+        };
+        document.addEventListener('fullscreenchange', achievementFullscreenHandler);
+        document.addEventListener('webkitfullscreenchange', achievementFullscreenHandler);
+        document.addEventListener('mozfullscreenchange', achievementFullscreenHandler);
+        document.addEventListener('MSFullscreenChange', achievementFullscreenHandler);
 
         function showInteractionPrompt(show) {
             const prompt = document.getElementById('interaction-prompt');
@@ -1207,18 +1083,6 @@
                         scene.cameras.main.setSize(width, height);
                     }
                 });
-                
-                // Notify global coordinate system
-                if (window.coordSystem) {
-                    window.coordSystem.updateAll();
-                }
-                
-                // Update name input position if it exists
-                const nameInputScene = window.game.scene.getScene('NameInputScene');
-                if (nameInputScene && nameInputScene.updateInputPosition) {
-                    console.log('🔄 Calling updateInputPosition from handleResize');
-                    nameInputScene.updateInputPosition();
-                }
             }, 100);
         }
 
@@ -1253,8 +1117,11 @@
 
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Story overlay starts hidden by default (no show class)
-            // No need to manually hide it
+            // Hide story overlay on load
+            const storyOverlay = document.getElementById('story-overlay');
+            if (storyOverlay) {
+                storyOverlay.style.display = 'none';
+            }
 
             // Fullscreen button
             const fullscreenBtn = document.getElementById('fullscreen-toggle');
@@ -1323,24 +1190,20 @@
                 });
             }
 
-            // Global key handlers
+            // Global ESC key handler
             document.addEventListener('keydown', (event) => {
-                // Q key for dialogue skip (changed from ESC)
-                if (event.key === 'q' || event.key === 'Q') {
-                    if (window.dialogueManager && window.dialogueManager.handleEscapeKey()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        console.log('⏭️ Dialogue skipped with Q key');
-                    }
-                }
-                
-                // ESC key for closing menus
                 if (event.key === 'Escape' || event.keyCode === 27) {
                     // Close all menus
                     document.getElementById('inventory-menu').style.display = 'none';
                     document.getElementById('phone-ui').style.display = 'none';
                     document.getElementById('customization-menu').style.display = 'none';
                     document.getElementById('skill-tree-menu').style.display = 'none';
+                    
+                    // Handle dialogue skip if dialogueManager exists
+                    if (window.dialogueManager && window.dialogueManager.handleEscapeKey()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
                 }
             });
         });

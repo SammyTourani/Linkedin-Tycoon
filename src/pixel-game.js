@@ -474,8 +474,38 @@ class StoryManager {
         this.updateStoryOverlayPosition();
         overlay.classList.add('show');
         
+        // Force display styles to ensure visibility
+        overlay.style.display = 'flex';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        
         console.log('Overlay classes:', overlay.className);
-        console.log('Overlay computed style:', window.getComputedStyle(overlay).visibility, window.getComputedStyle(overlay).opacity);
+        const computedStyle = window.getComputedStyle(overlay);
+        console.log('Overlay computed style:', {
+            visibility: computedStyle.visibility,
+            opacity: computedStyle.opacity,
+            zIndex: computedStyle.zIndex,
+            display: computedStyle.display,
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            width: computedStyle.width,
+            height: computedStyle.height,
+            pointerEvents: computedStyle.pointerEvents
+        });
+        
+        // Get overlay's actual position on screen
+        const rect = overlay.getBoundingClientRect();
+        console.log('Overlay bounding rect:', {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+            bottom: rect.bottom,
+            right: rect.right
+        });
         
         this.currentStory = index;
     }
@@ -483,6 +513,7 @@ class StoryManager {
     closeStory() {
         const overlay = document.getElementById('story-overlay');
         overlay.classList.remove('show');
+        overlay.style.display = 'none';
     }
 }
 
@@ -5019,18 +5050,16 @@ class TutorialScene extends Phaser.Scene {
         document.getElementById('dialogue-box').style.display = 'none';
         showNotification('Tutorial complete! Welcome to LinkedIn Tycoon!');
         
-        console.log('📹 Starting camera fade out...');
-        this.cameras.main.fadeOut(1000);
-        this.time.delayedCall(1000, () => {
-            console.log('📖 Fade complete, showing Chapter 1 story...');
-            storyManager.showStory(0);
-            console.log('🔘 Setting up continue button click handler...');
-            document.getElementById('story-continue').onclick = () => {
-                console.log('▶️ Continue button clicked, closing story and starting HomeScene');
-                storyManager.closeStory();
-                this.scene.start('HomeScene');
-            };
-        });
+        // Show story overlay immediately (no camera fade that would cover the HTML overlay)
+        console.log('📖 Showing Chapter 1 story...');
+        storyManager.showStory(0);
+        
+        console.log('🔘 Setting up continue button click handler...');
+        document.getElementById('story-continue').onclick = () => {
+            console.log('▶️ Continue button clicked, closing story and starting HomeScene');
+            storyManager.closeStory();
+            this.scene.start('HomeScene');
+        };
     }
 }
 
