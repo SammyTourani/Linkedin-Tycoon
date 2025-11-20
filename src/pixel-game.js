@@ -182,7 +182,7 @@ class SoundManager {
         
         // Background Music (themes)
         this.sounds.menu_theme = { key: 'menu_theme', path: soundPath + 'menu_theme.mp3', type: 'music' };
-        this.sounds.home_ambient = { key: 'home_ambient', path: soundPath + 'home_ambient_theme.wav', type: 'music' };
+        this.sounds.home_ambient = { key: 'home_ambient', path: soundPath + 'home_ambient_theme.mp3', type: 'music' };
         this.sounds.city_daytime = { key: 'city_daytime', path: soundPath + 'city_daytime_theme.wav', type: 'music' };
         this.sounds.office_work = { key: 'office_work', path: soundPath + 'office_work_theme.wav', type: 'music' };
         this.sounds.customization_theme = { key: 'customization_theme', path: soundPath + 'Character_Customization_theme.mp3', type: 'music' };
@@ -2878,7 +2878,7 @@ class LoadingScene extends Phaser.Scene {
         
         // Background Music (themes)
         this.load.audio('menu_theme', soundPath + 'menu_theme.mp3');
-        this.load.audio('home_ambient', soundPath + 'home_ambient_theme.wav');
+        this.load.audio('home_ambient', soundPath + 'home_ambient_theme.mp3');
         this.load.audio('city_daytime', soundPath + 'city_daytime_theme.wav');
         this.load.audio('office_work', soundPath + 'office_work_theme.wav');
         this.load.audio('customization_theme', soundPath + 'Character_Customization_theme.mp3');
