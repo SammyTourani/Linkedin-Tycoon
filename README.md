@@ -10,7 +10,7 @@
 
 <br />
 
-[![Game Start](GIFs/Game%20Start.gif)](https://sammytourani.github.io/Linkedin-Tycoon/)
+[![Game Start](Gifs/Game%20Start.gif)](https://sammytourani.github.io/Linkedin-Tycoon/)
 
 ### [🎮 PLAY NOW IN BROWSER](https://sammytourani.github.io/Linkedin-Tycoon/)
 
@@ -27,30 +27,37 @@
 <br />
 
 ### 🏙️ Explore a Living World
-Visit 15+ unique locations including the **Coworking Space**, **Gym**, **Coffee Shops**, and **Tech Parks**. Every corner of the city offers new opportunities to network and grow.
+Roam through a bustling city with dynamic weather and day/night cycles. Visit 15+ unique locations including the **Coworking Space**, **Gym**, and **Tech Parks**.
 
-![City View](GIFs/City%20View%201.gif)
+![City View](Gifs/City%20View%201.gif)
+
+<br />
+
+### 🌳 Find Your Balance
+Burnout is real! Take a break at the **City Park** to recharge your energy and health. A balanced life is key to long-term success.
+
+![City Park](Gifs/City%20Park.gif)
 
 <br />
 
 ### 💼 Ace the Interview
 Your career is in your hands. Navigate dynamic job interviews, negotiate your salary, and land prestigious roles at top tech companies.
 
-![Interview](GIFs/Interview.gif)
+![Interview](Gifs/Interview.gif)
 
 <br />
 
-### 📈 Climb the Leaderboards
+### 📈 Climb the Ranks
 Compete with other players! Network with NPCs, send messages, and build your reputation to reach the #1 spot on the global leaderboard.
 
-![Leaderboard](GIFs/LeaderBoard%20&%20Messages.gif)
+![Leaderboard](Gifs/LeaderBoard%20&%20Messages.gif)
 
 <br />
 
-### 🛍️ Customize Your Lifestyle
-Earn coins to upgrade your setup. Buy new outfits, vehicles, and gadgets at the Shop to boost your stats and impress your connections.
+### 🛍️ Live the Life
+Earn coins to upgrade your setup. Visit the **Shop** to buy new outfits, vehicles, and gadgets that boost your stats and impress your connections.
 
-![Shop](GIFs/Shop.gif)
+![Shop](Gifs/Shop.gif)
 
 ---
 
