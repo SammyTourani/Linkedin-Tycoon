@@ -2,21 +2,24 @@
 
 # 🎮 LinkedIn Tycoon
 
-### 🚀 Build Your Professional Empire in the Ultimate Career Simulation RPG
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=0A66C2&center=true&vCenter=true&width=600&lines=Build+Your+Professional+Empire;Master+Career+Simulation+RPG;Network+%7C+Interview+%7C+Succeed;100%25+Free+Browser+Game" alt="Typing Animation" />
+</p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Made with Phaser](https://img.shields.io/badge/Made%20with-Phaser%203-blueviolet)](https://phaser.io/)
-[![Play Now](https://img.shields.io/badge/▶️_PLAY_NOW-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://sammytourani.github.io/Linkedin-Tycoon/)
+
+<a href="https://sammytourani.github.io/Linkedin-Tycoon/">
+  <img src="https://img.shields.io/badge/▶️_PLAY_NOW-0A66C2?style=flat&logo=linkedin&logoColor=white" alt="Play Now" width="150"/>
+</a>
 
 ---
 
-### [**👉 CLICK HERE TO PLAY IMMEDIATELY 👈**](https://sammytourani.github.io/Linkedin-Tycoon/)
-
----
-
-![LinkedIn Tycoon Intro](Gifs/Gif7-ezgif.com-optimize.gif)
+<img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif7-ezgif.com-optimize.gif" alt="LinkedIn Tycoon Intro" width="800"/>
 
 **Navigate the corporate jungle, network with industry leaders, ace job interviews, and build your professional empire in this immersive pixel-art simulation game!**
+
+[**👉 CLICK HERE TO START YOUR JOURNEY 👈**](https://sammytourani.github.io/Linkedin-Tycoon/)
 
 </div>
 
@@ -34,7 +37,9 @@ Whether you're grinding for promotions, shopping for the best gear, or just rela
 
 ### 🎨 Create Your Professional Identity
 
-![Character Customization](Gifs/Gif8-ezgif.com-optimize.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif8-ezgif.com-optimize.gif" alt="Character Customization" width="700"/>
+</p>
 
 **Customize your character** to reflect your unique style! Choose from various appearances, outfits, and accessories. Make your mark in the professional world before you even say your first word.
 
@@ -42,7 +47,9 @@ Whether you're grinding for promotions, shopping for the best gear, or just rela
 
 ### 💼 Ace High-Stakes Job Interviews
 
-![LinkedIn HQ Interview](Gifs/Gif2-ezgif.com-optimize.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif2-ezgif.com-optimize.gif" alt="LinkedIn HQ Interview" width="700"/>
+</p>
 
 **Travel to LinkedIn HQ** and face challenging software engineering interviews. Answer technical questions, demonstrate your skills, and land your dream job. Each interview brings you closer to becoming a tech industry leader!
 
@@ -50,7 +57,9 @@ Whether you're grinding for promotions, shopping for the best gear, or just rela
 
 ### 📊 Track Your Progress & Compete
 
-![Leaderboard & Messages](Gifs/Gif5-ezgif.com-optimize.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif5-ezgif.com-optimize.gif" alt="Leaderboard & Messages" width="700"/>
+</p>
 
 **Check the leaderboard** to see where you rank among other players. Manage your professional network, read messages, and stay connected—all through your in-game phone. Are you ready to be #1?
 
@@ -58,7 +67,9 @@ Whether you're grinding for promotions, shopping for the best gear, or just rela
 
 ### 🌳 Find Balance & Recharge
 
-![City Park Relaxation](Gifs/GIF4-ezgif.com-optimize.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/GIF4-ezgif.com-optimize.gif" alt="City Park Relaxation" width="700"/>
+</p>
 
 **Even tycoons need a break!** Visit the city park to relax, recharge your energy, and maintain your mental health. Work-life balance is key to long-term success.
 
@@ -191,7 +202,9 @@ If you encounter any issues, please [report them here](https://github.com/SammyT
 
 ### 🎮 Ready to Build Your Empire?
 
-[![Play Now Button](https://img.shields.io/badge/▶️_START_PLAYING_NOW-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white&labelColor=00ff88)](https://sammytourani.github.io/Linkedin-Tycoon/)
+<a href="https://sammytourani.github.io/Linkedin-Tycoon/">
+  <img src="https://img.shields.io/badge/▶️_START_PLAYING_NOW-0A66C2?style=flat&logo=linkedin&logoColor=white" alt="Play Now" width="200"/>
+</a>
 
 ---
 
