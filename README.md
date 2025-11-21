@@ -26,13 +26,6 @@
 
 <br />
 
-### 🏙️ Explore a Living World
-Roam through a bustling city with dynamic weather and day/night cycles. Visit 15+ unique locations including the **Coworking Space**, **Gym**, and **Tech Parks**.
-
-![City View](Gifs/City%20View%201.gif)
-
-<br />
-
 ### 🌳 Find Your Balance
 Burnout is real! Take a break at the **City Park** to recharge your energy and health. A balanced life is key to long-term success.
 
@@ -51,13 +44,6 @@ Your career is in your hands. Navigate dynamic job interviews, negotiate your sa
 Compete with other players! Network with NPCs, send messages, and build your reputation to reach the #1 spot on the global leaderboard.
 
 ![Leaderboard](Gifs/LeaderBoard%20&%20Messages.gif)
-
-<br />
-
-### 🛍️ Live the Life
-Earn coins to upgrade your setup. Visit the **Shop** to buy new outfits, vehicles, and gadgets that boost your stats and impress your connections.
-
-![Shop](Gifs/Shop.gif)
 
 ---
 
