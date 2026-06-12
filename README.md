@@ -1,215 +1,80 @@
-<div align="center">
+# LinkedIn Tycoon
 
-# 🎮 LinkedIn Tycoon
+A free, browser-based pixel-art career-simulation RPG. Create a character, explore a small city, network with NPCs, take on job interviews, shop for gear, and climb a career ladder. It runs entirely in the browser with no account, backend, or downloads.
 
-<p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=0A66C2&center=true&vCenter=true&width=600&lines=Build+Your+Professional+Empire;Master+Career+Simulation+RPG;Network+%7C+Interview+%7C+Succeed;100%25+Free+Browser+Game" alt="Typing Animation" />
-</p>
+**[Play it here](https://sammytourani.github.io/Linkedin-Tycoon/)**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Made with Phaser](https://img.shields.io/badge/Made%20with-Phaser%203-blueviolet)](https://phaser.io/)
+## What it is
 
-<a href="https://sammytourani.github.io/Linkedin-Tycoon/">
-  <img src="https://img.shields.io/badge/▶️_PLAY_NOW-0A66C2?style=flat&logo=linkedin&logoColor=white" alt="Play Now" width="150"/>
-</a>
+LinkedIn Tycoon is a single-player game built with [Phaser 3](https://phaser.io/) and bundled with [Vite](https://vitejs.dev/). Everything runs client-side in the browser, and your progress is saved locally with `localStorage` — there is no server and no online multiplayer.
 
----
+## Features
 
-<img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif7-ezgif.com-optimize.gif" alt="LinkedIn Tycoon Intro" width="800"/>
+- **Character customization** — pick your character's appearance before starting.
+- **Movement and exploration** — walk around a pixel-art city and enter different locations.
+- **NPC interaction and networking** — talk to characters and build in-game connections.
+- **Job interviews** — travel to LinkedIn HQ and answer interview questions.
+- **Shopping** — spend in-game coins on items.
+- **In-game phone** — open a phone UI for messages, the leaderboard, and stats.
+- **Leaderboard** — a local, in-game ranking generated from your own stats (not a live online ranking).
+- **Inventory** — track items you own.
+- **Achievements** — unlock achievements as you progress.
+- **Progression systems** — energy, coins, and XP.
+- **Save / load** — progress persists in the browser via `localStorage`.
+- **Audio** — background music and sound effects.
 
-**Navigate the corporate jungle, network with industry leaders, ace job interviews, and build your professional empire in this immersive pixel-art simulation game!**
+## Tech stack
 
-[**👉 CLICK HERE TO START YOUR JOURNEY 👈**](https://sammytourani.github.io/Linkedin-Tycoon/)
+- **Game engine:** Phaser 3
+- **Build tool / dev server:** Vite
+- **Language:** JavaScript (ES6+)
+- **Markup / styling:** HTML5 + CSS3
+- **Hosting:** GitHub Pages (via GitHub Actions)
 
-</div>
+## Run locally
 
----
-
-## ✨ What is LinkedIn Tycoon?
-
-**LinkedIn Tycoon** is a free-to-play, browser-based RPG that simulates the journey of building a professional career. Starting from scratch, you'll create your character, master essential skills, network with professionals, ace interviews at LinkedIn HQ, and climb the corporate ladder—all in a vibrant pixel-art world!
-
-Whether you're grinding for promotions, shopping for the best gear, or just relaxing in the park, LinkedIn Tycoon offers an engaging blend of **strategy**, **progression**, and **fun**.
-
----
-
-## 🎯 Key Features
-
-### 🎨 Create Your Professional Identity
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif8-ezgif.com-optimize.gif" alt="Character Customization" width="700"/>
-</p>
-
-**Customize your character** to reflect your unique style! Choose from various appearances, outfits, and accessories. Make your mark in the professional world before you even say your first word.
-
----
-
-### 💼 Ace High-Stakes Job Interviews
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif2-ezgif.com-optimize.gif" alt="LinkedIn HQ Interview" width="700"/>
-</p>
-
-**Travel to LinkedIn HQ** and face challenging software engineering interviews. Answer technical questions, demonstrate your skills, and land your dream job. Each interview brings you closer to becoming a tech industry leader!
-
----
-
-### 📊 Track Your Progress & Compete
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/Gif5-ezgif.com-optimize.gif" alt="Leaderboard & Messages" width="700"/>
-</p>
-
-**Check the leaderboard** to see where you rank among other players. Manage your professional network, read messages, and stay connected—all through your in-game phone. Are you ready to be #1?
-
----
-
-### 🌳 Find Balance & Recharge
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/SammyTourani/Linkedin-Tycoon/main/Gifs/GIF4-ezgif.com-optimize.gif" alt="City Park Relaxation" width="700"/>
-</p>
-
-**Even tycoons need a break!** Visit the city park to relax, recharge your energy, and maintain your mental health. Work-life balance is key to long-term success.
-
----
-
-## 🎮 Gameplay Mechanics
-
-| Feature | Description |
-|---------|-------------|
-| **🏆 Level Progression** | Start as a Junior Developer and work your way up to CTO or CEO |
-| **⚡ Energy System** | Manage your energy wisely—work, rest, and strategize |
-| **💰 Economy** | Earn coins through jobs, interviews, and networking |
-| **🛒 Shopping** | Purchase laptops, tools, clothes, and equipment to boost your stats |
-| **🤝 Networking** | Build connections with industry professionals for career advice |
-| **📱 In-Game Phone** | Access messages, leaderboards, and career stats on the go |
-| **🎯 Quest System** | Complete objectives to unlock achievements and rewards |
-| **🗺️ Open World** | Explore the city, discover locations, and interact with NPCs |
-
----
-
-## 🛠️ Tech Stack
-
-**LinkedIn Tycoon** is built with modern web technologies for optimal performance:
-
-- **Game Engine:** [Phaser 3](https://phaser.io/) - HTML5 game framework
-- **Core Technologies:** HTML5, CSS3, JavaScript (ES6+)
-- **Rendering:** HTML5 Canvas API for smooth 2D graphics
-- **Build Tool:** Vite for fast development and optimized production builds
-- **Deployment:** GitHub Pages for free, instant access
-
----
-
-## 🚀 Run Locally
-
-Want to run **LinkedIn Tycoon** on your machine? Follow these steps:
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v14 or higher)
-- npm (comes with Node.js)
-
-### Installation
+Requires [Node.js](https://nodejs.org/) and npm.
 
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/SammyTourani/Linkedin-Tycoon.git
-
-# 2. Navigate to the project directory
 cd Linkedin-Tycoon
 
-# 3. Install dependencies
+# Install dependencies
 npm install
 
-# 4. Run the development server
+# Start the dev server (opens automatically in your browser)
 npm run dev
 ```
 
-### Access the Game
+The dev server opens automatically and prints its local URL in the terminal (configured to run on port 3003).
 
-Open your browser and navigate to:
-```
-http://localhost:5173
-```
-
-### Build for Production
+### Build for production
 
 ```bash
 npm run build
 ```
 
-The optimized build will be created in the `dist/` folder.
+The optimized build is written to the `dist/` folder.
 
----
+## Controls
 
-## 🎯 Game Controls
+| Key            | Action                       |
+| -------------- | ---------------------------- |
+| `W` `A` `S` `D` / Arrow keys | Move                |
+| `E`            | Interact with NPCs / objects |
+| `ESC`          | Close menus / dialogue       |
 
-| Key | Action |
-|-----|--------|
-| **W / ↑** | Move Up |
-| **A / ←** | Move Left |
-| **S / ↓** | Move Down |
-| **D / →** | Move Right |
-| **E** | Interact with NPCs/Objects |
-| **I** | Open Inventory |
-| **P** | Open Phone |
-| **L** | Open Leaderboard |
-| **Q** | Skip dialogue typing |
-| **ESC** | Close menus/dialogue |
+Menus such as the phone, leaderboard, inventory, and shop are also reachable through the on-screen UI in-game.
 
----
+## Status
 
-## 🌟 Game Highlights
+Single-player and client-side only. There is no backend or online ranking — the leaderboard and saved progress live entirely in your browser.
 
-- ✅ **100% Free** - No purchases, no ads, just pure gaming fun
-- ✅ **Browser-Based** - Play instantly without downloads
-- ✅ **Cross-Platform** - Works on desktop, tablet, and mobile browsers
-- ✅ **Pixel Art Graphics** - Nostalgic retro aesthetic with modern polish
-- ✅ **Progressive Gameplay** - Unlock new features as you advance
-- ✅ **Achievement System** - Collect achievements and track your progress
-- ✅ **Engaging Story** - Immersive narrative with memorable characters
+## License
 
----
+MIT — see [LICENSE](LICENSE).
 
-## 📝 License
+## Contributing
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 🐛 Found a Bug?
-
-If you encounter any issues, please [report them here](https://github.com/SammyTourani/Linkedin-Tycoon/issues).
-
----
-
-## 📚 Documentation
-
-- **[Quick Start Guide](QUICKSTART.md)** - Get started in 5 minutes
-- **[Deployment Guide](DEPLOYMENT.md)** - Deploy your own instance
-
----
-
-<div align="center">
-
-### 🎮 Ready to Build Your Empire?
-
-<a href="https://sammytourani.github.io/Linkedin-Tycoon/">
-  <img src="https://img.shields.io/badge/▶️_START_PLAYING_NOW-0A66C2?style=flat&logo=linkedin&logoColor=white" alt="Play Now" width="200"/>
-</a>
-
----
-
-<sub>Made with ❤️ by [Sammy Tourani](https://github.com/SammyTourani)</sub>
-
-<sub>⭐ Star this repo if you enjoyed the game!</sub>
-
-</div>
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines, and [DEPLOYMENT.md](DEPLOYMENT.md) for deployment notes.
